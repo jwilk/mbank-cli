@@ -1,0 +1,60 @@
+This is 'mbank-cli', a command line interface to the on-line banking system of
+mBank.
+
+WARNING: You use 'mbank-cli' on your own risk!
+
+WARNING: 'mbank-cli' is considered highly experimental. The interface is likely
+to change in the near future.
+
+WARNING: 'mbank-cli' uses the web interface at <https://www.mbank.com.pl/>
+which is subject to change unexpectedly.
+
+--- Requirements ---
+
+- perl with the following perl modules:
+  - Apache::ConfigFile
+  - Crypt::SSLeay
+  - File::Basename
+  - Getopt::Long
+  - HTML::Form
+  - HTTP::Cookies
+  - LWP::UserAgent
+  - POSIX
+- GNU Privacy Guard (to protect your password)
+
+--- Configuration file ---
+
+$ cat <<EOF | gpg --armor --encrypt > mbank-cli.conf
+Login 123456
+Password "your_password"
+EOF
+
+--- Usage ---
+
+You may create 'log' directory to make debugging easier.
+
+Usage examples:
+
+$ ./mbank-cli list # list available accounts
+
+$ ./mbank-cli history Foo # show history of the 'FooBar' account 
+
+$ ./mbank-cli history Bar --range 2005-01-01 2005-12-31
+
+$ ./mbank-cli history Quux --from 2006-06-01 now
+
+$ ./mbank-cli logout
+
+--- License ---
+
+Copyright (c) 2006 Jakub Wilk <ubanus@users.sf.net>
+   
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2, as
+published by the Free Software Foundation.
+
+This package is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+

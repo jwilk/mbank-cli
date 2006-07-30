@@ -1,0 +1,419 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+no encoding;
+
+use Apache::ConfigFile ();
+use Crypt::SSLeay ();
+use HTML::Form ();
+use HTTP::Cookies ();
+use HTTP::Request::Common qw(GET POST);
+use LWP::UserAgent ();
+use POSIX qw(mktime strftime);
+use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
+use File::Basename qw(dirname);
+
+use constant
+{
+  EC_OK => 0,
+  EC_USER_ERROR => 1,
+  EC_HTTP_ERROR => 2,
+  EC_API_ERROR => 3
+};
+
+chdir dirname($0) or die "Can't change working directory: $!";
+
+my $mbank = 'https://www.mbank.com.pl';
+my $fake_domain = 'mbank-cli.invalid';
+my $cookie_jar_file = './cookie-jar.txt';
+my $config_file = './mbank-cli.conf';
+
+map { $ENV{$_} = undef; } grep(/^HTTPS_/, keys %ENV);
+$ENV{'HTTPS_VERSION'} = 3;
+$ENV{'HTTPS_DEBUG'} = 0;
+$ENV{'HTTPS_CA_FILE'} = '/etc/ssl/certs/ca-bundle.crt';
+$ENV{'HTTPS_CA_DIR'} = '/etc/ssl/certs/';
+
+sub lwp_init
+{
+  my $ua = new LWP::UserAgent(
+    agent => 'Mozilla/5.0',
+    cookie_jar => HTTP::Cookies->new(file => $cookie_jar_file, autosave => 1, ignore_discard => 1),
+    requests_redirectable => ['GET', 'POST'],
+    protocols_allowed => ['https'],
+    timeout => 30
+  );
+  return $ua;
+}
+
+my $ua = lwp_init();
+
+sub debug($)
+{
+  local ($_) = @_;
+  print STDERR "$_\n";
+}
+
+sub api_error($)
+{
+  local ($_) = @_;
+  debug sprintf('Hell, API error! [%s]', $_);
+  exit EC_API_ERROR;
+}
+
+sub http_error($)
+{
+  my ($request) = @_;
+  debug sprintf('HTTP error while processing request <%s %s>', $request->method, $request->uri);
+  exit EC_HTTP_ERROR;
+}
+
+sub shorten_uri($)
+{
+  local ($_) = @_;
+  s/&sMenu=.*?&/&/;
+  s/[?]sErrDescr=&sErrSource=&/?/;
+  return $_;
+}
+
+sub check_for_error($)
+{
+  local ($_) = @_;
+  return $1 if m{<td bgcolor="#FF0000" class="big2" height="20" colspan="3">&nbsp;<img src="/gifs/yellow\.gif" width="8" height="8" alt=""><b>&nbsp;\s*([^>]*?)\s*</b></td>};
+  return '';
+}
+
+sub download($)
+{
+  my ($request) = @_;
+  debug sprintf('Download <%s %s>', $request->method, $request->uri);
+  my $response = $ua->request($request);
+  http_error $request unless $response->is_success;
+  my $content = $response->content;
+  $content =~ s/\r//g;
+  my $error = check_for_error($content);
+  my $filename = $request->uri;
+  $filename =~ s{^\w+://.*?/}{};
+  $filename =~ s/[?].*//;
+  $filename =~ s/[^[:alnum:].]/_/g;
+  $filename =~ s/\.\w+/.html/;
+  $filename = 'index.html' if $filename eq '';
+  if (open LOG, '>', "log/$filename")
+  {
+    print LOG $content;
+    close LOG or die;
+  }
+  return { response => $response, content => $content, error => $error };
+}
+
+sub read_config()
+{
+  open GPG, '-|', '/usr/bin/gpg', '--decrypt', $config_file or die "Can't invoke gpg: $!";
+  my $ac = Apache::ConfigFile->read(
+    file => '&' . fileno GPG,
+    ignore_case  => 1,
+    fix_booleans => 1,
+    raise_error  => 1
+  );
+  unless (close GPG)
+  {
+    debug q(Can't read the config file);
+    exit EC_USER_ERROR;
+  }
+  @_ = ();
+  map { push @_, $ac->cmd_config($_) } ('Login', 'Password');
+  return @_;
+}
+
+sub do_logout()
+{
+  debug 'Logging out...';
+  my $web_logout = download GET("$mbank/ib_logout.asp");
+  $ua->cookie_jar->clear();
+  debug 'Cookies has been wiped out';
+  $web_logout->{content} =~ '<title>mBank - wylogowanie</title>' or api_error('Logout1');
+}
+
+sub do_login($)
+{
+  debug 'Loggin in...';
+  my ($web_in) = @_;
+  my @forms = HTML::Form->parse($web_in->{response});
+  $#forms == 0 or api_error('Login1');
+  my ($form) = @forms;
+  my $in_login = $form->find_input('txtCustNr', 'text');
+  my $in_passw = $form->find_input('txtPasswd', 'password');
+  api_error('Login2') unless defined $in_login and defined $in_passw;
+  my ($login, $passw) = read_config();
+  $in_login->value($login);
+  $in_passw->value($passw);
+  my $web_out = download $form->click();
+  if ($web_out->{error} eq "B\xb3\xb1d logowania")
+  {
+    debug 'Login error!';
+    exit EC_USER_ERROR;
+  }
+  elsif ($web_out->{error} ne '')
+  {
+    api_error('Login: ' . $web_out->{error});
+  }
+  return $web_out;
+}
+
+sub parse_amount($)
+{
+  local ($_) = @_;
+  s/(\s|\xa0)//g;
+  my $number_re = qr{(-?)(\d+),(\d{2})};
+  m{^$number_re$} or m{>$number_re<} or return undef;
+  my $amount = int($2) + int($3) / 100.0;
+  $amount = -$amount if $1;
+  return $amount;
+}
+
+sub do_movements($)
+{
+  my ($web) = @_;
+  WEB_LOOP: while (1)
+  {
+    my $tmp_table = qr{<table CELLSPACING=0 CELLPADDING=0 BORDER=0 width="100%" BGCOLOR="#FFFFFF">};
+    $web->{content} =~ m{$tmp_table.*$tmp_table(.*?)</table>}m or api_error('History1');
+    $_ = $1;
+    s{<img src="/gifs/blank[.]gif" [^>]*>}{}g;
+    s{<td( [^>]+)?></td>}{}g;
+    s{<tr( [^>]+)?>\s*</tr>}{}g;
+    s{ *<tr>}{}g;
+    s{ *</tr>}{\n}g;
+    s{ *<td( [^>]+)?>}{}g;
+    s{ *</td>}{\t}g;
+    s{\s*$}{}g;
+    my @movements = split /\n/;
+    shift @movements;
+    foreach (@movements)
+    {
+      if (m{<input class="button" type="button" name="Submit" VALUE=" Poprzednie operacje " onclick="onButtonClick\('prev'\)">})
+      {
+        my @forms = HTML::Form->parse($web->{response});
+        $#forms == 0 or api_error('HistoryN');
+        my ($form) = @forms;
+        $form->value('UsePrevCtrlValues', 'TRUE');
+        $form->value('PackageDirection', 'prev');
+        $form->action("$mbank/ib_lastmovements_submit.asp");
+        $web = download $form->click();
+        next WEB_LOOP;
+      }
+      elsif (m{<input class="button" TYPE="button" NAME="Submit" value="  Nast\xeapne operacje " onclick="onButtonClick\('next'\)">})
+      {
+        $web = undef;
+        last WEB_LOOP;
+      }
+      my ($date, $details, $amount, $balance) = split /\t/, $_, 4;
+      $date =~ /^(\d{2})-(\d{2})-(\d{4})<br>(\d{2})-(\d{2})-(\d{4})$/ or api_error("History2 {$date}");
+      $date = "$3-$2-$1";
+      my $date2 = "$6-$5-$4";
+      $details =~ s{</?a.*?>}{}g;
+      $details =~ s{^<br>}{};
+      $details =~ s{<br> *$}{};
+      $details =~ s{<br>}{ / }g;
+      $details =~ s{  +}{ }g;
+      $amount = parse_amount $amount;
+      defined $amount or api_error('History3');
+      $balance = parse_amount $balance;
+      defined $balance or api_error('History4');
+      printf "%s\t%s\t%s\t%8.2f\t%8.2f\n", $date, $date2, $details, $amount, $balance;
+    }
+    last WEB_LOOP;
+  }
+}
+
+sub correct_date($)
+{
+  local ($_) = @_;
+  return undef unless defined $_;
+  my $time;
+  if ($_ eq 'now')
+  {
+    return strftime '%Y-%m-%d', localtime(time)
+  }
+  if (m/(\d{4})-(\d{2})-(\d{2})/)
+  {
+    $time = mktime 0, 0, 0, $3, $2-1, $1-1900;
+    @_ = localtime $time;
+    return $_ if
+      $3 == $_[3] and
+      $2 == $_[4] + 1 and
+      $1 == $_[5] + 1900 and
+      $1 >= 1900;
+  }
+  debug "Invalid date: $_";
+  return undef;
+}
+
+my ($opt_from, $opt_to);
+my $opt_range = undef;
+GetOptions(
+  'from=s' => sub 
+    {
+      shift;
+      $opt_from = correct_date shift;
+      $opt_range = 0; 
+    },
+  'to=s' => sub 
+    { 
+      shift;
+      $opt_to = correct_date shift;
+      $opt_range = 0; 
+    },
+  'range=s{2}' => sub 
+    { 
+      shift;
+      if ($opt_range == 0)
+      {
+        $opt_from = correct_date shift;
+        $opt_to = undef;
+        $opt_range++;
+      }
+      else
+      {
+        $opt_to = correct_date shift;
+        $opt_range = 0;
+      }
+    }
+) or exit EC_USER_ERROR;
+
+my $action = shift @ARGV;
+$action = 'list' unless defined $action;
+my $select_account;
+
+debug "Action: $action";
+
+if ($action eq 'logout')
+{
+  do_logout();
+  exit EC_OK;
+}
+elsif ($action eq 'history')
+{
+  $select_account = shift @ARGV;
+  unless (defined $select_account)
+  {
+    debug 'No account selected';
+    exit EC_USER_ERROR;
+  }
+  if (defined $opt_range)
+  {
+    unless (defined $opt_from and defined $opt_to and ($opt_to ge $opt_from))
+    {
+      debug 'No or invalid time range selected';
+      exit EC_USER_ERROR;
+    }
+    debug "Using time range $opt_from ... $opt_to";
+  }
+  else
+  {
+    debug 'Using default time range';
+  }
+}
+elsif ($action eq 'list')
+{ }
+else
+{
+  debug 'Invalid action';
+  exit EC_USER_ERROR;
+}
+
+my $need_login = 1;
+my $web_homebanking;
+
+debug 'Trying to reuse previous session';
+my %login_options = ();
+$ua->cookie_jar->scan( 
+  sub 
+  {
+    my ($version, $key, $val, $path, $domain, $port, $path_spec, $secure, $expires, $discard, $hash) = @_;
+    $login_options{$key} = $val if $domain eq $fake_domain;
+  }
+);
+$web_homebanking = download POST("$mbank/ib_fr_homebanking.asp", \%login_options);
+if ($web_homebanking->{error} eq "B\xb3\xb1d systemu" and $web_homebanking->{content} =~ m{<center><b>Alarm bezpiecze\xf1stwa\. Nieprawid\xb3owy lub niewa\xbfny klucz sesji\.</b></center>})
+{
+  debug 'Invalid or expired session key';
+  $need_login = 1;
+}
+elsif ($web_homebanking->{error} ne '')
+{
+  api_error('PreLogin: ' . $web_homebanking->{error});
+}
+else
+{
+  $need_login = $web_homebanking->{content} =~ /"txtCustNr"/;
+}
+
+if ($need_login)
+{
+  debug 'A new session will be created';
+  $need_login = 1;
+  my $web_login = download GET("$mbank/");
+  my $web_postlogin = do_login($web_login);
+  
+  my @forms = HTML::Form->parse($web_postlogin->{response});
+  $#forms == 0 or api_error('PostLogin1');
+  my ($form) = @forms;
+  $ua->cookie_jar->set_cookie(0, $_->name, $_->value, '/', $fake_domain, '80', undef, undef, 604800, undef) foreach ($form->inputs);
+  $web_homebanking = download $form->click()
+}
+
+$web_homebanking->{content} =~ m{<frame name="FunctionFrame" src="(ib_welcome[.]asp\?[^"]*?)"[^>]*?>} or api_error('PostLogin2');
+my $uri = shorten_uri $1;
+my $web_welcome = download GET("$mbank/$uri");
+
+my $accounts_re = qr{<a +href="ib_contractselected[.]asp[?][^"]*?" [^>]*?>([^>]+)<BR>((\d+ )+\d+)</a>.*?<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>};
+# FIXME: will the above fail if a balance / resources is negative?
+$web_welcome->{content} =~ m{$accounts_re} or api_error('Welcome1');
+
+while ($web_welcome->{content} =~ m{$accounts_re}go)
+{
+  my $name = $1;
+  next if defined $select_account and $name ne $select_account;
+  my $no = $2;
+  my $uri = $4;
+  my $balance = parse_amount $5;
+  defined $balance or api_error('Welcome2');
+  my $resources = parse_amount $6;
+  defined $resources or api_error('Welcome3');
+  if ($action eq 'list')
+  {
+    printf "%s\t%32s\t%8.2f\t%8.2f\n", $name, $no, $balance, $resources;
+  }
+  elsif ($action eq 'history')
+  {
+    my $web_movements = download GET("$mbank/$uri");
+    if (defined $opt_range)
+    {
+      my @forms = HTML::Form->parse($web_movements->{response});
+      $#forms == 0 or api_error('PreHistory1');
+      my ($form) = @forms;
+      $opt_from =~ m/^(\d+)-0*(\d+?)-0*(\d+?)$/ or die;
+      $form->value('dayFrom', $3);
+      $form->value('monthFrom', $2);
+      $form->value('yearFrom', $1);
+      $opt_to =~ m/^(\d+)-0*(\d+?)-0*(\d+?)$/ or die;
+      $form->value('dayTo', $3);
+      $form->value('monthTo', $2);
+      $form->value('yearTo', $1);
+      $form->value('rdDates', '1');
+      $form->value('FirstEntry', '1');
+      $form->value('StartNumber', '0');
+      $form->value('EndNumber', '0');
+      $form->value('PeriodStartN', '0');
+      $form->value('PeriodEndN', '0');
+      $form->value('PackageDirection', '0');
+      $form->action("$mbank/ib_lastmovements_submit.asp");
+      $web_movements = download $form->click();
+    }
+    do_movements($web_movements);
+  }
+}
+
+# vim:ts=2 sw=2 et fenc=ascii
