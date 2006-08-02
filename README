@@ -14,12 +14,10 @@ which is subject to change unexpectedly.
 - perl with the following perl modules:
   - Apache::ConfigFile
   - Crypt::SSLeay
-  - File::Basename
-  - Getopt::Long
+  - Digest::SHA1
   - HTML::Form
   - HTTP::Cookies
   - LWP::UserAgent
-  - POSIX
 - GNU Privacy Guard (to protect your password)
 
 --- Configuration file ---

@@ -6,13 +6,14 @@ no encoding;
 
 use Apache::ConfigFile ();
 use Crypt::SSLeay ();
+use Digest::SHA1 ();
+use File::Basename qw(dirname);
+use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use HTML::Form ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use LWP::UserAgent ();
 use POSIX qw(mktime strftime);
-use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
-use File::Basename qw(dirname);
 
 use constant
 {
@@ -105,9 +106,42 @@ sub download($)
   return { response => $response, content => $content, error => $error };
 }
 
+sub preread_config()
+{
+  unless(open CONFIG, '<', $config_file)
+  {
+    debug "Can't open the config file: $!";
+    exit EC_USER_ERROR;
+  }
+  local $/;
+  my $prev_sha1 = '';
+  my $sha1 = Digest::SHA1->new();
+  $sha1->addfile(*CONFIG);
+  close CONFIG or die;
+  $sha1 = $sha1->b64digest();
+  $ua->cookie_jar->scan( 
+    sub
+    {
+      my ($version, $key, $val, $path, $domain) = @_;
+      $prev_sha1 = $val if $domain eq $fake_domain and $path eq '/config/' and $key eq 'sha1';
+    }
+  );
+  if ($sha1 ne $prev_sha1)
+  {
+    debug 'Your personality has just changed';
+    $ua->cookie_jar->clear();
+  }
+  $ua->cookie_jar->set_cookie(0, 'sha1', $sha1, '/config/', $fake_domain, undef, undef, undef, 1 << 25, undef);
+}
+
 sub read_config()
 {
-  open GPG, '-|', '/usr/bin/gpg', '--decrypt', $config_file or die "Can't invoke gpg: $!";
+  unless (open STDIN, '<', $config_file)
+  {
+    debug "Can't open the config file: $!";
+    exit EC_USER_ERROR;
+  }
+  open GPG, '-|', '/usr/bin/gpg', '--decrypt' or die "Can't invoke gpg: $!";
   my $ac = Apache::ConfigFile->read(
     file => '&' . fileno GPG,
     ignore_case  => 1,
@@ -119,6 +153,7 @@ sub read_config()
     debug q(Can't read the config file);
     exit EC_USER_ERROR;
   }
+  close STDIN or die;
   @_ = ();
   map { push @_, $ac->cmd_config($_) } ('Login', 'Password');
   return @_;
@@ -251,6 +286,7 @@ sub correct_date($)
 my ($opt_from, $opt_to);
 my $opt_range = undef;
 GetOptions(
+  'config=s' => \$config_file,
   'from=s' => sub 
     {
       shift;
@@ -280,11 +316,15 @@ GetOptions(
     }
 ) or exit EC_USER_ERROR;
 
+preread_config();
+
 my $action = shift @ARGV;
 $action = 'list' unless defined $action;
 my $select_account;
 
 debug "Action: $action";
+
+exit EC_OK if $action eq 'void';
 
 if ($action eq 'logout')
 {
@@ -329,8 +369,8 @@ my %login_options = ();
 $ua->cookie_jar->scan( 
   sub 
   {
-    my ($version, $key, $val, $path, $domain, $port, $path_spec, $secure, $expires, $discard, $hash) = @_;
-    $login_options{$key} = $val if $domain eq $fake_domain;
+    my ($version, $key, $val, $path, $domain) = @_;
+    $login_options{$key} = $val if ($domain eq $fake_domain) and ($path eq '/login-options/');
   }
 );
 $web_homebanking = download POST("$mbank/ib_fr_homebanking.asp", \%login_options);
@@ -358,7 +398,7 @@ if ($need_login)
   my @forms = HTML::Form->parse($web_postlogin->{response});
   $#forms == 0 or api_error('PostLogin1');
   my ($form) = @forms;
-  $ua->cookie_jar->set_cookie(0, $_->name, $_->value, '/', $fake_domain, '80', undef, undef, 604800, undef) foreach ($form->inputs);
+  $ua->cookie_jar->set_cookie(0, $_->name, $_->value, '/login-options/', $fake_domain, undef, undef, undef, 604800, undef) foreach ($form->inputs);
   $web_homebanking = download $form->click()
 }
 
