@@ -20,6 +20,14 @@ which is subject to change unexpectedly.
   - LWP::UserAgent
 - GNU Privacy Guard (to protect your password)
 
+(If you are using Debian, dependecies will be satisfied by the following packages:
+- perl
+- libapache-configfile-perl
+- libcrypt-ssleay-perl
+- libdigest-sha1-perl
+- libwww-perl
+- gnupg)
+
 --- Configuration file ---
 
 $ cat <<EOF | gpg --armor --encrypt > mbank-cli.conf
