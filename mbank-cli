@@ -406,7 +406,7 @@ $web_homebanking->{content} =~ m{<frame name="FunctionFrame" src="(ib_welcome[.]
 my $uri = shorten_uri $1;
 my $web_welcome = download GET("$mbank/$uri");
 
-my $accounts_re = qr{<a +href="ib_contractselected[.]asp[?][^"]*?" [^>]*?>([^>]+)<BR>((\d+ )+\d+)</a>.*?<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>};
+my $accounts_re = qr{<a +href="ib_contractselected[.]asp[?][^"]*?" [^>]*?>([^<]+?)<BR>((\d+ )+\d+)</a>.*?<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>};
 # FIXME: will the above fail if a balance / resources is negative?
 $web_welcome->{content} =~ m{$accounts_re} or api_error('Welcome1');
 
