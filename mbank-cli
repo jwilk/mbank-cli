@@ -353,7 +353,7 @@ elsif ($action eq 'history')
     debug 'Using default time range';
   }
 }
-elsif ($action eq 'list')
+elsif ($action eq 'list' or $action eq 'funds')
 { }
 else
 {
@@ -405,6 +405,22 @@ if ($need_login)
 $web_homebanking->{content} =~ m{<frame name="FunctionFrame" src="(ib_welcome[.]asp\?[^"]*?)"[^>]*?>} or api_error('PostLogin2');
 my $uri = shorten_uri $1;
 my $web_welcome = download GET("$mbank/$uri");
+
+if ($action eq 'funds')
+{
+  $web_welcome->{content} =~ m{<a +href="(ib_navibar_3[.]asp\?[^"]*?)"[^>]*?>Fundusze inwestycyjne} or exit; 
+  my $uri = shorten_uri $1;
+  my $web_navibar = download GET("$mbank/$uri");
+  $web_navibar->{content} =~ m{open\("(ib_if_fund_list[.]asp\?[^"]*?)", +"FunctionFrame"\)} or api_error('Funds1');
+  $uri = shorten_uri $1;
+  my $web_fund_list = download GET("$mbank/$uri");
+  my $funds_re = qr{<a +href="ib_if_fund_details[.]asp[?][^"]*?" [^>]*?>([^<]+)</a></td>.*?<DIV NOWRAP>([^>]*?)</DIV>};
+  while ($web_fund_list->{content} =~ m{$funds_re}go)
+  {
+    printf "%s\t%8.2f\n", $1, parse_amount $2;
+  }
+  exit;
+}
 
 my $accounts_re = qr{<a +href="ib_contractselected[.]asp[?][^"]*?" [^>]*?>([^<]+?)<BR>((\d+ )+\d+)</a>.*?<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>};
 # FIXME: will the above fail if a balance / resources is negative?
