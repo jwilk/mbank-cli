@@ -43,7 +43,7 @@ Usage examples:
 
 $ ./mbank-cli list # list available accounts
 
-$ ./mbank-cli history Foo # show history of the 'FooBar' account 
+$ ./mbank-cli history Foo # show history of the 'Foo' account 
 
 $ ./mbank-cli history Bar --range 2005-01-01 2005-12-31
 
