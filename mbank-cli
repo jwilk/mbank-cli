@@ -215,6 +215,7 @@ sub parse_amount($)
 sub do_movements($)
 {
   my ($web) = @_;
+  return if $web->{content} =~ m{<b>Brak operacji dla wybranych kryteri\xf3w wy\xb6wietlania[.]</b>};
   WEB_LOOP: while (1)
   {
     my $tmp_table = qr{<table CELLSPACING=0 CELLPADDING=0 BORDER=0 width="100%" BGCOLOR="#FFFFFF">};
