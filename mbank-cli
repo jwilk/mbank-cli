@@ -283,7 +283,7 @@ sub correct_date($)
 }
 
 my ($opt_from, $opt_to);
-my $opt_range = 0;
+my $opt_range = undef;
 GetOptions(
   'config=s' => \$config_file,
   'from=s' => sub 
@@ -301,11 +301,11 @@ GetOptions(
   'range=s{2}' => sub 
     { 
       shift;
-      if ($opt_range == 0)
+      if (($opt_range || 0) == 0)
       {
         $opt_from = correct_date shift;
         $opt_to = undef;
-        $opt_range++;
+        $opt_range = 1;
       }
       else
       {
