@@ -113,7 +113,6 @@ sub preread_config()
     debug "Can't open the config file: $!";
     exit EC_USER_ERROR;
   }
-  local $/;
   my $prev_sha1 = '';
   my $sha1 = Digest::SHA1->new();
   $sha1->addfile(*CONFIG);
