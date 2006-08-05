@@ -37,7 +37,9 @@ EOF
 
 --- Usage ---
 
-You may create 'log' directory to make debugging easier.
+You may create 'debug' directory to make debugging easier.
+
+You may provide '--verbose' option to fill your screen with cryptic strings.
 
 Usage examples:
 

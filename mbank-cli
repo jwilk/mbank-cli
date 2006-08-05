@@ -48,16 +48,37 @@ sub lwp_init
 
 my $ua = lwp_init();
 
+my $verbose = 0;
+
+sub write_log($)
+{
+  local ($_) = @_;
+  open LOG, '>>', "debug/log" or return;
+  print LOG "$_\n";
+  close LOG;
+}
+
 sub debug($)
 {
   local ($_) = @_;
+  write_log $_;
+  print STDERR "$_\n" if $verbose;
+}
+
+sub user_error($)
+{
+  local ($_) = @_;
+  write_log $_;
   print STDERR "$_\n";
+  exit EC_USER_ERROR;
 }
 
 sub api_error($)
 {
   local ($_) = @_;
-  debug sprintf('Hell, API error! [%s]', $_);
+  $_ = sprintf 'Hell, API error! [%s]', $_;
+  write_log $_;
+  print STDERR "$_\n";
   exit EC_API_ERROR;
 }
 
@@ -98,7 +119,7 @@ sub download($)
   $filename =~ s/[^[:alnum:].]/_/g;
   $filename =~ s/\.\w+/.html/;
   $filename = 'index.html' if $filename eq '';
-  if (open LOG, '>', "log/$filename")
+  if (open LOG, '>', "debug/$filename")
   {
     print LOG $content;
     close LOG or die;
@@ -108,11 +129,7 @@ sub download($)
 
 sub preread_config()
 {
-  unless(open CONFIG, '<', $config_file)
-  {
-    debug "Can't open the config file: $!";
-    exit EC_USER_ERROR;
-  }
+  user_error "Can't open the config file: $!" unless open CONFIG, '<', $config_file;
   my $prev_sha1 = '';
   my $sha1 = Digest::SHA1->new();
   $sha1->addfile(*CONFIG);
@@ -135,11 +152,7 @@ sub preread_config()
 
 sub read_config()
 {
-  unless (open STDIN, '<', $config_file)
-  {
-    debug "Can't open the config file: $!";
-    exit EC_USER_ERROR;
-  }
+  user_error "Can't open the config file: $!" unless open STDIN, '<', $config_file;
   open GPG, '-|', '/usr/bin/gpg', '--decrypt' or die "Can't invoke gpg: $!";
   my $ac = Apache::ConfigFile->read(
     file => '&' . fileno GPG,
@@ -147,11 +160,7 @@ sub read_config()
     fix_booleans => 1,
     raise_error  => 1
   );
-  unless (close GPG)
-  {
-    debug q(Can't read the config file);
-    exit EC_USER_ERROR;
-  }
+  user_error q(Can't read the config file) unless close GPG;
   close STDIN or die;
   @_ = ();
   map { push @_, $ac->cmd_config($_) } ('Login', 'Password');
@@ -183,8 +192,7 @@ sub do_login($)
   my $web_out = download $form->click();
   if ($web_out->{error} eq "B\xb3\xb1d logowania")
   {
-    debug 'Login error!';
-    exit EC_USER_ERROR;
+    user_error 'Login error!';
   }
   elsif ($web_out->{error} ne '')
   {
@@ -285,6 +293,7 @@ sub correct_date($)
 my ($opt_from, $opt_to);
 my $opt_range = undef;
 GetOptions(
+  'verbose' => \$verbose,
   'config=s' => \$config_file,
   'from=s' => sub 
     {
@@ -333,19 +342,11 @@ if ($action eq 'logout')
 elsif ($action eq 'history')
 {
   $select_account = shift @ARGV;
-  unless (defined $select_account)
-  {
-    debug 'No account selected';
-    exit EC_USER_ERROR;
-  }
+  user_error 'No account selected' unless defined $select_account;
   if (defined $opt_range)
   {
     $opt_to = correct_date 'now' if defined $opt_from and not defined $opt_to;
-    unless (defined $opt_from and defined $opt_to and ($opt_to ge $opt_from))
-    {
-      debug 'No or invalid time range selected';
-      exit EC_USER_ERROR;
-    }
+    user_error 'No or invalid time range selected' unless defined $opt_from and defined $opt_to and ($opt_to ge $opt_from);
     debug "Using time range $opt_from ... $opt_to";
   }
   else
@@ -356,18 +357,13 @@ elsif ($action eq 'history')
 elsif ($action eq 'future')
 {
   $select_account = shift @ARGV;
-  unless (defined $select_account)
-  {
-    debug 'No account selected';
-    exit EC_USER_ERROR;
-  }
+  user_error 'No account selected' unless defined $select_account;
 }
 elsif ($action eq 'list' or $action eq 'funds')
 { }
 else
 {
-  debug 'Invalid action';
-  exit EC_USER_ERROR;
+  user_error 'Invalid action';
 }
 
 my $need_login = 1;
