@@ -353,6 +353,15 @@ elsif ($action eq 'history')
     debug 'Using default time range';
   }
 }
+elsif ($action eq 'future')
+{
+  $select_account = shift @ARGV;
+  unless (defined $select_account)
+  {
+    debug 'No account selected';
+    exit EC_USER_ERROR;
+  }
+}
 elsif ($action eq 'list' or $action eq 'funds')
 { }
 else
@@ -425,19 +434,20 @@ if ($action eq 'funds')
   exit;
 }
 
-my $accounts_re = qr{<a +href="ib_contractselected[.]asp[?][^"]*?" [^>]*?>([^<]+?)<BR>((\d+ )+\d+)</a>.*?<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>};
+my $accounts_re = qr{<a +href="(ib_contractselected[.]asp[?][^"]*?)" [^>]*?>([^<]+?)<BR>((\d+ )+\d+)</a>.*?<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>};
 # FIXME: will the above fail if a balance / resources is negative?
 $web_welcome->{content} =~ m{$accounts_re} or api_error('Welcome1');
 
 while ($web_welcome->{content} =~ m{$accounts_re}go)
 {
-  my $name = $1;
+  my $contract_uri = $1;
+  my $name = $2;
   next if defined $select_account and $name ne $select_account;
-  my $no = $2;
-  my $uri = $4;
-  my $balance = parse_amount $5;
+  my $no = $3;
+  my $lastmovements_uri = $5;
+  my $balance = parse_amount $6;
   defined $balance or api_error('Welcome2');
-  my $resources = parse_amount $6;
+  my $resources = parse_amount $7;
   defined $resources or api_error('Welcome3');
   if ($action eq 'list')
   {
@@ -445,7 +455,7 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
   }
   elsif ($action eq 'history')
   {
-    my $web_movements = download GET("$mbank/$uri");
+    my $web_movements = download GET("$mbank/$lastmovements_uri");
     if (defined $opt_range)
     {
       my @forms = HTML::Form->parse($web_movements->{response});
@@ -471,6 +481,33 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
     }
     do_movements($web_movements);
   }
+  elsif ($action eq 'future')
+  {
+    my $web_contractselected = download GET("$mbank/$contract_uri");
+    $web_contractselected->{content} =~ m{open\("(ib_navibar_3[.]asp\?[^"]*?)", +"MenuFrame"\)} or api_error('Future1');
+    my $navibar_uri = shorten_uri $1;
+    my $web_navibar = download GET("$mbank/$navibar_uri");
+    $web_navibar->{content} =~ m{href="(ib_navibar_3[.]asp\?[^"]*?)" +target="MenuFrame">Historia} or api_error('Future2');
+    $navibar_uri = $1;
+    $web_navibar = download GET("$mbank/$navibar_uri");
+    $web_navibar->{content} =~ m{href="(ib_navibar_3[.]asp\?[^"]*?)" +target="MenuFrame">Operacje zaplanowane} or api_error('Future3');
+    $navibar_uri = $1;
+    $web_navibar = download GET("$mbank/$navibar_uri");
+    $web_navibar->{content} =~ m{open\("(ib_future_operation_list[.]asp\?[^"]*?)", +"FunctionFrame"\)} or api_error('Future4');
+    my $future_uri = shorten_uri $1;
+    my $web_future_operation_list = download GET("$mbank/$future_uri");
+
+  my $transfer_re = qr{<DIV NOWRAP>(\d+-\d+-\d+)</DIV>.*? operacji">([^<]+?)</a></td> *<td[^>]+?>.*?</td> *<td[^>]+?>([^<]+?)</td>.*?<DIV NOWRAP>([^<]+?)</DIV></td> *<td[^>]+?>.*?</td> *<td[^>]+?>([^<]+?)</td>};
+  while ($web_future_operation_list->{content} =~ m{$transfer_re}go)
+  {
+    my $date = $1;
+    my $receiver = $2;
+    my $title = $3;
+    my $amount = parse_amount $4;
+    my $status = $5;
+    printf "%s\t%s\t%s\t%8.2f\t%s\n", $date, $receiver, $title, $amount , $status;
+  }
+ }
 }
 
 # vim:ts=2 sw=2 et fenc=ascii
