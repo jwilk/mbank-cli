@@ -417,7 +417,10 @@ if ($action eq 'funds')
   my $funds_re = qr{<a +href="ib_if_fund_details[.]asp[?][^"]*?" [^>]*?>([^<]+)</a></td>.*?<DIV NOWRAP>([^>]*?)</DIV>};
   while ($web_fund_list->{content} =~ m{$funds_re}go)
   {
-    printf "%s\t%8.2f\n", $1, parse_amount $2;
+    my $name = $1;
+    my $amount = parse_amount $2;
+    defined $amount or api_error('Funds2');
+    printf "%s\t%8.2f\n", $name, $amount;
   }
   exit;
 }
