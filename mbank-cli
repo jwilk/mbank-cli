@@ -284,7 +284,7 @@ sub correct_date($)
 }
 
 my ($opt_from, $opt_to);
-my $opt_range = undef;
+my $opt_range = 0;
 GetOptions(
   'config=s' => \$config_file,
   'from=s' => sub 
@@ -341,6 +341,7 @@ elsif ($action eq 'history')
   }
   if (defined $opt_range)
   {
+    $opt_to = correct_date 'now' if defined $opt_from and not defined $opt_to;
     unless (defined $opt_from and defined $opt_to and ($opt_to ge $opt_from))
     {
       debug 'No or invalid time range selected';
