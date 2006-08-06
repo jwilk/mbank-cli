@@ -16,6 +16,7 @@ which is subject to change unexpectedly.
   - Crypt::SSLeay
   - Digest::SHA1
   - HTML::Form
+  - HTML::Entities
   - HTTP::Cookies
   - LWP::UserAgent
 - GNU Privacy Guard (to protect your password)

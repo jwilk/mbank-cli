@@ -12,6 +12,7 @@ use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use HTML::Form ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
+use HTML::Entities qw(decode_entities);
 use LWP::UserAgent ();
 use POSIX qw(mktime strftime);
 
@@ -257,6 +258,7 @@ sub do_movements($)
       $details =~ s{<br> *$}{};
       $details =~ s{<br>}{ / }g;
       $details =~ s{  +}{ }g;
+      $details = decode_entities($details);
       $amount = parse_amount $amount;
       defined $amount or api_error('History3');
       $balance = parse_amount $balance;
@@ -437,7 +439,7 @@ $web_welcome->{content} =~ m{$accounts_re} or api_error('Welcome1');
 while ($web_welcome->{content} =~ m{$accounts_re}go)
 {
   my $contract_uri = $1;
-  my $name = $2;
+  my $name = decode_entities $2;
   next if defined $select_account and $name ne $select_account;
   my $no = $3;
   my $lastmovements_uri = $5;
@@ -497,8 +499,8 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
   while ($web_future_operation_list->{content} =~ m{$transfer_re}go)
   {
     my $date = $1;
-    my $receiver = $2;
-    my $title = $3;
+    my $receiver = decode_entities $2;
+    my $title = decode_entities $3;
     my $amount = parse_amount $4;
     my $status = $5;
     printf "%s\t%s\t%s\t%8.2f\t%s\n", $date, $receiver, $title, $amount , $status;
