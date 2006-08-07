@@ -195,10 +195,27 @@ sub read_config()
 sub do_logout()
 {
   debug 'Logging out...';
+  $ua->protocols_allowed(['http', 'https']);
+  my $have_cookies = 0;
+  $ua->cookie_jar->scan( 
+    sub 
+    { 
+      my ($version, $key, $val, $path, $domain) = @_;
+      $have_cookies = 1 unless $domain eq $fake_domain; 
+    } 
+  );
+  user_error 'You are not logged in' unless $have_cookies;
   my $web_logout = download GET("$mbank/ib_logout.asp");
   $ua->cookie_jar->clear();
   debug 'Cookies has been wiped out';
-  $web_logout->{content} =~ '<title>mBank - wylogowanie</title>' or api_error('Logout1');
+  if (check_session_expiry($web_logout))
+  {
+    debug 'Probably you have been already logged out'
+  }
+  else
+  {
+    $web_logout->{content} =~ '<title>mBank - wylogowanie</title>' or api_error('Logout1');
+  }
 }
 
 sub do_login($)
@@ -317,6 +334,14 @@ sub correct_date($)
   return undef;
 }
 
+sub check_session_expiry($)
+{
+  my ($web) = @_;
+  return 1
+    if ($web->{error} eq "B\xb3\xb1d systemu" and 
+    $web->{content} =~ m{<center><b>Alarm bezpiecze\xf1stwa\. Nieprawid\xb3owy lub niewa\xbfny klucz sesji\.</b></center>});
+}
+
 my ($opt_from, $opt_to);
 my $opt_range = undef;
 GetOptions(
@@ -408,7 +433,7 @@ $ua->cookie_jar->scan(
   }
 );
 $web_homebanking = download POST("$mbank/ib_fr_homebanking.asp", \%login_options);
-if ($web_homebanking->{error} eq "B\xb3\xb1d systemu" and $web_homebanking->{content} =~ m{<center><b>Alarm bezpiecze\xf1stwa\. Nieprawid\xb3owy lub niewa\xbfny klucz sesji\.</b></center>})
+if (check_session_expiry($web_homebanking))
 {
   debug 'Invalid or expired session key';
   $need_login = 1;
