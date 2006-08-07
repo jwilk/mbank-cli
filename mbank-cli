@@ -12,9 +12,11 @@ use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use HTML::Form ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
-use HTML::Entities qw(decode_entities);
+use I18N::Langinfo qw(langinfo CODESET);
+use HTML::Entities ();
 use LWP::UserAgent ();
 use POSIX qw(mktime strftime);
+use Encode ();
 
 use constant
 {
@@ -30,6 +32,29 @@ my $mbank = 'https://www.mbank.com.pl';
 my $fake_domain = 'mbank-cli.invalid';
 my $cookie_jar_file = './cookie-jar.txt';
 my $config_file = './mbank-cli.conf';
+
+sub widen_string($;$)
+{
+  BEGIN 
+  { 
+    our $locale_codeset = langinfo(CODESET);
+    binmode STDOUT => "encoding($locale_codeset)";
+  }
+  (local $_, my $codeset) = @_;
+  $codeset = $main::locale_codeset unless defined $codeset;
+  return Encode::decode($codeset, $_);
+}
+
+sub decode_entities($)
+{
+  BEGIN
+  {
+    our $web_codeset = 'ISO-8859-2';
+  }
+  local ($_) = @_;
+  $_ = widen_string $_, $main::web_codeset;
+  return HTML::Entities::decode_entities $_;
+}
 
 sub lwp_init()
 {
@@ -258,7 +283,7 @@ sub do_movements($)
       $details =~ s{<br> *$}{};
       $details =~ s{<br>}{ / }g;
       $details =~ s{  +}{ }g;
-      $details = decode_entities($details);
+      $details = decode_entities $details;
       $amount = parse_amount $amount;
       defined $amount or api_error('History3');
       $balance = parse_amount $balance;
@@ -345,6 +370,7 @@ elsif ($action eq 'history')
 {
   $select_account = shift @ARGV;
   user_error 'No account selected' unless defined $select_account;
+  $select_account = widen_string $select_account;
   if (defined $opt_range)
   {
     $opt_to = correct_date 'now' if defined $opt_from and not defined $opt_to;
@@ -360,6 +386,7 @@ elsif ($action eq 'future')
 {
   $select_account = shift @ARGV;
   user_error 'No account selected' unless defined $select_account;
+  $select_account = widen_string $select_account;
 }
 elsif ($action eq 'list' or $action eq 'funds')
 { }
@@ -424,7 +451,7 @@ if ($action eq 'funds')
   my $funds_re = qr{<a +href="ib_if_fund_details[.]asp[?][^"]*?" [^>]*?>([^<]+)</a></td>.*?<DIV NOWRAP>([^>]*?)</DIV>};
   while ($web_fund_list->{content} =~ m{$funds_re}go)
   {
-    my $name = $1;
+    my $name = decode_entities $1;
     my $amount = parse_amount $2;
     defined $amount or api_error('Funds2');
     printf "%s\t%8.2f\n", $name, $amount;
