@@ -495,17 +495,17 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
     my $future_uri = shorten_uri $1;
     my $web_future_operation_list = download GET("$mbank/$future_uri");
 
-  my $transfer_re = qr{<DIV NOWRAP>(\d+-\d+-\d+)</DIV>.*? operacji">([^<]+?)</a></td> *<td[^>]+?>.*?</td> *<td[^>]+?>([^<]+?)</td>.*?<DIV NOWRAP>([^<]+?)</DIV></td> *<td[^>]+?>.*?</td> *<td[^>]+?>([^<]+?)</td>};
-  while ($web_future_operation_list->{content} =~ m{$transfer_re}go)
-  {
-    my $date = $1;
-    my $receiver = decode_entities $2;
-    my $title = decode_entities $3;
-    my $amount = parse_amount $4;
-    my $status = $5;
-    printf "%s\t%s\t%s\t%8.2f\t%s\n", $date, $receiver, $title, $amount , $status;
+    my $transfer_re = qr{<DIV NOWRAP>(\d+-\d+-\d+)</DIV>.*? operacji">([^<]+?)</a></td> *<td[^>]+?>.*?</td> *<td[^>]+?>([^<]+?)</td>.*?<DIV NOWRAP>([^<]+?)</DIV></td> *<td[^>]+?>.*?</td> *<td[^>]+?>([^<]+?)</td>};
+    while ($web_future_operation_list->{content} =~ m{$transfer_re}go)
+    {
+      my $date = $1;
+      my $receiver = decode_entities $2;
+      my $title = decode_entities $3;
+      my $amount = parse_amount $4;
+      my $status = $5;
+      printf "%s\t%s\t%s\t%8.2f\t%s\n", $date, $receiver, $title, $amount, $status;
+    }
   }
- }
 }
 
 # vim:ts=2 sw=2 et fenc=ascii
