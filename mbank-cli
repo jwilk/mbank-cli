@@ -295,17 +295,17 @@ sub do_movements($)
       $date =~ /^(\d{2})-(\d{2})-(\d{4})<br>(\d{2})-(\d{2})-(\d{4})$/ or api_error("History2 {$date}");
       $date = "$3-$2-$1";
       my $date2 = "$6-$5-$4";
+      $details =~ s{\s+}{ }g;
       $details =~ s{</?a.*?>}{}g;
       $details =~ s{^<br>}{};
       $details =~ s{<br> *$}{};
-      $details =~ s{<br>}{ / }g;
-      $details =~ s{  +}{ }g;
+      $details =~ s{<br>}{\t}g;
       $details = decode_entities $details;
       $amount = parse_amount $amount;
       defined $amount or api_error('History3');
       $balance = parse_amount $balance;
       defined $balance or api_error('History4');
-      printf "%s\t%s\t%s\t%8.2f\t%8.2f\n", $date, $date2, $details, $amount, $balance;
+      printf "%s\t%s\t%8.2f\t%8.2f\t%s\n", $date, $date2, $amount, $balance, $details;
     }
     last WEB_LOOP;
   }
