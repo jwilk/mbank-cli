@@ -254,9 +254,9 @@ sub parse_amount($)
   return $amount;
 }
 
-sub do_movements($)
+sub do_movements($$)
 {
-  my ($web) = @_;
+  my ($web, $name) = @_;
   return if $web->{content} =~ m{<b>Brak operacji dla wybranych kryteri\xf3w wy\xb6wietlania[.]</b>};
   WEB_LOOP: while (1)
   {
@@ -305,6 +305,7 @@ sub do_movements($)
       defined $amount or api_error('History3');
       $balance = parse_amount $balance;
       defined $balance or api_error('History4');
+      printf "$name\t", $name if defined $name;
       printf "%s\t%s\t%8.2f\t%8.2f\t%s\n", $date, $date2, $amount, $balance, $details;
     }
     last WEB_LOOP;
@@ -344,6 +345,7 @@ sub check_session_expiry($)
 
 my ($opt_from, $opt_to);
 my $opt_range = undef;
+my $opt_multiple_accounts = 0;
 GetOptions(
   'verbose' => \$verbose,
   'config=s' => \$config_file,
@@ -373,14 +375,22 @@ GetOptions(
         $opt_to = correct_date shift;
         $opt_range = 0;
       }
-    }
+    },
+  'multiple-accounts' => sub 
+    { 
+      $opt_multiple_accounts = 1; 
+    },
+  'all-accounts' => sub 
+    {
+      $opt_multiple_accounts = 99; 
+    },
 ) or exit EC_USER_ERROR;
 
 preread_config();
 
 my $action = shift @ARGV;
 $action = 'list' unless defined $action;
-my $select_account;
+my $selected_accounts;
 
 debug "Action: $action";
 
@@ -391,27 +401,35 @@ if ($action eq 'logout')
   do_logout();
   exit EC_OK;
 }
-elsif ($action eq 'history')
+elsif ($action eq 'history' or $action eq 'future')
 {
-  $select_account = shift @ARGV;
-  user_error 'No account selected' unless defined $select_account;
-  $select_account = widen_string $select_account;
-  if (defined $opt_range)
+
+  $opt_multiple_accounts++ if $opt_multiple_accounts == 0 and $#ARGV > 0;
+  if ($opt_multiple_accounts > 1)
   {
-    $opt_to = correct_date 'now' if defined $opt_from and not defined $opt_to;
-    user_error 'No or invalid time range selected' unless defined $opt_from and defined $opt_to and ($opt_to ge $opt_from);
-    debug "Using time range $opt_from ... $opt_to";
-  }
+    $selected_accounts = qr(^);
+  } 
   else
   {
-    debug 'Using default time range';
+    user_error 'No account selected' if $#ARGV < 0;
+    @_ = map { widen_string $_ } @ARGV;
+    @_ = map quotemeta, @ARGV;
+    $_ = join '|', @_;
+    $selected_accounts = qr($_);
   }
-}
-elsif ($action eq 'future')
-{
-  $select_account = shift @ARGV;
-  user_error 'No account selected' unless defined $select_account;
-  $select_account = widen_string $select_account;
+  if ($action eq 'history')
+  {
+    if (defined $opt_range)
+    {
+      $opt_to = correct_date 'now' if defined $opt_from and not defined $opt_to;
+      user_error 'No or invalid time range selected' unless defined $opt_from and defined $opt_to and ($opt_to ge $opt_from);
+      debug "Using time range $opt_from ... $opt_to";
+    }
+    else
+    {
+      debug 'Using default time range';
+    }
+  }
 }
 elsif ($action eq 'list' or $action eq 'funds')
 { }
@@ -492,13 +510,13 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
 {
   my $contract_uri = $1;
   my $name = decode_entities $2;
-  next if defined $select_account and $name ne $select_account;
   my $no = $3;
   my $lastmovements_uri = $5;
   my $balance = parse_amount $6;
   defined $balance or api_error('Welcome2');
   my $resources = parse_amount $7;
   defined $resources or api_error('Welcome3');
+  next if defined $selected_accounts and $name !~ m/$selected_accounts/;
   if ($action eq 'list')
   {
     printf "%s\t%32s\t%8.2f\t%8.2f\n", $name, $no, $balance, $resources;
@@ -529,7 +547,7 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
       $form->action("$mbank/ib_lastmovements_submit.asp");
       $web_movements = download $form->click();
     }
-    do_movements($web_movements);
+    do_movements($web_movements, $opt_multiple_accounts ? $name : undef);
   }
   elsif ($action eq 'future')
   {
@@ -555,6 +573,7 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
       my $title = decode_entities $3;
       my $amount = parse_amount $4;
       my $status = $5;
+      printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%s\t%8.2f\t%s\n", $date, $receiver, $title, $amount, $status;
     }
   }
