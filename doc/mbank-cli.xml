@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE refentry PUBLIC '-//OASIS//DTD DocBook XML V4.1.2//EN' 'http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd' 
+[
+	<!ENTITY p 'mbank-cli'>
+]>
+
+<refentry>
+
+<refentryinfo>
+	<title>&p; manual</title>
+	<productname>&p;</productname>
+	<copyright>
+		<year>2006</year>
+		<holder><firstname>Piotr</firstname> <surname>Lewandowski</surname></holder>
+		<holder><firstname>Jakub</firstname> <surname>Wilk</surname></holder>
+	</copyright>
+	<date>2006-08-18</date>
+</refentryinfo>
+
+<refmeta>
+	<refentrytitle>&p;</refentrytitle>
+	<manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+	<refname>&p;</refname>
+	<refpurpose>a command line interface to the on-line banking system of mBank</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt'>list</arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='plain'>history</arg>
+		<group choice='opt'>
+			<arg choice='plain'>
+				<option>--range</option> <replaceable>StartDate</replaceable> <replaceable>EndDate</replaceable>
+			</arg>
+			<arg choice='plain'>
+				<option>--from</option> <replaceable>StartDate</replaceable>
+				<arg choice='opt'><option>--to</option> <replaceable>EndDate</replaceable></arg>
+			</arg>
+		</group>
+		<group choice='req'>
+			<arg choice='plain'><replaceable>Account</replaceable></arg>
+			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
+			<arg choice='plain'><option>--all-accounts</option></arg>
+		</group>
+	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='plain'>future</arg>
+		<group choice='req'>
+			<arg choice='plain'><replaceable>Account</replaceable></arg>
+			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
+			<arg choice='plain'><option>--all-accounts</option></arg>
+		</group>
+	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='plain'>funds</arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='plain'>logout</arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='plain'>void</arg>
+	</cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1>
+	<title>Description</title>
+	<para>
+		'mbank-cli' provides a rudimentary command line interface to the <ulink url="https://www.mbank.com.pl/">mBank online banking system</ulink>.
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>Common options</title>
+	<para>
+		&p; accepts the following options, regardless the chosen action:
+	</para>
+
+	<variablelist>
+		<varlistentry>
+			<term><option>--verbose</option></term>
+			<listitem>
+				<para>Display lots of debugging information.</para>
+			</listitem>
+		</varlistentry>
+		<varlistentry>
+			<term><option>--config</option> <arg choice='req'><replaceable>ConfigFile</replaceable></arg></term>
+			<listitem>
+				<para>Use the provided config file.</para>
+			</listitem>
+		</varlistentry>
+	</variablelist>
+</refsect1>
+
+<refsect1>
+	<title>list action</title>
+	<para>
+		List available accounts.
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>history action</title>
+	<para>
+		Show the history of the selected account(s).
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>future action</title>
+	<para>
+		Show list of planned transfer for the selected account(s).
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>funds action</title>
+	<para>
+		List available investment funds.
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>logout action</title>
+	<para>
+		Leave the web interace.
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>void action</title>
+	<para>
+		Do (almost) nothing. Useful only for the debugging purposes.
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>Files</title>
+	<para>(Due to experimental nature of &p; these files are excepted to be in the current working directory.)</para>
+	<variablelist>
+		<varlistentry>
+			<term><filename>mbank-cli.conf</filename></term>
+			<listitem>
+				<para>Default config file.</para>
+			</listitem>
+		</varlistentry>
+		<varlistentry>
+			<term><filename>cookie-jar.txt</filename></term>
+			<listitem>
+				<para>State of the phony web browser is saved in this file.</para>
+			</listitem>
+		</varlistentry>
+		<varlistentry>
+			<term><filename>debug/<replaceable>*</replaceable>.html</filename></term>
+		</varlistentry>
+		<varlistentry>
+			<term><filename>debug/log</filename></term>
+		</varlistentry>
+	</variablelist>
+</refsect1>
+
+</refentry>
+
+<!-- vim:set ts=4 sw=4: -->
