@@ -11,8 +11,8 @@
 	<productname>&p;</productname>
 	<copyright>
 		<year>2006</year>
-		<holder><firstname>Piotr</firstname> <surname>Lewandowski</surname></holder>
-		<holder><firstname>Jakub</firstname> <surname>Wilk</surname></holder>
+		<holder>Piotr Lewandowski</holder>
+		<holder>Jakub Wilk</holder>
 	</copyright>
 	<date>2006-08-18</date>
 </refentryinfo>
@@ -100,9 +100,9 @@
 			</listitem>
 		</varlistentry>
 		<varlistentry>
-			<term><option>--config</option> <arg choice='req'><replaceable>ConfigFile</replaceable></arg></term>
+			<term><option>--config</option> <replaceable>ConfigFile</replaceable></term>
 			<listitem>
-				<para>Use the provided config file.</para>
+				<para>Use <replaceable>ConfigFile</replaceable> the provided config file.</para>
 			</listitem>
 		</varlistentry>
 	</variablelist>
@@ -168,9 +168,15 @@
 		</varlistentry>
 		<varlistentry>
 			<term><filename>debug/<replaceable>*</replaceable>.html</filename></term>
+			<listitem>
+				<para></para>
+			</listitem>
 		</varlistentry>
 		<varlistentry>
 			<term><filename>debug/log</filename></term>
+			<listitem>
+				<para></para>
+			</listitem>
 		</varlistentry>
 	</variablelist>
 </refsect1>
