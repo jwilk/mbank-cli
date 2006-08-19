@@ -2,8 +2,40 @@
 <!DOCTYPE refentry PUBLIC '-//OASIS//DTD DocBook XML V4.1.2//EN' 'http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd' 
 [
 	<!ENTITY p 'mbank-cli'>
+	<!ENTITY select-accounts
+'<para>
+	You can select account(s) in the following ways:
+	<itemizedlist>
+		<listitem>
+			<para>to select a single account — just provide its name;</para>
+		</listitem>
+		<listitem>
+			<para>
+				to select multiple accounts — use one of these options:
+				<variablelist>
+					<varlistentry>
+						<term><option>--multiple-accounts</option></term>
+						<listitem>
+							<para>to select accounts specified in the command line,</para>
+						</listitem>
+					</varlistentry>
+					<varlistentry>
+						<term><option>--all-accounts</option></term>
+						<listitem>
+							<para>
+								to select all accounts.
+							</para>
+						</listitem>
+					</varlistentry>
+				</variablelist>
+			</para>
+		</listitem>
+	</itemizedlist>
+</para>'>
+	<!ENTITY output-format 'The output consists of lines in the following format:'>
+	<!ENTITY tab-separated 'Fields are tab-separated.'>
+	<!ENTITY omit-account-name '<replaceable>AccountName</replaceable> will be omitted unless <option>--multiple-accounts</option> or <option>--all-accounts</option> opion is used.'>
 ]>
-
 <refentry>
 
 <refentryinfo>
@@ -90,28 +122,32 @@
 	<title>Common options</title>
 	<para>
 		&p; accepts the following options, regardless the chosen action:
+		<variablelist>
+			<varlistentry>
+				<term><option>--verbose</option></term>
+				<listitem>
+					<para>Display lots of debugging information.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>--config</option> <replaceable>ConfigFile</replaceable></term>
+				<listitem>
+					<para>Use <replaceable>ConfigFile</replaceable> as an alternate configuration file.</para>
+				</listitem>
+			</varlistentry>
+		</variablelist>
 	</para>
-
-	<variablelist>
-		<varlistentry>
-			<term><option>--verbose</option></term>
-			<listitem>
-				<para>Display lots of debugging information.</para>
-			</listitem>
-		</varlistentry>
-		<varlistentry>
-			<term><option>--config</option> <replaceable>ConfigFile</replaceable></term>
-			<listitem>
-				<para>Use <replaceable>ConfigFile</replaceable> the provided config file.</para>
-			</listitem>
-		</varlistentry>
-	</variablelist>
 </refsect1>
 
 <refsect1>
 	<title>list action</title>
 	<para>
 		List available accounts.
+	</para>
+	<para>
+		&output-format;
+		<screen><replaceable>AccountName</replaceable> <replaceable>AccountNo</replaceable> <replaceable>Balance</replaceable> <replaceable>AvailResources</replaceable></screen>
+		&tab-separated;
 	</para>
 </refsect1>
 
@@ -120,6 +156,36 @@
 	<para>
 		Show the history of the selected account(s).
 	</para>
+	<para>
+		Time range can be selected with the following options:
+		<variablelist>
+			<varlistentry>
+				<term><option>--from</option> <replaceable>StartDate</replaceable></term>
+				<listitem>
+					<para>Show transfers with the date not before <replaceable>StartDate</replaceable>.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>--range</option> <replaceable>StartDate</replaceable> <replaceable>EndDate</replaceable></term>
+				<term><option>--from</option> <replaceable>StartDate</replaceable> <option>--to</option> <replaceable>EndDate</replaceable></term>
+				<listitem>
+					<para>
+						Show transfers with the date neither before <replaceable>StartDate</replaceable>,
+						nor after <replaceable>EndDate</replaceable>.
+					</para>
+				</listitem>
+			</varlistentry>
+		</variablelist>
+		Date can be '<literal>now</literal>' or in the <literal><replaceable>YYYY</replaceable>-<replaceable>MM</replaceable>-<replaceable>DD</replaceable></literal> format.
+	</para>
+	&select-accounts;
+	<para>
+		&output-format;
+		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>AccountingDate</replaceable> <replaceable>Amount</replaceable> <replaceable>Balance</replaceable> <replaceable>Description</replaceable></screen>
+		&tab-separated;
+		&omit-account-name;
+		<replaceable>Description</replaceable> may consist of multiple lines, which are tab-separated in the output.
+	</para>
 </refsect1>
 
 <refsect1>
@@ -127,12 +193,24 @@
 	<para>
 		Show list of planned transfer for the selected account(s).
 	</para>
+	&select-accounts;
+	<para>
+		&output-format;
+		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>Receiver</replaceable> <replaceable>Title</replaceable> <replaceable>Amount</replaceable> <replaceable>Status</replaceable></screen>
+		&tab-separated;
+		&omit-account-name;
+	</para>
 </refsect1>
 
 <refsect1>
 	<title>funds action</title>
 	<para>
 		List available investment funds.
+	</para>
+	<para>
+		&output-format;
+		<screen><replaceable>FundName</replaceable> <replaceable>Amount</replaceable></screen>
+		&tab-separated;
 	</para>
 </refsect1>
 
@@ -151,36 +229,102 @@
 </refsect1>
 
 <refsect1>
+	<title>Usage examples</title>
+	<screen><!--
+--><prompt>$</prompt> <command>./&p;</command> list <lineannotation># list available accounts</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> history Foo <lineannotation># show history of the 'Foo' account</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> history Bar --range 2005-01-01 2005-12-31 &#10;
+<prompt>$</prompt> <command>./&p;</command> history Quux --from 2006-06-01 &#10;
+<prompt>$</prompt> <command>./&p;</command> future Foo <lineannotation># show list of planned transfers of the 'Foo' account</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> funds <lineannotation># list available investment funds</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> logout
+	</screen>
+</refsect1>
+
+<refsect1>
 	<title>Files</title>
 	<para>(Due to experimental nature of &p; these files are excepted to be in the current working directory.)</para>
 	<variablelist>
 		<varlistentry>
 			<term><filename>mbank-cli.conf</filename></term>
 			<listitem>
-				<para>Default config file.</para>
+				<para>The default configuration file.</para>
+				<para>You may specify an alternate configuration file with <option>--config</option> option.</para>
+				<para>
+					To create the configuration file, use the following command:
+					<screen><!--
+--><prompt>$</prompt> <command>cat</command> &lt;&lt;EOF | <command>gpg</command> --armor --encrypt &gt; <filename><replaceable>mbank-cli.conf</replaceable></filename>
+<userinput>Login <replaceable>123456</replaceable>
+Password "<replaceable>YourPassword</replaceable>"
+EOF</userinput>
+					</screen>
+				</para>
 			</listitem>
 		</varlistentry>
 		<varlistentry>
 			<term><filename>cookie-jar.txt</filename></term>
 			<listitem>
-				<para>State of the phony web browser is saved in this file.</para>
+				<para>State of the phony web browser.</para>
 			</listitem>
 		</varlistentry>
 		<varlistentry>
 			<term><filename>debug/<replaceable>*</replaceable>.html</filename></term>
 			<listitem>
-				<para></para>
+				<para>Dumps of pages downloaded from the web interface.</para>
 			</listitem>
 		</varlistentry>
 		<varlistentry>
 			<term><filename>debug/log</filename></term>
 			<listitem>
-				<para></para>
+				<para>
+					Debugging information.
+				</para>
 			</listitem>
 		</varlistentry>
 	</variablelist>
+	<para>
+		Note that &p; would silently refuse to create files inside <filename>debug</filename> unless the directory already existed.
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>Exit codes</title>
+	<para>
+		The exit codes returned by <command>&p;</command> are as follows:
+		<variablelist>
+			<varlistentry>
+				<term><errorcode>0</errorcode></term>
+				<listitem>
+					<para>Everything went fine.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><errorcode>1</errorcode></term>
+				<listitem>
+					<para>Failure because of an user error.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><errorcode>2</errorcode></term>
+				<listitem>
+					<para>
+						Failure because of a HTTP error. This may be due to a network error but might as well be a result of an API error (see below).
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><errorcode>3</errorcode></term>
+				<listitem>
+					<para>
+						Failure because of an unexpected behaviour of the web interface (so called '<literal>API error</literal>').
+						If you encounter this, please contact the &p; developers.
+					</para>
+				</listitem>
+			</varlistentry>
+		</variablelist>
+	</para>
 </refsect1>
 
 </refentry>
 
-<!-- vim:set ts=4 sw=4: -->
+<!-- vim:set ts=4 sw=4 fenc=utf8: -->

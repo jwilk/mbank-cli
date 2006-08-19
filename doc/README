@@ -21,7 +21,7 @@ which is subject to change unexpectedly.
   - LWP::UserAgent
 - GNU Privacy Guard (to protect your password)
 
-(If you are using Debian, dependecies will be satisfied by the following packages:
+(If you are using Debian, dependencies will be satisfied by the following packages:
 - perl
 - libapache-configfile-perl
 - libcrypt-ssleay-perl
@@ -29,34 +29,9 @@ which is subject to change unexpectedly.
 - libwww-perl
 - gnupg)
 
---- Configuration file ---
-
-$ cat <<EOF | gpg --armor --encrypt > mbank-cli.conf
-Login 123456
-Password "your_password"
-EOF
-
 --- Usage ---
 
-You may create 'debug' directory to make debugging easier.
-
-You may provide '--verbose' option to fill your screen with cryptic strings.
-
-Usage examples:
-
-$ ./mbank-cli list # list available accounts
-
-$ ./mbank-cli history Foo # show history of the 'Foo' account 
-
-$ ./mbank-cli history Bar --range 2005-01-01 2005-12-31
-
-$ ./mbank-cli history Quux --from 2006-06-01
-
-$ ./mbank-cli future Foo # show list of planned transfers of the 'Foo' account
-
-$ ./mbank-cli funds # list available investment funds
-
-$ ./mbank-cli logout
+For the complete syntax and usage examples, consult the manual page.
 
 --- License ---
 
