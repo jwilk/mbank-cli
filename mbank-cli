@@ -169,6 +169,10 @@ sub preread_config()
   user_error "Can't open the config file: $!" unless open CONFIG, '<', $config_file;
   my $prev_sha1 = '';
   my $sha1 = Digest::SHA1->new();
+  my $header = '';
+  read CONFIG, $header, 28;
+  my $need_decrypt = $header eq "-----BEGIN PGP MESSAGE-----\n" || $header =~ /^\x85\x02/;
+  $sha1->add($header);
   $sha1->addfile(*CONFIG);
   close CONFIG or die;
   $sha1 = $sha1->b64digest();
@@ -185,23 +189,38 @@ sub preread_config()
     $ua->cookie_jar->clear();
   }
   $ua->cookie_jar->set_cookie(0, 'sha1', $sha1, '/config/', $fake_domain, undef, undef, undef, 1 << 25, undef);
+  return $need_decrypt;
 }
 
-sub read_config()
+sub read_config($)
 {
+  my ($need_decrypt) = @_;
   user_error "Can't open the config file: $!" unless open STDIN, '<', $config_file;
-  open GPG, '-|', '/usr/bin/gpg', '--decrypt' or die "Can't invoke gpg: $!";
+  my $fileno;
+  if ($need_decrypt)
+  {
+    open GPG, '-|', '/usr/bin/gpg', '--decrypt' or die "Can't invoke gpg: $!";
+    $fileno = fileno GPG;
+  }
+  else
+  {
+    $fileno = fileno STDIN;
+  }
   my $ac = Apache::ConfigFile->read(
-    file => '&' . fileno GPG,
+    file => "&$fileno",
     ignore_case  => 1,
     fix_booleans => 1,
     raise_error  => 1
   );
-  user_error q(Can't read the config file) unless close GPG;
+  close GPG or user_error q(Can't read the config file) if $need_decrypt;
   close STDIN or die;
-  @_ = ();
-  map { push @_, $ac->cmd_config($_) } ('Login', 'Password');
-  return @_;
+  my $login = $ac->cmd_config('Login');
+  user_error('No login name provided') unless defined $login;
+  user_error("Invalid login name '$login'") unless $login =~ /\d+/;
+  my $password = $ac->cmd_config('Password');
+  user_error('No password provided') unless defined $password;
+  user_error("Invalid password '$password'") unless length($password) > 0;
+  return ($login, $password)
 }
 
 sub do_logout()
@@ -230,28 +249,25 @@ sub do_logout()
   }
 }
 
-sub do_login($)
+sub do_login($$)
 {
   debug 'Loggin in...';
-  my ($web_in) = @_;
+  my ($web_in, $need_decrypt) = @_;
   my @forms = HTML::Form->parse($web_in->{response});
   $#forms == 0 or api_error('Login1');
   my ($form) = @forms;
   my $in_login = $form->find_input('txtCustNr', 'text');
   my $in_passw = $form->find_input('txtPasswd', 'password');
   api_error('Login2') unless defined $in_login and defined $in_passw;
-  my ($login, $passw) = read_config();
+  my ($login, $passw) = read_config($need_decrypt);
   $in_login->value($login);
   $in_passw->value($passw);
   my $web_out = download $form->click();
-  if ($web_out->{error} eq "B\xb3\xb1d logowania")
-  {
-    user_error 'Login error!';
-  }
-  elsif ($web_out->{error} ne '')
-  {
-    api_error('Login: ' . $web_out->{error});
-  }
+  user_error 'System error: invalid login/password'
+    if $web_out->{error} eq "B\xb3\xb1d systemu" and 
+    $web_out->{content} =~ m{<center><b>B\xb3\xeadnie podano identyfikator lub has\xb3o\.</b></center>};
+  user_error 'Login error: incorrect login/password' if $web_out->{error} eq "B\xb3\xb1d logowania";
+  api_error(sprintf 'LoginX [%s]', $web_out->{error}) if $web_out->{error} ne '';
   return $web_out;
 }
 
@@ -398,7 +414,7 @@ GetOptions(
     },
 ) or exit EC_USER_ERROR;
 
-preread_config();
+my $need_decrypt_config = preread_config();
 
 my $action = shift @ARGV;
 $action = 'list' unless defined $action;
@@ -453,7 +469,6 @@ else
 my $need_login = 1;
 my $web_homebanking;
 
-debug 'Trying to reuse previous session';
 my %login_options = ();
 $ua->cookie_jar->scan( 
   sub 
@@ -462,19 +477,27 @@ $ua->cookie_jar->scan(
     $login_options{$key} = $val if ($domain eq $fake_domain) and ($path eq '/login-options/');
   }
 );
-$web_homebanking = download POST("$mbank/ib_fr_homebanking.asp", \%login_options);
-if (check_session_expiry($web_homebanking))
+if (scalar keys %login_options > 0)
 {
-  debug 'Invalid or expired session key';
-  $need_login = 1;
-}
-elsif ($web_homebanking->{error} ne '')
-{
-  api_error('PreLogin: ' . $web_homebanking->{error});
+  debug 'Trying to reuse previous session';
+  $web_homebanking = download POST("$mbank/ib_fr_homebanking.asp", \%login_options);
+  if (check_session_expiry($web_homebanking))
+  {
+    debug 'Invalid or expired session key';
+    $need_login = 1;
+  }
+  elsif ($web_homebanking->{error} ne '')
+  {
+    api_error('PreLogin: ' . $web_homebanking->{error});
+  }
+  else
+  {
+    $need_login = $web_homebanking->{content} =~ /"txtCustNr"/;
+  }
 }
 else
 {
-  $need_login = $web_homebanking->{content} =~ /"txtCustNr"/;
+  $need_login = 1;
 }
 
 if ($need_login)
@@ -482,7 +505,7 @@ if ($need_login)
   debug 'A new session will be created';
   $need_login = 1;
   my $web_login = download GET("$mbank/");
-  my $web_postlogin = do_login($web_login);
+  my $web_postlogin = do_login($web_login, $need_decrypt_config);
   
   my @forms = HTML::Form->parse($web_postlogin->{response});
   $#forms == 0 or api_error('PostLogin1');

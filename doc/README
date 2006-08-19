@@ -19,7 +19,7 @@ which is subject to change unexpectedly.
   - HTML::Entities
   - HTTP::Cookies
   - LWP::UserAgent
-- GNU Privacy Guard (to protect your password)
+- GNU Privacy Guard (optionally, to protect your password)
 
 (If you are using Debian, dependencies will be satisfied by the following packages:
 - perl
