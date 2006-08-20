@@ -607,7 +607,7 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
       my $receiver = decode_entities $2;
       my $title = decode_entities $3;
       my $amount = parse_amount $4;
-      my $status = $5;
+      my $status = decode_entities $5;
       printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%s\t%8.2f\t%s\n", $date, $receiver, $title, $amount, $status;
     }
