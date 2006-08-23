@@ -18,7 +18,7 @@ no encoding;
 
 use Apache::ConfigFile ();
 use Crypt::SSLeay ();
-use Digest::SHA1 ();
+use Digest ();
 use File::Basename qw(dirname);
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use HTML::Form ();
@@ -166,29 +166,37 @@ sub download($)
 
 sub preread_config()
 {
+  BEGIN
+  {
+    our $digest_module;
+    eval { $digest_module = Digest->new('SHA-256'); };
+    eval { $digest_module = Digest->new('SHA-1'); } if $@;
+    $digest_module = Digest->new('MD5') if $@;
+  }
   user_error "Can't open the config file: $!" unless open CONFIG, '<', $config_file;
-  my $prev_sha1 = '';
-  my $sha1 = Digest::SHA1->new();
+  my $prev_digest = '';
+  $main::digest_module->new();
   my $header = '';
   read CONFIG, $header, 28;
   my $need_decrypt = $header eq "-----BEGIN PGP MESSAGE-----\n" || $header =~ /^\x85\x02/;
-  $sha1->add($header);
-  $sha1->addfile(*CONFIG);
+  $main::digest_module->add($header);
+  $main::digest_module->addfile(*CONFIG);
   close CONFIG or die;
-  $sha1 = $sha1->b64digest();
+  my $digest = $main::digest_module->b64digest();
   $ua->cookie_jar->scan( 
     sub
     {
       my ($version, $key, $val, $path, $domain) = @_;
-      $prev_sha1 = $val if $domain eq FAKE_DOMAIN and $path eq '/config/' and $key eq 'sha1';
+      $prev_digest = $val if $domain eq FAKE_DOMAIN and $path eq '/config/' and $key eq 'sha1';
+      # for compatibily reasons, key is named 'sha1' rather than 'digest'
     }
   );
-  if ($sha1 ne $prev_sha1)
+  if ($digest ne $prev_digest)
   {
     debug 'Your personality has just changed';
     $ua->cookie_jar->clear();
   }
-  $ua->cookie_jar->set_cookie(0, 'sha1', $sha1, '/config/', FAKE_DOMAIN, undef, undef, undef, 1 << 25, undef);
+  $ua->cookie_jar->set_cookie(0, 'sha1', $digest, '/config/', FAKE_DOMAIN, undef, undef, undef, 1 << 25, undef);
   return $need_decrypt;
 }
 

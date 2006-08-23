@@ -14,7 +14,6 @@ which is subject to change unexpectedly.
 - perl with the following perl modules:
   - Apache::ConfigFile
   - Crypt::SSLeay
-  - Digest::SHA1
   - HTML::Form
   - HTML::Entities
   - HTTP::Cookies
