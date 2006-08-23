@@ -113,7 +113,7 @@ sub user_error($)
 sub api_error($)
 {
   local ($_) = @_;
-  $_ = sprintf 'Hell, API error! [%s]', $_;
+  $_ = sprintf 'Oops, API error! [%s]', $_;
   write_log $_;
   print STDERR "$_\n";
   exit EC_API_ERROR;
@@ -122,7 +122,7 @@ sub api_error($)
 sub http_error($)
 {
   my ($request) = @_;
-  debug sprintf('HTTP error while processing request <%s %s>', $request->method, $request->uri);
+  printf STDERR 'HTTP error while processing request <%s %s>', $request->method, $request->uri;
   exit EC_HTTP_ERROR;
 }
 
