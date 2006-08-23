@@ -35,13 +35,13 @@ use constant
   EC_OK => 0,
   EC_USER_ERROR => 1,
   EC_HTTP_ERROR => 2,
-  EC_API_ERROR => 3
+  EC_API_ERROR => 3,
+  FAKE_DOMAIN => 'mbank-cli.invalid'
 };
 
 chdir dirname($0) or die "Can't change working directory: $!";
 
 my $mbank = 'https://www.mbank.com.pl';
-my $fake_domain = 'mbank-cli.invalid';
 my $cookie_jar_file = './cookie-jar.txt';
 my $config_file = './mbank-cli.conf';
 
@@ -180,7 +180,7 @@ sub preread_config()
     sub
     {
       my ($version, $key, $val, $path, $domain) = @_;
-      $prev_sha1 = $val if $domain eq $fake_domain and $path eq '/config/' and $key eq 'sha1';
+      $prev_sha1 = $val if $domain eq FAKE_DOMAIN and $path eq '/config/' and $key eq 'sha1';
     }
   );
   if ($sha1 ne $prev_sha1)
@@ -188,7 +188,7 @@ sub preread_config()
     debug 'Your personality has just changed';
     $ua->cookie_jar->clear();
   }
-  $ua->cookie_jar->set_cookie(0, 'sha1', $sha1, '/config/', $fake_domain, undef, undef, undef, 1 << 25, undef);
+  $ua->cookie_jar->set_cookie(0, 'sha1', $sha1, '/config/', FAKE_DOMAIN, undef, undef, undef, 1 << 25, undef);
   return $need_decrypt;
 }
 
@@ -232,7 +232,7 @@ sub do_logout()
     sub 
     { 
       my ($version, $key, $val, $path, $domain) = @_;
-      $have_cookies = 1 unless $domain eq $fake_domain; 
+      $have_cookies = 1 unless $domain eq FAKE_DOMAIN; 
     } 
   );
   user_error 'You are not logged in' unless $have_cookies;
@@ -474,7 +474,7 @@ $ua->cookie_jar->scan(
   sub 
   {
     my ($version, $key, $val, $path, $domain) = @_;
-    $login_options{$key} = $val if ($domain eq $fake_domain) and ($path eq '/login-options/');
+    $login_options{$key} = $val if ($domain eq FAKE_DOMAIN) and ($path eq '/login-options/');
   }
 );
 if (scalar keys %login_options > 0)
@@ -510,7 +510,7 @@ if ($need_login)
   my @forms = HTML::Form->parse($web_postlogin->{response});
   $#forms == 0 or api_error('PostLogin1');
   my ($form) = @forms;
-  $ua->cookie_jar->set_cookie(0, $_->name, $_->value, '/login-options/', $fake_domain, undef, undef, undef, 604800, undef) foreach ($form->inputs);
+  $ua->cookie_jar->set_cookie(0, $_->name, $_->value, '/login-options/', FAKE_DOMAIN, undef, undef, undef, 604800, undef) foreach ($form->inputs);
   $web_homebanking = download $form->click()
 }
 
