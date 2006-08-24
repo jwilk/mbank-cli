@@ -122,7 +122,9 @@ sub api_error($)
 sub http_error($)
 {
   my ($request) = @_;
-  printf STDERR 'HTTP error while processing request <%s %s>', $request->method, $request->uri;
+  $_ = sprintf 'HTTP error while processing request <%s %s>', $request->method, $request->uri;
+  write_log $_;
+  print STDERR "$_\n";
   exit EC_HTTP_ERROR;
 }
 
