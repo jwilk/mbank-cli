@@ -451,7 +451,7 @@ elsif ($action eq 'history' or $action eq 'future')
   {
     user_error 'No account selected' if $#ARGV < 0;
     @_ = map { widen_string $_ } @ARGV;
-    @_ = map quotemeta, @ARGV;
+    @_ = map quotemeta, @_;
     $_ = join '|', @_;
     $selected_accounts = qr($_);
   }
