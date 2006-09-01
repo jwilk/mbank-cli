@@ -453,7 +453,8 @@ elsif ($action eq 'history' or $action eq 'future')
     @_ = map { widen_string $_ } @ARGV;
     @_ = map quotemeta, @_;
     $_ = join '|', @_;
-    $selected_accounts = qr($_);
+    s/\\\*/.*/g;
+    $selected_accounts = qr/^($_)$/;
   }
   if ($action eq 'history')
   {
