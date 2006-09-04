@@ -32,7 +32,12 @@
 			</para>
 		</listitem>
 	</itemizedlist>
-</para>'>
+</para>
+<para>
+	You may use <userinput>*</userinput> as a wildcard character.
+</para>
+'
+>
 	<!ENTITY output-format 'The output consists of lines in the following format:'>
 	<!ENTITY tab-separated 'Fields are tab-separated.'>
 	<!ENTITY omit-account-name '<replaceable>AccountName</replaceable> will be omitted unless <option>--multiple-accounts</option> or <option>--all-accounts</option> opion is used.'>
@@ -260,6 +265,9 @@
 Password "<replaceable>YourPassword</replaceable>"
 EOF</userinput>
 					</screen>
+				</para>
+				<para>
+					Encrypting your configuration file with <command>gpg</command> is not necessary, but highly recommended.
 				</para>
 			</listitem>
 		</varlistentry>
