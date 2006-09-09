@@ -1,4 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
+<?xml-stylesheet href='style.css' type='text/css'?>
 <!DOCTYPE refentry PUBLIC '-//OASIS//DTD DocBook XML V4.4//EN' 'http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd' 
 [
 	<!ENTITY p 'mbank-cli'>
@@ -326,7 +327,7 @@ EOF</userinput>
 				<term><errorcode>3</errorcode></term>
 				<listitem>
 					<para>
-						Failure because of an unexpected behaviour of the web interface (so called '<literal>API error</literal>').
+						Failure because of an unexpected behaviour of the web interface (so called ‘<literal>API error</literal>’).
 						If you encounter this, please contact the <productname>&p;</productname> developers.
 					</para>
 				</listitem>

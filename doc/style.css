@@ -1,0 +1,240 @@
+refentry
+{
+	font-family: Verdana, serif;
+	display: block;
+	padding: 1em;
+}
+
+refentry:after
+{
+	display: block;
+	content: "";
+	height: 2em;
+}
+
+refentryinfo
+{
+	display: table;
+	margin-bottom: 1em;
+	border-bottom: solid 1px #444;
+	width: 100%;
+}
+
+refentryinfo *
+{
+	display: table-cell;
+	vertical-align: top;
+}
+
+refentryinfo title
+{
+	font-size: 200%;
+	font-weight: bold;
+}
+
+refentryinfo productname
+{
+	display: none;
+}
+
+refentryinfo copyright
+{
+	background: #eee;
+	display: block;
+    position: fixed; left: 0; top: auto; right: 0; bottom: 0;
+	padding: 0.2em 0.3em;
+	border-top: double 3px #888;
+}
+
+refentryinfo copyright *
+{
+	display: inline;
+}
+
+refentryinfo copyright:before
+{
+	content: "Copyright \A9";
+}
+
+refentryinfo copyright holder:after
+{
+	content: ", ";
+}
+
+refentryinfo copyright holder:last-child:after
+{
+	content: ".";
+}
+
+refentryinfo date
+{
+	text-align: right;
+}
+
+refmeta
+{
+	display: none;
+}
+
+refnamediv, refsynopsisdiv, refsect1
+{
+	display: block;
+	margin-bottom: 1em;
+}
+
+refnamediv:before
+{
+	content: "Name";
+}
+
+refsynopsisdiv:before
+{
+	content: "Synopsis";
+}
+
+refsect1 title, refnamediv:before, refsynopsisdiv:before
+{
+	display: block;
+	font-size: 120%;
+	font-weight: bold;
+	border-bottom: dashed 1px #444;
+	margin-bottom: 0.4em;
+}
+
+refnamediv refname
+{
+	font-weight: bold;
+}
+
+refnamediv refpurpose:before
+{
+	content: "\2014\A0";
+}
+
+refsynopsisdiv cmdsynopsis
+{
+	display: list-item;
+	list-style-position: inside;
+	font-family: monospace;
+}
+
+replaceable
+{
+	font-style: italic;
+}
+
+productname, application
+{
+	font-family:  'Arial', 'Bitstream Vera Sans', sans-serif;
+	font-style: italic;
+	font-weight: bold;
+}
+
+para
+{
+	display: block;
+}
+
+screen
+{
+	display: block;
+	white-space: pre;
+	font-family: monospace;
+}
+
+variablelist, variablelist varlistentry,
+itemizedlist, itemizedlist listitem
+{
+	display: block;
+}
+
+variablelist varlistentry term
+{
+	display: block;
+}
+
+variablelist varlistentry listitem,
+itemizedlist listitem
+{
+	display: block;
+	margin-left: 2em;
+}
+
+filename, command, option, literal
+{
+	font-family: monospace;
+}
+
+lineannotation
+{
+	font-family: Arial, sans-serif;
+	color: #444;
+}
+
+prompt
+{
+	font-style: italic;
+}
+
+userinput
+{
+	background-color: #ddd;
+}
+
+para + para, para + variablelist, variablelist + para
+{
+	margin-top: 0.5em;
+}
+
+arg:before, arg:after, group:before, group:after
+{
+	font-family: Arial, sans-serif;
+	color: #444;
+}
+
+arg[choice='opt']:before, group[choice='opt']:before
+{
+	content: "[";
+}
+
+arg[choice='opt']:after, group[choice='opt']:after
+{
+	content: "]";
+}
+
+arg[choice='req']:before, group[choice='req']:before
+{
+	content: "{";
+}
+
+arg[choice='req']:after, group[choice='req']:after
+{
+	content: "}";
+}
+
+arg[rep='repeat']:after
+{
+	content: '\2026'
+}
+
+arg[choice='opt'][rep='repeat']:after
+{
+	content: "\2026]";
+}
+
+arg[choice='req'][rep='repeat']:after
+{
+	content: "\2026}";
+}
+
+group > arg + arg:before
+{
+	content: " | ";
+}
+
+ulink:after
+{
+	content: " \2329" attr(url) "\232a";
+}     
+
+/* vim:set ts=4: */
