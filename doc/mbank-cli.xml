@@ -122,7 +122,7 @@
 <refsect1>
 	<title>Description</title>
 	<para>
-		<productname>&p;</productname> provides a rudimentary command line interface to the <ulink url="https://www.mbank.com.pl/">mBank online banking system</ulink>.
+		<application>&p;</application> provides a rudimentary command line interface to the <ulink url="https://www.mbank.com.pl/">mBank online banking system</ulink>.
 	</para>
 </refsect1>
 
@@ -251,7 +251,7 @@
 
 <refsect1>
 	<title>Files</title>
-	<para>(Due to experimental nature of <productname>&p;</productname> these files are excepted to be in the current working directory.)</para>
+	<para>(Due to experimental nature of <application>&p;</application> these files are excepted to be in the current working directory.)</para>
 	<variablelist>
 		<varlistentry>
 			<term><filename>mbank-cli.conf</filename></term>
@@ -294,7 +294,7 @@ EOF</userinput>
 		</varlistentry>
 	</variablelist>
 	<para>
-		Note that <productname>&p;</productname> would silently refuse to create files inside <filename>debug</filename> unless the directory already existed.
+		Note that <application>&p;</application> would silently refuse to create files inside <filename>debug</filename> unless the directory already existed.
 	</para>
 </refsect1>
 
@@ -328,7 +328,7 @@ EOF</userinput>
 				<listitem>
 					<para>
 						Failure because of an unexpected behaviour of the web interface (so called ‘<literal>API error</literal>’).
-						If you encounter this, please contact the <productname>&p;</productname> developers.
+						If you encounter this, please contact the <application>&p;</application> developers.
 					</para>
 				</listitem>
 			</varlistentry>
