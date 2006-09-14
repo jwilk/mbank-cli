@@ -232,9 +232,16 @@ group > arg + arg:before
 	content: " | ";
 }
 
-ulink:after
+a
 {
-	content: " \2329" attr(url) "\232a";
-}     
+	text-decoration: none;
+	color: #208;
+}
+
+a:hover
+{
+	text-decoration: underline;
+	color: #40c;
+}
 
 /* vim:set ts=4: */
