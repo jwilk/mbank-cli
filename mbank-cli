@@ -57,6 +57,14 @@ sub widen_string($;$)
   return Encode::decode($codeset, $_);
 }
 
+sub shrink_string($)
+{
+  (local $_) = @_;
+  eval { $_ = Encode::encode('ISO-8859-2', $_); };
+  return undef if $@;
+  return $_;
+}
+
 sub decode_entities($)
 {
   BEGIN
@@ -429,6 +437,7 @@ my $need_decrypt_config = preread_config();
 my $action = shift @ARGV;
 $action = 'list' unless defined $action;
 my $selected_accounts;
+my $new_account_name;
 
 debug "Action: $action";
 
@@ -441,7 +450,6 @@ if ($action eq 'logout')
 }
 elsif ($action eq 'history' or $action eq 'future')
 {
-
   $opt_multiple_accounts++ if $opt_multiple_accounts == 0 and $#ARGV > 0;
   if ($opt_multiple_accounts > 1)
   {
@@ -469,6 +477,19 @@ elsif ($action eq 'history' or $action eq 'future')
       debug 'Using default time range';
     }
   }
+}
+elsif ($action eq 'rename')
+{
+  user_error 'No account selected' if $#ARGV < 0;
+  user_error 'No new account name provided' if $#ARGV < 1;
+  $_ = widen_string shift;
+  $_ = quotemeta $_;
+  s/\\\*/.*/g;
+  $selected_accounts = qr/^$_$/;
+  $_ = widen_string shift;
+  $_ = shrink_string $_;
+  user_error 'Invalid new account name' if (not defined $_) or /{/;
+  $new_account_name = $_;
 }
 elsif ($action eq 'list' or $action eq 'funds')
 { }
@@ -622,6 +643,19 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
       printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%s\t%8.2f\t%s\n", $date, $receiver, $title, $amount, $status;
     }
+  }
+  elsif ($action eq 'rename')
+  {
+    my $web_contract = download GET("$mbank/$contract_uri");
+		$web_contract->{content} =~ m{<INPUT class="button" TYPE="button" VALUE="Zmiana nazwy rachunku" onClick="javascript:location[.]href='(.*?)'">} or api_error 'Rename1';
+    my $uri = shorten_uri $1;
+    my $web_rename = download GET("$mbank/$uri");
+    my @forms = HTML::Form->parse($web_rename->{response});
+    $#forms == 0 or api_error('Rename2');
+    my ($form) = @forms;
+    $form->value('cContrName', $new_account_name);
+    $web_rename = download $form->click();
+    $web_rename->{content} =~ m{<b>Operacja wykonana poprawnie</b>} or api_error 'Rename3';
   }
 }
 

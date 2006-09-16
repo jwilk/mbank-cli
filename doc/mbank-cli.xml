@@ -33,11 +33,12 @@
 			</para>
 		</listitem>
 	</itemizedlist>
-</para>
-<para>
+</para>'
+	>
+	<!ENTITY select-accounts-wildcard
+'<para>
 	You may use <userinput>*</userinput> as a wildcard character.
-</para>
-'
+</para>'
 >
 	<!ENTITY output-format 'The output consists of lines in the following format:'>
 	<!ENTITY tab-separated 'Fields are tab-separated.'>
@@ -102,6 +103,18 @@
 			<arg choice='plain'><option>--all-accounts</option></arg>
 		</group>
 	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='plain'>rename</arg>
+		<group choice='plain'>
+			<arg choice='plain'><replaceable>Account</replaceable></arg>
+		</group>
+		<group choice='plain'>
+			<arg choice='plain'><replaceable>NewName</replaceable></arg>
+		</group>
+	</cmdsynopsis>
+
 	<cmdsynopsis>
 		<command>&p;</command>
 		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
@@ -187,6 +200,7 @@
 		Date can be '<literal>now</literal>' or in the <literal><replaceable>YYYY</replaceable>-<replaceable>MM</replaceable>-<replaceable>DD</replaceable></literal> format.
 	</para>
 	&select-accounts;
+	&select-accounts-wildcard;
 	<para>
 		&output-format;
 		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>AccountingDate</replaceable> <replaceable>Amount</replaceable> <replaceable>Balance</replaceable> <replaceable>Description</replaceable></screen>
@@ -202,12 +216,21 @@
 		Show list of planned transfer for the selected account(s).
 	</para>
 	&select-accounts;
+	&select-accounts-wildcard;
 	<para>
 		&output-format;
 		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>Receiver</replaceable> <replaceable>Title</replaceable> <replaceable>Amount</replaceable> <replaceable>Status</replaceable></screen>
 		&tab-separated;
 		&omit-account-name;
 	</para>
+</refsect1>
+
+<refsect1>
+	<title>rename action</title>
+	<para>
+		Change an account name.
+	</para>
+	&select-accounts-wildcard;
 </refsect1>
 
 <refsect1>
@@ -244,6 +267,7 @@
 <prompt>$</prompt> <command>./&p;</command> history Bar --range 2005-01-01 2005-12-31 &#10;
 <prompt>$</prompt> <command>./&p;</command> history Quux --from 2006-06-01 &#10;
 <prompt>$</prompt> <command>./&p;</command> future Foo <lineannotation># show list of planned transfers of the 'Foo' account</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> rename 'eFoo - Bar' 'quux' <lineannotation># from now on, it will be called 'eFoo - quux'</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> funds <lineannotation># list available investment funds</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> logout
 	</screen>
