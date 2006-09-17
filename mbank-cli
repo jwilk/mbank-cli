@@ -448,7 +448,7 @@ if ($action eq 'logout')
   do_logout();
   exit EC_OK;
 }
-elsif ($action eq 'history' or $action eq 'future')
+elsif ($action eq 'history' or $action eq 'future' or $action eq 'notices')
 {
   $opt_multiple_accounts++ if $opt_multiple_accounts == 0 and $#ARGV > 0;
   if ($opt_multiple_accounts > 1)
@@ -585,10 +585,11 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
   my $resources = parse_amount $7;
   defined $resources or api_error('Welcome3');
   next if defined $selected_accounts and $name !~ m/$selected_accounts/;
+  my $notices_uri = undef;
+  $rest =~ m{<a href="(ib_contract_notices[.]asp[?][^"]*?)" [^>]*?>} and $notices_uri = $1;
   if ($action eq 'list')
   {
-    my $notices = $rest =~ m{<a href="ib_contract_notices.asp?[^"]*?" [^>]*?>} ? 'N' : '';
-    printf "%s\t%32s\t%8.2f\t%8.2f\t%s\n", $name, $no, $balance, $resources, $notices;
+    printf "%s\t%32s\t%8.2f\t%8.2f\t%s\n", $name, $no, $balance, $resources, (defined $notices_uri ? 'N' : '');
   }
   elsif ($action eq 'history')
   {
@@ -644,6 +645,22 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
       my $status = decode_entities $5;
       printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%s\t%8.2f\t%s\n", $date, $receiver, $title, $amount, $status;
+    }
+  }
+  elsif ($action eq 'notices' and defined $notices_uri)
+  {
+    my $web_notices = download GET("$mbank/$notices_uri");
+    my $notice_re = qr{<DIV NOWRAP>(\d{2})-(\d{2})-(\d{4})</DIV>.*?<a href="(ib_contract_notice_details[.]asp[?][^"]+?&cNumSeq=(\d+)[^"]+?)"[^>]+?>([^<]+?)</a>.*?<td +class="big4" [^>]+?><b>([^<]+?)</b></td>.*?<a class="actionh" href="(ib_contract_notice_delete[.]asp[?][^"]+?)"[^>]+?>};
+    while ($web_notices->{content} =~ m{$notice_re}go)
+    {
+      my $date = "$3-$2-$1";
+      my $details_uri = $4;
+      my $id = $5;
+      my $type = decode_entities $6;
+      my $short_desc = decode_entities $7;
+      my $delete_uri = $8;
+      print "$name\t" if $opt_multiple_accounts;
+      print "$id\t$date\t$type\t$short_desc\n";
     }
   }
   elsif ($action eq 'rename')
