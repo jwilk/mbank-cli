@@ -9,6 +9,9 @@
 
 <xsl:template match='/refentry'>
 	<xsl:copy>
+		<html:title>
+			<xsl:value-of select='refentryinfo/title'/>
+		</html:title>
 		<html:link rel='stylesheet' href='style.css'/>
 		<xsl:apply-templates/>
 	</xsl:copy>
