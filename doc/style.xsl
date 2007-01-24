@@ -19,6 +19,7 @@
 
 <xsl:template match='*'>
 	<xsl:copy>
+		<xsl:copy-of select='@*'/>
 		<xsl:apply-templates/>
 	</xsl:copy>
 </xsl:template>
