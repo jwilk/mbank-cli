@@ -558,7 +558,7 @@ if ($action eq 'funds')
   $web_navibar->{content} =~ m{open\("(ib_if_fund_list[.]asp\?[^"]*?)", +"FunctionFrame"\)} or api_error('Funds1');
   $uri = shorten_uri $1;
   my $web_fund_list = download GET("$mbank/$uri");
-  my $funds_re = qr{<a +href="ib_if_fund_details[.]asp[?][^"]*?" [^>]*?>([^<]+)</a></td>.*?<DIV NOWRAP>([^>]*?)</DIV>};
+  my $funds_re = qr{<a +href="ib_if_fund_details[.]asp[?][^"]*?" [^>]*?>([^<]+)</a></td>.*?<DIV NOWRAP>([^a-zA-Z]+).*?</DIV>};
   while ($web_fund_list->{content} =~ m{$funds_re}go)
   {
     my $name = decode_entities $1;
