@@ -164,8 +164,8 @@ sub download($)
   $filename =~ s{^\w+://.*?/}{};
   $filename =~ s/[?].*//;
   $filename =~ s/[^[:alnum:].]/_/g;
-  $filename =~ s/\.\w+/.html/;
-  $filename = 'index.html' if $filename eq '';
+  $filename =~ s/(?:[.]\w+)?$/.html/;
+  $filename = 'index.html' if $filename eq '.html';
   if (open LOG, '>', "debug/$filename")
   {
     print LOG $content;
