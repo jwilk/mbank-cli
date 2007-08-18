@@ -36,7 +36,8 @@ use constant
   EC_USER_ERROR => 1,
   EC_HTTP_ERROR => 2,
   EC_API_ERROR => 3,
-  FAKE_DOMAIN => 'mbank-cli.invalid'
+  FAKE_DOMAIN => 'mbank-cli.invalid',
+  GPG => '/usr/bin/gpg'
 };
 
 chdir dirname($0) or die "Can't change working directory: $!";
@@ -217,7 +218,7 @@ sub read_config($)
   my $fileno;
   if ($need_decrypt)
   {
-    open GPG, '-|', '/usr/bin/gpg', '--decrypt' or die "Can't invoke gpg: $!";
+    open GPG, '-|', GPG, '--decrypt' or die "Can't invoke gpg: $!";
     $fileno = fileno GPG;
   }
   else
