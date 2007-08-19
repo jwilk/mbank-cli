@@ -502,18 +502,17 @@ else
 my $need_login = 1;
 my $web_homebanking;
 
-my %login_options = ();
 $ua->cookie_jar->scan( 
   sub 
   {
     my ($version, $key, $val, $path, $domain) = @_;
-    $login_options{$key} = $val if ($domain eq FAKE_DOMAIN) and ($path eq '/login-options/');
+    $need_login = 0 if $domain eq FAKE_DOMAIN and $path eq '/login-options/';
   }
 );
-if (scalar keys %login_options > 0)
+if (!$need_login)
 {
   debug 'Trying to reuse previous session';
-  $web_homebanking = download POST("$mbank/ib_fr_homebanking.asp", \%login_options);
+  $web_homebanking = download POST("$mbank/ib_fr_homebanking.asp");
   if (check_session_expiry($web_homebanking))
   {
     debug 'Invalid or expired session key';
@@ -528,10 +527,6 @@ if (scalar keys %login_options > 0)
     $need_login = $web_homebanking->{content} =~ /"txtCustNr"/;
   }
 }
-else
-{
-  $need_login = 1;
-}
 
 if ($need_login)
 {
@@ -543,7 +538,8 @@ if ($need_login)
   my @forms = HTML::Form->parse($web_postlogin->{response});
   $#forms == 0 or api_error('PostLogin1');
   my ($form) = @forms;
-  $ua->cookie_jar->set_cookie(0, $_->name, $_->value, '/login-options/', FAKE_DOMAIN, undef, undef, undef, 604800, undef) foreach ($form->inputs);
+  scalar $form->inputs == 0 or api_error('PostLogin2');
+  $ua->cookie_jar->set_cookie(0, 'dummy', '', '/login-options/', FAKE_DOMAIN, undef, undef, undef, 604800, undef);
   $web_homebanking = download $form->click()
 }
 
