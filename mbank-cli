@@ -566,7 +566,7 @@ if ($action eq 'funds')
   exit;
 }
 
-my $accounts_re = qr{<a +href="(ib_contractselected[.]asp[?][^"]*?)" [^>]*?>([^<]+?)<BR>((?:\d+ )+\d+)</a>(.*?)<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>};
+my $accounts_re = qr{<a +href="(ib_contractselected[.]asp[?][^"]*?)" [^>]*?>([^<]+?)<BR>((?:\d+ )+\d+)</a>(.*?)<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>.*?<td *class="big4"[^>]*?>([A-Z]+)</td>};
 # FIXME: will the above fail if a balance / resources is negative?
 $web_welcome->{content} =~ m{$accounts_re} or api_error('Welcome1');
 
@@ -581,12 +581,13 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
   defined $balance or api_error('Welcome2');
   my $resources = parse_amount $7;
   defined $resources or api_error('Welcome3');
+  my $currency = $8;
   next if defined $selected_accounts and $name !~ m/$selected_accounts/;
   my $notices_uri = undef;
   $rest =~ m{<a href="(ib_contract_notices[.]asp[?][^"]*?)" [^>]*?>} and $notices_uri = $1;
   if ($action eq 'list')
   {
-    printf "%s\t%32s\t%8.2f\t%8.2f\t%s\n", $name, $no, $balance, $resources, (defined $notices_uri ? 'N' : '');
+    printf "%s\t%32s\t%8.2f %s\t%8.2f %s\t%s\n", $name, $no, $balance, $currency, $resources, $currency, (defined $notices_uri ? 'N' : '');
   }
   elsif ($action eq 'history')
   {
