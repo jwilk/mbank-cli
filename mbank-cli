@@ -338,7 +338,7 @@ sub do_movements($$)
         $web = undef;
         last WEB_LOOP;
       }
-      my ($date, $details, $amount, $balance) = split /\t/, $_, 4;
+      my ($date, $details, $amount, $balance, $currency) = split /\t/, $_, 5;
       $date =~ /^(\d{2})-(\d{2})-(\d{4})<br>(\d{2})-(\d{2})-(\d{4})$/ or api_error("History2 {$date}");
       $date = "$3-$2-$1";
       my $date2 = "$6-$5-$4";
@@ -353,7 +353,7 @@ sub do_movements($$)
       $balance = parse_amount $balance;
       defined $balance or api_error('History4');
       printf "$name\t", $name if defined $name;
-      printf "%s\t%s\t%8.2f\t%8.2f\t%s\n", $date, $date2, $amount, $balance, $details;
+      printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date, $date2, $amount, $currency, $balance, $currency, $details;
     }
     last WEB_LOOP;
   }
