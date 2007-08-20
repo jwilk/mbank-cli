@@ -345,6 +345,7 @@ sub do_movements($$)
       $details =~ s{<br> *$}{};
       $details =~ s{<br>}{\t}g;
       $details = decode_entities $details;
+      $details =~ y/\xa0/ /;
       $amount = parse_amount $amount;
       defined $amount or api_error('History3');
       $balance = parse_amount $balance;
@@ -636,6 +637,7 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
       my $date = "$3-$2-$1";
       my $receiver = decode_entities $4;
       my $title = decode_entities $5;
+      $title =~ y/\xa0/ /;
       my $amount = parse_amount $6;
       my $currency = $7;
       my $status = decode_entities $8;
