@@ -36,6 +36,7 @@ use constant
   EC_USER_ERROR => 1,
   EC_HTTP_ERROR => 2,
   EC_API_ERROR => 3,
+  WEB_CODESET => 'ISO-8859-2',
   FAKE_DOMAIN => 'mbank-cli.invalid',
   GPG => '/usr/bin/gpg'
 };
@@ -61,19 +62,15 @@ sub widen_string($;$)
 sub shrink_string($)
 {
   (local $_) = @_;
-  eval { $_ = Encode::encode('ISO-8859-2', $_); };
+  eval { $_ = Encode::encode(WEB_CODESET, $_); };
   return undef if $@;
   return $_;
 }
 
 sub decode_entities($)
 {
-  BEGIN
-  {
-    our $web_codeset = 'ISO-8859-2';
-  }
   local ($_) = @_;
-  $_ = widen_string $_, $main::web_codeset;
+  $_ = widen_string $_, WEB_CODESET;
   return HTML::Entities::decode_entities $_;
 }
 
