@@ -145,7 +145,7 @@ sub shorten_uri($)
 sub check_for_error($)
 {
   local ($_) = @_;
-  return $1 if m{<td bgcolor="#FF0000" class="big2" height="20" colspan="3">&nbsp;<img src="/gifs/yellow\.gif" width="8" height="8" alt=""><b>&nbsp;\s*([^>]*?)\s*</b></td>};
+  return $1 if m{<caption class="error">\s*(.*?)\s*</caption>};
   return '';
 }
 
@@ -252,7 +252,7 @@ sub do_logout()
     } 
   );
   user_error 'You are not logged in' unless $have_cookies;
-  my $web_logout = download GET("$mbank/ib_logout.asp");
+  my $web_logout = download GET("$mbank/logout.aspx");
   $ua->cookie_jar->clear();
   debug 'Cookies has been wiped out';
   if (check_session_expiry($web_logout))
@@ -272,12 +272,14 @@ sub do_login($$)
   my @forms = HTML::Form->parse($web_in->{response});
   $#forms == 0 or api_error('Login1');
   my ($form) = @forms;
-  my $in_login = $form->find_input('txtCustNr', 'text');
-  my $in_passw = $form->find_input('txtPasswd', 'password');
+  my $in_login = $form->find_input('customer', 'text');
+  my $in_passw = $form->find_input('password', 'password');
+  my $in_submt = $form->find_input('confirm', 'submit');
   api_error('Login2') unless defined $in_login and defined $in_passw;
   my ($login, $passw) = read_config($need_decrypt);
   $in_login->value($login);
   $in_passw->value($passw);
+  $in_submt->value("Zatwierd\xbc"); # XXX Looks like a HTML::Form bug
   my $web_out = download $form->click();
   user_error 'System error: invalid login/password'
     if $web_out->{error} eq "B\xb3\xb1d systemu" and 
@@ -385,7 +387,7 @@ sub check_session_expiry($)
   my ($web) = @_;
   return 1
     if ($web->{error} eq "B\xb3\xb1d systemu" and 
-    $web->{content} =~ m{<center><b>Alarm bezpiecze\xf1stwa\. Nieprawid\xb3owy lub niewa\xbfny klucz sesji\.</b></center>});
+    $web->{content} =~ m{<b><span>Alarm bezpiecze\xf1stwa[.] Nieprawid\xb3owy lub niewa\xbfny klucz sesji[.]</span></b>});
 }
 
 my ($opt_from, $opt_to);
@@ -498,7 +500,7 @@ else
 }
 
 my $need_login = 1;
-my $web_homebanking;
+my $web_accounts_list;
 
 $ua->cookie_jar->scan( 
   sub 
@@ -510,19 +512,15 @@ $ua->cookie_jar->scan(
 if (!$need_login)
 {
   debug 'Trying to reuse previous session';
-  $web_homebanking = download POST("$mbank/ib_fr_homebanking.asp");
-  if (check_session_expiry($web_homebanking))
+  $web_accounts_list = download GET("$mbank/accounts_list.aspx?ClearContract=yes");
+  if (check_session_expiry($web_accounts_list))
   {
     debug 'Invalid or expired session key';
     $need_login = 1;
   }
-  elsif ($web_homebanking->{error} ne '')
+  elsif ($web_accounts_list->{error} ne '')
   {
-    api_error('PreLogin: ' . $web_homebanking->{error});
-  }
-  else
-  {
-    $need_login = $web_homebanking->{content} =~ /"txtCustNr"/;
+    api_error('PreLogin: ' . $web_accounts_list->{error});
   }
 }
 
@@ -531,23 +529,14 @@ if ($need_login)
   debug 'A new session will be created';
   $need_login = 1;
   my $web_login = download GET("$mbank/");
-  my $web_postlogin = do_login($web_login, $need_decrypt_config);
-  
-  my @forms = HTML::Form->parse($web_postlogin->{response});
-  $#forms == 0 or api_error('PostLogin1');
-  my ($form) = @forms;
-  scalar $form->inputs == 0 or api_error('PostLogin2');
+  my $web_frames = do_login($web_login, $need_decrypt_config);
   $ua->cookie_jar->set_cookie(0, 'dummy', '', '/login-options/', FAKE_DOMAIN, undef, undef, undef, 604800, undef);
-  $web_homebanking = download $form->click()
+  $web_accounts_list = download GET("$mbank/accounts_list.aspx?ClearContract=yes");
 }
-
-$web_homebanking->{content} =~ m{<frame name="FunctionFrame" src="(ib_welcome[.]asp\?[^"]*?)"[^>]*?>} or api_error('PostLogin2');
-my $uri = shorten_uri $1;
-my $web_welcome = download GET("$mbank/$uri");
 
 if ($action eq 'funds')
 {
-  $web_welcome->{content} =~ m{<a +href="(ib_navibar_3[.]asp\?[^"]*?)"[^>]*?>Fundusze inwestycyjne} or exit; 
+  $web_accounts_list->{content} =~ m{<a +href="(ib_navibar_3[.]asp\?[^"]*?)"[^>]*?>Fundusze inwestycyjne} or exit; 
   my $uri = shorten_uri $1;
   my $web_navibar = download GET("$mbank/$uri");
   $web_navibar->{content} =~ m{open\("(ib_if_fund_list[.]asp\?[^"]*?)", +"FunctionFrame"\)} or api_error('Funds1');
@@ -564,35 +553,45 @@ if ($action eq 'funds')
   exit;
 }
 
-my $accounts_re = qr{<a +href="(ib_contractselected[.]asp[?][^"]*?)" [^>]*?>([^<]+?)<BR>((?:\d+ )+\d+)</a>(.*?)<a +href="(ib_lastmovements_submit[.]asp[?][^"]*?)" [^>]*?><DIV NOWRAP>([^<]*?)</DIV></a>.*?<DIV NOWRAP>([^<]*?)</DIV>.*?<td *class="big4"[^>]*?>([A-Z]+)</td>};
-# FIXME: will the above fail if a balance / resources is negative?
-$web_welcome->{content} =~ m{$accounts_re} or api_error('Welcome1');
-
-while ($web_welcome->{content} =~ m{$accounts_re}go)
+sub onclick_to_uri($)
 {
-  my $contract_uri = $1;
+  return 'http://FIXME/';
+}
+
+my $accounts_re = qr{
+<a[ ]id="\w+"[ ]title="Wybierz[ ]ten[ ]rachunek"[ ]                     onclick="(.*?)" [^>]*?>(.+?)<br[ ]/>((?:\d+[ ])+\d+)</a>  .*?
+<a[ ]id="\w+"[ ]title="Przeczytaj[ ]nowe[ ]komunikaty"[ ]               onclick="(.*?)" [^>]*?>(.*?)</a>                          .*?
+<a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni"[ ] onclick="(.*?)" [^>]*?>(.*?)</a>                          .*?
+<span[ ]id="\w+">([0-9 ,]+)</span>                                                                                                .*?
+<span[ ]id="\w+">([A-Z]+)</span>
+}x;
+# FIXME: will the above fail if a balance / resources is negative?
+$web_accounts_list->{content} =~ m{$accounts_re} or api_error('AccountsList1');
+
+while ($web_accounts_list->{content} =~ m{$accounts_re}go)
+{
+  my $account_details_uri = onclick_to_uri $1;
   my $name = decode_entities $2;
   my $no = $3;
-  my $rest = $4;
-  my $lastmovements_uri = $5;
-  my $balance = parse_amount $6;
-  defined $balance or api_error('Welcome2');
-  my $resources = parse_amount $7;
+  my $notices_uri = onclick_to_uri $4;
+  $notices_uri = undef if $5 eq '';
+  my $operations_uri = onclick_to_uri $6;
+  my $balance = parse_amount $7;
+  defined $balance or api_error('AccountsList2');
+  my $resources = parse_amount $8;
   defined $resources or api_error('Welcome3');
-  my $currency = $8;
+  my $currency = $9;
   next if defined $selected_accounts and $name !~ m/$selected_accounts/;
-  my $notices_uri = undef;
-  $rest =~ m{<a href="(ib_contract_notices[.]asp[?][^"]*?)" [^>]*?>} and $notices_uri = $1;
   if ($action eq 'list')
   {
     printf "%s\t%32s\t%8.2f %s\t%8.2f %s\t%s\n", $name, $no, $balance, $currency, $resources, $currency, (defined $notices_uri ? 'N' : '');
   }
   elsif ($action eq 'history')
   {
-    my $web_movements = download GET("$mbank/$lastmovements_uri");
+    my $web_operations = download GET("$mbank/$operations_uri");
     if (defined $opt_range)
     {
-      my @forms = HTML::Form->parse($web_movements->{response});
+      my @forms = HTML::Form->parse($web_operations->{response});
       $#forms == 0 or api_error('PreHistory1');
       my ($form) = @forms;
       $opt_from =~ m/^(\d+)-0*(\d+?)-0*(\d+?)$/ or die;
@@ -611,13 +610,13 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
       $form->value('PeriodEndN', '0');
       $form->value('PackageDirection', '0');
       $form->action("$mbank/ib_lastmovements_submit.asp");
-      $web_movements = download $form->click();
+      $web_operations = download $form->click();
     }
-    do_movements($web_movements, $opt_multiple_accounts ? $name : undef);
+    do_movements($web_operations, $opt_multiple_accounts ? $name : undef);
   }
   elsif ($action eq 'future')
   {
-    my $web_contractselected = download GET("$mbank/$contract_uri");
+    my $web_contractselected = download GET("$mbank/$account_details_uri");
     $web_contractselected->{content} =~ m{open\("(ib_navibar_3[.]asp\?[^"]*?)", +"MenuFrame"\)} or api_error('Future1');
     my $navibar_uri = shorten_uri $1;
     my $web_navibar = download GET("$mbank/$navibar_uri");
@@ -663,7 +662,7 @@ while ($web_welcome->{content} =~ m{$accounts_re}go)
   }
   elsif ($action eq 'rename')
   {
-    my $web_contract = download GET("$mbank/$contract_uri");
+    my $web_contract = download GET("$mbank/$account_details_uri");
 		$web_contract->{content} =~ m{<INPUT class="button" TYPE="button" VALUE="Zmiana nazwy rachunku" onClick="javascript:location[.]href='(.*?)'">} or api_error 'Rename1';
     my $uri = shorten_uri $1;
     my $web_rename = download GET("$mbank/$uri");
