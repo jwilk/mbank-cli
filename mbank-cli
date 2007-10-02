@@ -300,47 +300,41 @@ sub parse_amount($)
   return $amount;
 }
 
-sub do_movements($$)
+sub onclick_to_req($$)
+{
+  my ($form, $onclick) = @_;
+  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST','([^']+?)'.*?[)];/ or api_error('OnClick');
+  $form->action("$mbank/$1");
+  $form->value('__PARAMETERS', $2);
+  return $form->click();
+}
+
+sub do_operations($$)
 {
   my ($web, $name) = @_;
   return if $web->{content} =~ m{<b>Brak operacji dla wybranych kryteri\xf3w wy\xb6wietlania[.]</b>};
+  my $operations_re = qr{
+    <span[ ]id="\w+"></span>(\d\d)-(\d\d)-(\d{4})<br[ ]/>(\d\d)-(\d\d)-(\d{4})<                         .*?
+    <a[ ]id="\w+"[ ]title="Zobacz[ ]szczeg\xf3\xb3y[ ]operacji"[ ]onclick="[^"]+" [^>]+?>([^>]+?)</a>   .*?
+    <span[ ]id="\w+"(?:[ ]class="negativeamount")?>(-?[0-9, ]+)</span>                                  .*?
+    <span[ ]id="\w+"(?:[ ]class="negativeamount")?>(-?[0-9, ]+)</span>                                  .*?
+    <span[ ]id="\w+">([A-Z]+)</span>
+  }x;
   WEB_LOOP: while (1)
   {
-    my $tmp_table = qr{<table CELLSPACING=0 CELLPADDING=0 BORDER=0 width="100%" BGCOLOR="#FFFFFF">};
-    $web->{content} =~ m{$tmp_table.*$tmp_table(.*?)</table>}m or api_error('History1');
-    $_ = $1;
-    s{<img src="/gifs/blank[.]gif" [^>]*>}{}g;
-    s{<td( [^>]+)?></td>}{}g;
-    s{<tr( [^>]+)?>\s*</tr>}{}g;
-    s{ *<tr>}{}g;
-    s{ *</tr>}{\n}g;
-    s{ *<td( [^>]+)?>}{}g;
-    s{ *</td>}{\t}g;
-    s{\s*$}{}g;
-    my @movements = split /\n/;
-    shift @movements;
-    foreach (@movements)
+    $web->{content} =~ m{Lista operacji wykonanych.*?<table cellspacing="0" cellpadding="0" border="0" width="100%">(.*?)</table>}s or api_error('History1');
+    my $content = $1;
+    $content =~ m{$operations_re} or api_error('HistoryRe');
+    while ($content =~ m{$operations_re}go)
     {
-      if (m{<input class="button" type="button" name="Submit" VALUE=" Poprzednie operacje " onclick="onButtonClick\('prev'\)">})
-      {
-        my @forms = HTML::Form->parse($web->{response});
-        $#forms == 0 or api_error('HistoryN');
-        my ($form) = @forms;
-        $form->value('UsePrevCtrlValues', 'TRUE');
-        $form->value('PackageDirection', 'prev');
-        $form->action("$mbank/ib_lastmovements_submit.asp");
-        $web = download $form->click();
-        next WEB_LOOP;
-      }
-      elsif (m{<input class="button" TYPE="button" NAME="Submit" value="  Nast\xeapne operacje " onclick="onButtonClick\('next'\)">})
-      {
-        $web = undef;
-        last WEB_LOOP;
-      }
-      my ($date, $details, $amount, $balance, $currency) = split /\t/, $_, 5;
-      $date =~ /^(\d{2})-(\d{2})-(\d{4})<br>(\d{2})-(\d{2})-(\d{4})$/ or api_error("History2 {$date}");
-      $date = "$3-$2-$1";
+      my $date = "$3-$2-$1";
       my $date2 = "$6-$5-$4";
+      my $details = $7;
+      my $amount = parse_amount $8;
+      defined $amount or api_error('History3');
+      my $balance = parse_amount $9;
+      defined $balance or api_error('History4');
+      my $currency = $10;
       $details =~ s{\s+}{ }g;
       $details =~ s{</?a.*?>}{}g;
       $details =~ s{^<br>}{};
@@ -348,12 +342,18 @@ sub do_movements($$)
       $details =~ s{<br>}{\t}g;
       $details = decode_entities $details;
       $details =~ y/\xa0/ /;
-      $amount = parse_amount $amount;
-      defined $amount or api_error('History3');
-      $balance = parse_amount $balance;
-      defined $balance or api_error('History4');
       printf "$name\t", $name if defined $name;
       printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date, $date2, $amount, $currency, $balance, $currency, $details;
+    }
+    if ($web->{content} =~ m{<input type="submit" name="PrevPage" value="Poprzednie operacje" onclick="([^"]+?)" id="PrevPage" class="button" />})
+    {
+      my @forms = HTML::Form->parse($web->{response});
+      $#forms == 0 or api_error('HistoryPrevForm');
+      my ($form) = @forms;
+      my $prev_req = onclick_to_req($form, $1);
+#     XXX The following doesn't work. Why? :O      
+#     $web = download $prev_req;
+#     next WEB_LOOP;
     }
     last WEB_LOOP;
   }
@@ -553,11 +553,6 @@ if ($action eq 'funds')
   exit;
 }
 
-sub onclick_to_uri($)
-{
-  return 'http://FIXME/';
-}
-
 my $accounts_re = qr{
 <a[ ]id="\w+"[ ]title="Wybierz[ ]ten[ ]rachunek"[ ]                     onclick="(.*?)" [^>]*?>(.+?)<br[ ]/>((?:\d+[ ])+\d+)</a>  .*?
 <a[ ]id="\w+"[ ]title="Przeczytaj[ ]nowe[ ]komunikaty"[ ]               onclick="(.*?)" [^>]*?>(.*?)</a>                          .*?
@@ -568,55 +563,53 @@ my $accounts_re = qr{
 # FIXME: will the above fail if a balance / resources is negative?
 $web_accounts_list->{content} =~ m{$accounts_re} or api_error('AccountsList1');
 
+my @accounts_list_forms = HTML::Form->parse($web_accounts_list->{response});
+$#accounts_list_forms == 0 or api_error('AccountListForm');
+my ($accounts_list_form) = @accounts_list_forms;
+
 while ($web_accounts_list->{content} =~ m{$accounts_re}go)
 {
-  my $account_details_uri = onclick_to_uri $1;
+  my $account_details_req = onclick_to_req($accounts_list_form, $1);
   my $name = decode_entities $2;
   my $no = $3;
-  my $notices_uri = onclick_to_uri $4;
-  $notices_uri = undef if $5 eq '';
-  my $operations_uri = onclick_to_uri $6;
+  my $notices_req = onclick_to_req($accounts_list_form, $4);
+  $notices_req = undef if $5 eq '';
+  my $operations_req = onclick_to_req($accounts_list_form, $6);
   my $balance = parse_amount $7;
   defined $balance or api_error('AccountsList2');
   my $resources = parse_amount $8;
-  defined $resources or api_error('Welcome3');
+  defined $resources or api_error('AccountsList3');
   my $currency = $9;
   next if defined $selected_accounts and $name !~ m/$selected_accounts/;
   if ($action eq 'list')
   {
-    printf "%s\t%32s\t%8.2f %s\t%8.2f %s\t%s\n", $name, $no, $balance, $currency, $resources, $currency, (defined $notices_uri ? 'N' : '');
+    printf "%s\t%32s\t%8.2f %s\t%8.2f %s\t%s\n", $name, $no, $balance, $currency, $resources, $currency, (defined $notices_req ? 'N' : '');
   }
   elsif ($action eq 'history')
   {
-    my $web_operations = download GET("$mbank/$operations_uri");
+    my $web_operations = download $operations_req;
     if (defined $opt_range)
     {
       my @forms = HTML::Form->parse($web_operations->{response});
       $#forms == 0 or api_error('PreHistory1');
       my ($form) = @forms;
       $opt_from =~ m/^(\d+)-0*(\d+?)-0*(\d+?)$/ or die;
-      $form->value('dayFrom', $3);
-      $form->value('monthFrom', $2);
-      $form->value('yearFrom', $1);
+      $form->value('daterange_from_day', $3);
+      $form->value('daterange_from_month', $2);
+      $form->value('daterange_from_year', $1);
       $opt_to =~ m/^(\d+)-0*(\d+?)-0*(\d+?)$/ or die;
-      $form->value('dayTo', $3);
-      $form->value('monthTo', $2);
-      $form->value('yearTo', $1);
-      $form->value('rdDates', '1');
-      $form->value('FirstEntry', '1');
-      $form->value('StartNumber', '0');
-      $form->value('EndNumber', '0');
-      $form->value('PeriodStartN', '0');
-      $form->value('PeriodEndN', '0');
-      $form->value('PackageDirection', '0');
-      $form->action("$mbank/ib_lastmovements_submit.asp");
+      $form->value('daterange_to_day', $3);
+      $form->value('daterange_to_month', $2);
+      $form->value('daterange_to_year', $1);
+      $form->value('rangepanel_group', 'daterange');
+      $form->value('Submit', "Zatwierd\xbc"); # XXX Looks like a HTML::Form bug
       $web_operations = download $form->click();
     }
-    do_movements($web_operations, $opt_multiple_accounts ? $name : undef);
+    do_operations($web_operations, $opt_multiple_accounts ? $name : undef);
   }
   elsif ($action eq 'future')
   {
-    my $web_contractselected = download GET("$mbank/$account_details_uri");
+    my $web_contractselected = download $account_details_req;
     $web_contractselected->{content} =~ m{open\("(ib_navibar_3[.]asp\?[^"]*?)", +"MenuFrame"\)} or api_error('Future1');
     my $navibar_uri = shorten_uri $1;
     my $web_navibar = download GET("$mbank/$navibar_uri");
@@ -644,9 +637,9 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
       printf "%s\t%s\t%s\t%8.2f %s\t%s\n", $date, $receiver, $title, $amount, $currency, $status;
     }
   }
-  elsif ($action eq 'notices' and defined $notices_uri)
+  elsif ($action eq 'notices' and defined $notices_req)
   {
-    my $web_notices = download GET("$mbank/$notices_uri");
+    my $web_notices = download $notices_req;
     my $notice_re = qr{<DIV NOWRAP>(\d{2})-(\d{2})-(\d{4})</DIV>.*?<a href="(ib_contract_notice_details[.]asp[?][^"]+?&cNumSeq=(\d+)[^"]+?)"[^>]+?>([^<]+?)</a>.*?<td +class="big4" [^>]+?><b>([^<]+?)</b></td>.*?<a class="actionh" href="(ib_contract_notice_delete[.]asp[?][^"]+?)"[^>]+?>};
     while ($web_notices->{content} =~ m{$notice_re}go)
     {
@@ -662,7 +655,7 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
   }
   elsif ($action eq 'rename')
   {
-    my $web_contract = download GET("$mbank/$account_details_uri");
+    my $web_contract = download $account_details_req;
 		$web_contract->{content} =~ m{<INPUT class="button" TYPE="button" VALUE="Zmiana nazwy rachunku" onClick="javascript:location[.]href='(.*?)'">} or api_error 'Rename1';
     my $uri = shorten_uri $1;
     my $web_rename = download GET("$mbank/$uri");
