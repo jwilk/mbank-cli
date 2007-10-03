@@ -538,6 +538,7 @@ if ($need_login)
 
 if ($action eq 'funds')
 {
+  # FIXME This code is almost certianly broken.
   $web_accounts_list->{content} =~ m{<a +href="(ib_navibar_3[.]asp\?[^"]*?)"[^>]*?>Fundusze inwestycyjne} or exit; 
   my $uri = shorten_uri $1;
   my $web_navibar = download GET("$mbank/$uri");
@@ -635,6 +636,7 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
   }
   elsif ($action eq 'notices' and defined $notices_req)
   {
+    # FIXME This code is almost certianly broken.
     my $web_notices = download $notices_req;
     my $notice_re = qr{<DIV NOWRAP>(\d{2})-(\d{2})-(\d{4})</DIV>.*?<a href="(ib_contract_notice_details[.]asp[?][^"]+?&cNumSeq=(\d+)[^"]+?)"[^>]+?>([^<]+?)</a>.*?<td +class="big4" [^>]+?><b>([^<]+?)</b></td>.*?<a class="actionh" href="(ib_contract_notice_delete[.]asp[?][^"]+?)"[^>]+?>};
     while ($web_notices->{content} =~ m{$notice_re}go)
@@ -651,6 +653,7 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
   }
   elsif ($action eq 'rename')
   {
+    # FIXME This code is almost certianly broken.
     my $web_contract = download $account_details_req;
 		$web_contract->{content} =~ m{<INPUT class="button" TYPE="button" VALUE="Zmiana nazwy rachunku" onClick="javascript:location[.]href='(.*?)'">} or api_error 'Rename1';
     my $uri = shorten_uri $1;
