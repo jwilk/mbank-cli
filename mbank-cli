@@ -627,7 +627,7 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
       my $title = decode_entities $3;
       $title =~ y/\xa0/ /;
       my $amount = parse_amount $4;
-      my $currency = 'PLN'; # XXX WTF?
+      # inherit $currency
       my $status = decode_entities $5;
       printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%s\t%8.2f %s\t%s\n", $date, $receiver, $title, $amount, $currency, $status;
