@@ -611,30 +611,24 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
   }
   elsif ($action eq 'future')
   {
-    my $web_contractselected = download $account_details_req;
-    $web_contractselected->{content} =~ m{open\("(ib_navibar_3[.]asp\?[^"]*?)", +"MenuFrame"\)} or api_error('Future1');
-    my $navibar_uri = shorten_uri $1;
-    my $web_navibar = download GET("$mbank/$navibar_uri");
-    $web_navibar->{content} =~ m{href="(ib_navibar_3[.]asp\?[^"]*?)" +target="MenuFrame">Historia} or api_error('Future2');
-    $navibar_uri = $1;
-    $web_navibar = download GET("$mbank/$navibar_uri");
-    $web_navibar->{content} =~ m{href="(ib_navibar_3[.]asp\?[^"]*?)" +target="MenuFrame">Operacje zaplanowane} or api_error('Future3');
-    $navibar_uri = $1;
-    $web_navibar = download GET("$mbank/$navibar_uri");
-    $web_navibar->{content} =~ m{open\("(ib_future_operation_list[.]asp\?[^"]*?)", +"FunctionFrame"\)} or api_error('Future4');
-    my $future_uri = shorten_uri $1;
-    my $web_future_operation_list = download GET("$mbank/$future_uri");
-
-    my $transfer_re = qr{<DIV NOWRAP>(\d{2})-(\d{2})-(\d{4})</DIV>.*? operacji">([^<]+?)</a></td> *<td[^>]+?>.*?</td> *<td[^>]+?>([^<]+?)</td>.*?<DIV NOWRAP>([^<]+?) +([A-Z]+)&nbsp;</DIV></td> *<td[^>]+?>.*?</td> *<td[^>]+?>([^<]+?)</td>};
-    while ($web_future_operation_list->{content} =~ m{$transfer_re}go)
+    my $web_operations = download $operations_req;
+    my $web_future_operations = download POST("$mbank/future_operation_list.aspx");
+    my $operation_re = qr{
+      <span[ ]id="\w+"> (\d{4}-\d\d-\d\d) </span>                               .*?
+      <a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="[^"]+?" [^>]+?> ([^>]+?) </a>   .*?
+      <span[ ]id="\w+"> ([^>]+?) </span>                                        .*?
+      <span[ ]id="\w+"> ([0-9, ]+) </span>                                      .*?
+      <span[ ]id="\w+"> ([^>]+?) </span>
+    }x;
+    while ($web_future_operations->{content} =~ m{$operation_re}go)
     {
-      my $date = "$3-$2-$1";
-      my $receiver = decode_entities $4;
-      my $title = decode_entities $5;
+      my $date = $1;
+      my $receiver = decode_entities $2;
+      my $title = decode_entities $3;
       $title =~ y/\xa0/ /;
-      my $amount = parse_amount $6;
-      my $currency = $7;
-      my $status = decode_entities $8;
+      my $amount = parse_amount $4;
+      my $currency = 'PLN'; # XXX WTF?
+      my $status = decode_entities $5;
       printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%s\t%8.2f %s\t%s\n", $date, $receiver, $title, $amount, $currency, $status;
     }
