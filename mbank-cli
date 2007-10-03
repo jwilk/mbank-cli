@@ -303,9 +303,10 @@ sub parse_amount($)
 sub onclick_to_req($$)
 {
   my ($form, $onclick) = @_;
-  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST','([^']+?)'.*?[)];/ or api_error('OnClick');
+  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST','([^']+?)',.*?,(true|false),\w+[)];/ or api_error('OnClick');
   $form->action("$mbank/$1");
   $form->value('__PARAMETERS', $2);
+  $form->value('sCounter', '1') if $3 eq 'true';
   return $form->click();
 }
 
@@ -345,15 +346,16 @@ sub do_operations($$)
       printf "$name\t", $name if defined $name;
       printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date, $date2, $amount, $currency, $balance, $currency, $details;
     }
-    if ($web->{content} =~ m{<input type="submit" name="PrevPage" value="Poprzednie operacje" onclick="([^"]+?)" id="PrevPage" class="button" />})
+    if ($web->{content} =~ m{<input type="submit" name="(PrevPage)" value="(Poprzednie operacje)" onclick="([^"]+?)" id="PrevPage" class="button" />})
     {
+      my ($submit_name, $submit_value, $onclick) = ($1, $2, $3);
       my @forms = HTML::Form->parse($web->{response});
       $#forms == 0 or api_error('HistoryPrevForm');
       my ($form) = @forms;
-      my $prev_req = onclick_to_req($form, $1);
-#     XXX The following doesn't work. Why? :O      
-#     $web = download $prev_req;
-#     next WEB_LOOP;
+      $form->value($submit_name, undef);
+      my $prev_req = onclick_to_req($form, $onclick);
+      $web = download $prev_req;
+      next WEB_LOOP;
     }
     last WEB_LOOP;
   }
