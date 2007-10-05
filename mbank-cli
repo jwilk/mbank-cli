@@ -282,7 +282,7 @@ sub do_login($$)
   my ($login, $passw) = read_config($need_decrypt);
   $in_login->value($login);
   $in_passw->value($passw);
-  $in_submt->value("Zatwierd\xbc"); # XXX Looks like a HTML::Form bug
+  $in_submt->value("Zatwierd\xbc"); # XXX Workaround for <http://bugs.debian.org/445419>
   my $web_out = download $form->click();
   user_error 'System error: invalid login/password'
     if $web_out->{error} eq "B\xb3\xb1d systemu" and 
@@ -608,7 +608,7 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
       $form->value('daterange_to_month', $2);
       $form->value('daterange_to_year', $1);
       $form->value('rangepanel_group', 'daterange');
-      $form->value('Submit', "Zatwierd\xbc"); # XXX Looks like a HTML::Form bug
+      $form->value('Submit', "Zatwierd\xbc"); # XXX Workaround for <http://bugs.debian.org/445419>
       $web_operations = download $form->click();
     }
     do_operations($web_operations, $opt_multiple_accounts ? $name : undef);
