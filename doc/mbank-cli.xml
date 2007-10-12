@@ -42,7 +42,7 @@
 >
 	<!ENTITY output-format 'The output consists of lines in the following format:'>
 	<!ENTITY tab-separated 'Fields are tab-separated.'>
-	<!ENTITY omit-account-name '<replaceable>AccountName</replaceable> will be omitted unless <option>--multiple-accounts</option> or <option>--all-accounts</option> opion is used.'>
+	<!ENTITY omit-account-name '<replaceable>AccountName</replaceable> will be omitted unless <option>--multiple-accounts</option> or <option>--all-accounts</option> option is used.'>
 ]>
 <refentry>
 
@@ -51,10 +51,11 @@
 	<productname>&p;</productname>
 	<copyright>
 		<year>2006</year>
+		<year>2007</year>
 		<holder>Piotr Lewandowski</holder>
 		<holder>Jakub Wilk</holder>
 	</copyright>
-	<date>2006-08-20</date>
+	<date>2007-10-12</date>
 </refentryinfo>
 
 <refmeta>
@@ -97,6 +98,16 @@
 		<command>&p;</command>
 		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
 		<arg choice='plain'>future</arg>
+		<group choice='req'>
+			<arg choice='plain'><replaceable>Account</replaceable></arg>
+			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
+			<arg choice='plain'><option>--all-accounts</option></arg>
+		</group>
+	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='plain'>withholdings</arg>
 		<group choice='req'>
 			<arg choice='plain'><replaceable>Account</replaceable></arg>
 			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
@@ -184,7 +195,7 @@
 			<varlistentry>
 				<term><option>--from</option> <replaceable>StartDate</replaceable></term>
 				<listitem>
-					<para>Show transfers with the date not before <replaceable>StartDate</replaceable>.</para>
+					<para>Show operations with the date not before <replaceable>StartDate</replaceable>.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
@@ -192,7 +203,7 @@
 				<term><option>--from</option> <replaceable>StartDate</replaceable> <option>--to</option> <replaceable>EndDate</replaceable></term>
 				<listitem>
 					<para>
-						Show transfers with the date neither before <replaceable>StartDate</replaceable>,
+						Show operations with the date neither before <replaceable>StartDate</replaceable>,
 						nor after <replaceable>EndDate</replaceable>.
 					</para>
 				</listitem>
@@ -214,13 +225,28 @@
 <refsect1>
 	<title>future action</title>
 	<para>
-		Show list of planned transfer for the selected account(s).
+		Show list of planned operations for the selected account(s).
 	</para>
 	&select-accounts;
 	&select-accounts-wildcard;
 	<para>
 		&output-format;
 		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>Receiver</replaceable> <replaceable>Title</replaceable> <replaceable>Amount</replaceable> <replaceable>Status</replaceable></screen>
+		&tab-separated;
+		&omit-account-name;
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>withholdings action</title>
+	<para>
+		Show list of withholdings for the selected account(s).
+	</para>
+	&select-accounts;
+	&select-accounts-wildcard;
+	<para>
+		&output-format;
+		<screen><replaceable>AccountName</replaceable> <replaceable>RegistrationDate</replaceable> <replaceable>FinalizationDate</replaceable> <replaceable>Amount</replaceable> <replaceable>Title</replaceable></screen>
 		&tab-separated;
 		&omit-account-name;
 	</para>
@@ -267,7 +293,7 @@
 <prompt>$</prompt> <command>./&p;</command> history Foo <lineannotation># show history of the 'Foo' account</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> history Bar --range 2005-01-01 2005-12-31 &#10;
 <prompt>$</prompt> <command>./&p;</command> history Quux --from 2006-06-01 &#10;
-<prompt>$</prompt> <command>./&p;</command> future Foo <lineannotation># show list of planned transfers of the 'Foo' account</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> future Foo <lineannotation># show list of planned operations for the 'Foo' account</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> rename 'eFoo - Bar' 'quux' <lineannotation># from now on, it will be called 'eFoo - quux'</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> funds <lineannotation># list available investment funds</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> logout
