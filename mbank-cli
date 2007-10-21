@@ -660,19 +660,20 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
   }
   elsif ($action eq 'notices' and defined $notices_req)
   {
-    # FIXME This code is almost certianly broken.
     my $web_notices = download $notices_req;
-    my $notice_re = qr{<DIV NOWRAP>(\d{2})-(\d{2})-(\d{4})</DIV>.*?<a href="(ib_contract_notice_details[.]asp[?][^"]+?&cNumSeq=(\d+)[^"]+?)"[^>]+?>([^<]+?)</a>.*?<td +class="big4" [^>]+?><b>([^<]+?)</b></td>.*?<a class="actionh" href="(ib_contract_notice_delete[.]asp[?][^"]+?)"[^>]+?>};
+    my $notice_re = qr{
+      <span[ ]id="\w+"> (\d\d)-(\d\d)-(\d{4}) </span>                           .*?
+      <a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="[^"]+?" [^>]+?> ([^>]+?) </a>   .*?
+      <span[ ]id="\w+"> ([^>]+) </span>                                         .*?
+      <a[ ]id="\w+"[ ]title="[^"]+?"[ ]class="actionh"[ ]onclick="[^"]+?" [^>]+?>[ ]* Usu\xf1 [ ]*</a>
+    }x; 
     while ($web_notices->{content} =~ m{$notice_re}go)
     {
       my $date = "$3-$2-$1";
-      my $details_uri = $4;
-      my $id = $5;
-      my $type = decode_entities $6;
-      my $short_desc = decode_entities $7;
-      my $delete_uri = $8;
+      my $type = decode_entities $4;
+      my $short_desc = decode_entities $5;
       print "$name\t" if $opt_multiple_accounts;
-      print "$id\t$date\t$type\t$short_desc\n";
+      print "$date\t$type\t$short_desc\n";
     }
   }
   elsif ($action eq 'rename')
