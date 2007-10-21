@@ -117,6 +117,16 @@
 	<cmdsynopsis>
 		<command>&p;</command>
 		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='plain'>notices</arg>
+		<group choice='req'>
+			<arg choice='plain'><replaceable>Account</replaceable></arg>
+			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
+			<arg choice='plain'><option>--all-accounts</option></arg>
+		</group>
+	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
 		<arg choice='plain'>rename</arg>
 		<group choice='plain'>
 			<arg choice='plain'><replaceable>Account</replaceable></arg>
@@ -232,6 +242,21 @@
 	<para>
 		&output-format;
 		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>Receiver</replaceable> <replaceable>Title</replaceable> <replaceable>Amount</replaceable> <replaceable>Status</replaceable></screen>
+		&tab-separated;
+		&omit-account-name;
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>notices action</title>
+	<para>
+		Show list of notices for the selected account(s).
+	</para>
+	&select-accounts;
+	&select-accounts-wildcard;
+	<para>
+		&output-format;
+		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>Type</replaceable> <replaceable>Title</replaceable></screen>
 		&tab-separated;
 		&omit-account-name;
 	</para>
