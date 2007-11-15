@@ -544,26 +544,6 @@ if ($need_login)
   $web_accounts_list = download GET("$mbank/accounts_list.aspx?ClearContract=yes");
 }
 
-if ($action eq 'funds')
-{
-  # FIXME This code is almost certianly broken.
-  $web_accounts_list->{content} =~ m{<a +href="(ib_navibar_3[.]asp\?[^"]*?)"[^>]*?>Fundusze inwestycyjne} or exit; 
-  my $uri = shorten_uri $1;
-  my $web_navibar = download GET("$mbank/$uri");
-  $web_navibar->{content} =~ m{open\("(ib_if_fund_list[.]asp\?[^"]*?)", +"FunctionFrame"\)} or api_error('Funds1');
-  $uri = shorten_uri $1;
-  my $web_fund_list = download GET("$mbank/$uri");
-  my $funds_re = qr{<a +href="ib_if_fund_details[.]asp[?][^"]*?" [^>]*?>([^<]+)</a></td>.*?<DIV NOWRAP>([^a-zA-Z]+).*?</DIV>};
-  while ($web_fund_list->{content} =~ m{$funds_re}go)
-  {
-    my $name = decode_entities $1;
-    my $amount = parse_amount $2;
-    defined $amount or api_error('Funds2');
-    printf "%s\t%8.2f\n", $name, $amount;
-  }
-  exit;
-}
-
 my $accounts_re = qr{
 <a[ ]id="\w+"[ ]title="Wybierz[ ]ten[ ]rachunek"[ ]                     onclick="(.*?)" [^>]*?>(.+?)<br[ ]/>((?:\d+[ ])+\d+)</a>  .*?
 <a[ ]id="\w+"[ ]title="Przeczytaj[ ]nowe[ ]komunikaty"[ ]               onclick="(.*?)" [^>]*?>(.*?)</a>                          .*?
@@ -577,6 +557,22 @@ $web_accounts_list->{content} =~ m{$accounts_re} or api_error('AccountsList1');
 my @accounts_list_forms = HTML::Form->parse($web_accounts_list->{response});
 $#accounts_list_forms == 0 or api_error('AccountListForm');
 my ($accounts_list_form) = @accounts_list_forms;
+
+if ($action eq 'funds')
+{
+  $web_accounts_list->{content} =~ m{<a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="(.*?)" [^>]+?>Fundusze inwestycyjne} or api_error('Funds1');
+  my $web_funds_list = download onclick_to_req($accounts_list_form, $1);
+  my $fund_re = qr{<a.*?onclick="doSubmit\('if_fund_details.aspx',[^>]+?>([^<]+?)<.*?</span>.*?>([0-9 ,]+) ([A-Z]+)</span>};
+  while ($web_funds_list->{content} =~ m{$fund_re}go)
+  {
+    my $name = decode_entities $1;
+    my $amount = parse_amount $2;
+    defined $amount or api_error('Funds2');
+    my $currency = $3;
+    printf "%s\t%8.2f %s\n", $name, $amount, $currency;
+  }
+  exit;
+}
 
 while ($web_accounts_list->{content} =~ m{$accounts_re}go)
 {
