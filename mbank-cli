@@ -560,6 +560,7 @@ my ($accounts_list_form) = @accounts_list_forms;
 
 if ($action eq 'funds')
 {
+  $web_accounts_list->{content} =~ m{Brak rachunk\xf3w inwestycyjnych - </span><a onclick="doSubmit[(]'if_fund_list[.]aspx'} and exit;
   $web_accounts_list->{content} =~ m{<a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="(.*?)" [^>]+?>Fundusze inwestycyjne} or api_error('Funds1');
   my $web_funds_list = download onclick_to_req($accounts_list_form, $1);
   my $fund_re = qr{<a.*?onclick="doSubmit\('if_fund_details.aspx',[^>]+?>([^<]+?)<.*?</span>.*?>([0-9 ,]+) ([A-Z]+)</span>};
