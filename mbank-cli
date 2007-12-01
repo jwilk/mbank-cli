@@ -278,7 +278,7 @@ sub do_login($$)
   my $in_login = $form->find_input('customer', 'text');
   my $in_passw = $form->find_input('password', 'password');
   my $in_submt = $form->find_input('confirm', 'submit');
-  api_error('Login2') unless defined $in_login and defined $in_passw;
+  api_error('Login2') unless defined $in_login and defined $in_passw and defined $in_submt;
   my ($login, $passw) = read_config($need_decrypt);
   $in_login->value($login);
   $in_passw->value($passw);
