@@ -277,13 +277,14 @@ sub do_login($$)
   my ($form) = @forms;
   my $in_login = $form->find_input('customer', 'text');
   my $in_passw = $form->find_input('password', 'password');
-  my $in_submt = $form->find_input('confirm', 'submit');
-  api_error('Login2') unless defined $in_login and defined $in_passw and defined $in_submt;
+  api_error('Login2L') unless defined $in_login;
+  api_error('Login2P') unless defined $in_passw;
+  api_error('Login2S') unless $web_in->{content} =~ m{<button id="confirm" onclick="([^"]+)" class="button">};
+  my $onclick = $1;
   my ($login, $passw) = read_config($need_decrypt);
   $in_login->value($login);
   $in_passw->value($passw);
-  $in_submt->value("Zatwierd\xbc"); # XXX Workaround for <http://bugs.debian.org/445419>
-  my $web_out = download $form->click();
+  my $web_out = download onclick_to_req($form, $onclick);
   user_error 'System error: invalid login/password'
     if $web_out->{error} eq "B\xb3\xb1d systemu" and 
     $web_out->{content} =~ m{<center><b>B\xb3\xeadnie podano identyfikator lub has\xb3o\.</b></center>};
@@ -306,7 +307,7 @@ sub parse_amount($)
 sub onclick_to_req($$)
 {
   my ($form, $onclick) = @_;
-  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST',(?:'([^']+?)'|null),.*?,(true|false),\w+[)];/ or api_error('OnClick');
+  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST',(?:'([^']*?)'|null),.*?,(true|false),(?:\w+|'.*?')[)];/ or api_error('OnClick');
   $form->action("$mbank/$1");
   $form->value('__PARAMETERS', $2) if defined $2;
   $form->value('sCounter', '1') if $3 eq 'true';
