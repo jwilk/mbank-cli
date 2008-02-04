@@ -611,8 +611,9 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
       $form->value('daterange_to_month', $2);
       $form->value('daterange_to_year', $1);
       $form->value('rangepanel_group', 'daterange');
-      $form->value('Submit', "Zatwierd\xbc"); # XXX Workaround for <http://bugs.debian.org/445419>
-      $web_operations = download $form->click();
+      api_error('PreHistory2') unless $web_operations->{content} =~ m{<button id="Submit" onclick="([^"]+)" class="button">};
+      my $onclick = $1;
+      $web_operations = download onclick_to_req($form, $onclick);
     }
     do_operations($web_operations, $opt_multiple_accounts ? $name : undef);
   }
