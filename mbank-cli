@@ -318,7 +318,7 @@ sub onclick_to_req($$)
 sub do_operations($$)
 {
   my ($web, $name) = @_;
-  return if $web->{content} =~ m{<b>Brak operacji dla wybranych kryteri\xf3w wy\xb6wietlania[.]</b>};
+  return if $web->{content} =~ m{<span>Brak operacji dla wybranych kryteri\xf3w wy\xb6wietlania[.]</span>};
   my $operations_re = qr{
     <span[ ]id="\w+"></span>
     <span>(\d\d)-(\d\d)-(\d{4})</span><br[ ]/>
@@ -356,13 +356,12 @@ sub do_operations($$)
       printf "$name\t", $name if defined $name;
       printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date, $date2, $amount, $currency, $balance, $currency, $details;
     }
-    if ($web->{content} =~ m{<input type="submit" name="(PrevPage)" value="(Poprzednie operacje)" onclick="([^"]+?)" id="PrevPage" class="button" />})
+    if ($web->{content} =~ m{<button id="PrevPage" onclick="([^"]+)" class="button">Poprzednie&nbsp;operacje</button>})
     {
-      my ($submit_name, $submit_value, $onclick) = ($1, $2, $3);
+      my $onclick = $1;
       my @forms = HTML::Form->parse($web->{response});
       $#forms == 0 or api_error('HistoryPrevForm');
       my ($form) = @forms;
-      $form->value($submit_name, undef);
       my $prev_req = onclick_to_req($form, $onclick);
       $web = download $prev_req;
       next WEB_LOOP;
