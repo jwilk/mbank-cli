@@ -1,48 +1,68 @@
-This is 'mbank-cli', a command line interface to the on-line banking system of
+This is `mbank-cli`, a command line interface to the on-line banking system of
 mBank.
 
-WARNING: You use 'mbank-cli' on your own risk!
+**Warning**: You use `mbank-cli` on your own risk!
 
-WARNING: 'mbank-cli' is considered highly experimental. The interface is likely
-to change in the near future.
+**Warning**: `mbank-cli` is considered highly experimental. The interface is
+likely to change in the near future.
 
-WARNING: 'mbank-cli' uses the web interface at <https://www.mbank.com.pl/>
+**Warning**: `mbank-cli` uses the web interface at https://www.mbank.com.pl/
 which is subject to change unexpectedly.
 
---- Requirements ---
+
+Requirements
+------------
 
 - perl with the following perl modules:
+
   - Apache::ConfigFile
+
   - Crypt::SSLeay
+
   - HTML::Form
+
   - HTML::Entities
+
   - HTTP::Cookies
+
   - LWP::UserAgent
+
 - GNU Privacy Guard (optionally, to protect your password)
 
-(If you are using Debian, dependencies will be satisfied by the following packages:
-- perl
-- libapache-configfile-perl
-- libcrypt-ssleay-perl
-- libwww-perl
-- gnupg)
+If you are using Debian, dependencies will be satisfied by the following packages:
 
---- Usage ---
+- perl
+
+- libapache-configfile-perl
+
+- libcrypt-ssleay-perl
+
+- libwww-perl
+
+- gnupg
+
+
+Usage
+-----
 
 For the complete syntax and usage examples, consult the manual page.
 
---- License ---
 
-Copyright (c) 2006, 2007, 2008
-  Piotr Lewandowski <P.P.Lewandowski@stud.elka.pw.edu.pl>,
-  Jakub Wilk <ubanus@users.sf.net>.
+License
+-------
+
+Copyright © 2006, 2007, 2008
+Piotr Lewandowski <P.P.Lewandowski@stud.elka.pw.edu.pl>,
+Jakub Wilk <ubanus@users.sf.net>.
    
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License, version 2, as
-published by the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License, version 2, as published
+by the Free Software Foundation.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
 
+
+.. vim:ft=rst tw=76 ts=2 sw=2 et
