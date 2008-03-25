@@ -548,7 +548,8 @@ if ($need_login)
 my $accounts_re = qr{
 <a[ ]id="\w+"[ ]title="Wybierz[ ]ten[ ]rachunek"[ ]                     onclick="(.*?)" [^>]*?>(.+?)<br[ ]/>((?:\d+[ ])+\d+)</a>  .*?
 <a[ ]id="\w+"[ ]title="Przeczytaj[ ]nowe[ ]komunikaty"[ ]               onclick="(.*?)" [^>]*?>(.*?)</a>                          .*?
-<a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni"[ ] onclick="(.*?)" [^>]*?>(.*?)</a>                          .*?
+<a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni"
+  [ ](?: class="negativeamount" [ ] )?                                  onclick="(.*?)" [^>]*?>(-?[0-9 ,]+)</a>                   .*?
 <span[ ]id="\w+">([0-9 ,]+)</span>                                                                                                .*?
 <span[ ]id="\w+">([A-Z]+)</span>
 }x;
