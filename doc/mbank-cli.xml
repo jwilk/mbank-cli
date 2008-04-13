@@ -154,14 +154,14 @@
 	</cmdsynopsis>
 </refsynopsisdiv>
 
-<refsect1>
+<refsection>
 	<title>Description</title>
 	<para>
 		<application>&p;</application> provides a rudimentary command line interface to the <ulink url="https://www.mbank.com.pl/">mBank online banking system</ulink>.
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>Common options</title>
 	<para>
 		<command>&p;</command> accepts the following options, regardless the chosen action:
@@ -180,9 +180,9 @@
 			</varlistentry>
 		</variablelist>
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>list action</title>
 	<para>
 		List available accounts.
@@ -193,9 +193,9 @@
 		&tab-separated;
 		<replaceable>NewNotices</replaceable> can be ‘<literal>N</literal>’ (for some new notices) or ‘<literal></literal>’ (empty string — for no notices).
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>history action</title>
 	<para>
 		Show the history of the selected account(s).
@@ -231,9 +231,9 @@
 		&omit-account-name;
 		<replaceable>Description</replaceable> may consist of multiple lines, which are tab-separated in the output.
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>future action</title>
 	<para>
 		Show list of planned operations for the selected account(s).
@@ -246,9 +246,9 @@
 		&tab-separated;
 		&omit-account-name;
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>notices action</title>
 	<para>
 		Show list of notices for the selected account(s).
@@ -261,9 +261,9 @@
 		&tab-separated;
 		&omit-account-name;
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>withholdings action</title>
 	<para>
 		Show list of withholdings for the selected account(s).
@@ -276,17 +276,17 @@
 		&tab-separated;
 		&omit-account-name;
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>rename action</title>
 	<para>
 		Change an account name.
 	</para>
 	&select-accounts-wildcard;
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>funds action</title>
 	<para>
 		List available investment funds.
@@ -296,23 +296,23 @@
 		<screen><replaceable>FundName</replaceable> <replaceable>Amount</replaceable></screen>
 		&tab-separated;
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>logout action</title>
 	<para>
 		Leave the web interace.
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>void action</title>
 	<para>
 		Do (almost) nothing. Useful only for the debugging purposes.
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>Usage examples</title>
 	<screen><!--
 --><prompt>$</prompt> <command>./&p;</command> list <lineannotation># list available accounts</lineannotation> &#10;
@@ -324,9 +324,9 @@
 <prompt>$</prompt> <command>./&p;</command> funds <lineannotation># list available investment funds</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> logout
 	</screen>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>Files</title>
 	<para>(Due to experimental nature of <application>&p;</application> these files are excepted to be in the current working directory.)</para>
 	<variablelist>
@@ -373,9 +373,9 @@ EOF</userinput>
 	<para>
 		Note that <application>&p;</application> would silently refuse to create files inside <filename>debug</filename> unless the directory already existed.
 	</para>
-</refsect1>
+</refsection>
 
-<refsect1>
+<refsection>
 	<title>Exit codes</title>
 	<para>
 		The exit codes returned by <command>&p;</command> are as follows:
@@ -411,7 +411,7 @@ EOF</userinput>
 			</varlistentry>
 		</variablelist>
 	</para>
-</refsect1>
+</refsection>
 
 </refentry>
 

@@ -76,7 +76,7 @@ refmeta
 	display: none;
 }
 
-refnamediv, refsynopsisdiv, refsect1
+refnamediv, refsynopsisdiv, refsection
 {
 	display: block;
 	margin-bottom: 1em;
