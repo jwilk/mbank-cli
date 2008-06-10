@@ -362,6 +362,7 @@ sub do_operations($$)
       my @forms = HTML::Form->parse($web->{response});
       $#forms == 0 or api_error('HistoryPrevForm');
       my ($form) = @forms;
+      $form->find_input($_, undef)->disabled(1) foreach qw(ctl72 lastdays_days lastdays_period);
       my $prev_req = onclick_to_req($form, $onclick);
       $web = download $prev_req;
       next WEB_LOOP;
@@ -612,6 +613,7 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
       $form->value('daterange_to_month', $2);
       $form->value('daterange_to_year', $1);
       $form->value('rangepanel_group', 'daterange');
+      $form->find_input($_, undef)->disabled(1) foreach qw(ctl69 lastdays_days lastdays_period);
       api_error('PreHistory2') unless $web_operations->{content} =~ m{<button id="Submit" onclick="([^"]+)" class="button">};
       my $onclick = $1;
       $web_operations = download onclick_to_req($form, $onclick);
