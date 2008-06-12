@@ -48,15 +48,30 @@ my $mbank = 'https://www.mbank.com.pl';
 my $cookie_jar_file = './cookie-jar.txt';
 my $config_file = './mbank-cli.conf';
 
+$::locale_codeset = langinfo(CODESET);
+%::fallback_map = (
+  0x104 => 'A',
+  0x106 => 'C',
+  0x118 => 'E',
+  0x141 => 'L',
+  0x143 => 'N',
+  0x0d3 => 'O',
+  0x15a => 'S',
+  0x179 => 'Z',
+  0x17B => 'Z'
+);
+
+sub encoding_fallback($)
+{
+  (local $_) = @_;
+  return $::fallback_map{$_} if exists $::fallback_map{$_};
+  return sprintf "<U+%04X>", $_;
+}
+
 sub widen_string($;$)
 {
-  BEGIN 
-  { 
-    our $locale_codeset = langinfo(CODESET);
-    binmode STDOUT => "encoding($locale_codeset)";
-  }
   (local $_, my $codeset) = @_;
-  $codeset = $main::locale_codeset unless defined $codeset;
+  $codeset = $::locale_codeset unless defined $codeset;
   return Encode::decode($codeset, $_);
 }
 
@@ -68,11 +83,12 @@ sub shrink_string($)
   return $_;
 }
 
-sub decode_entities($)
+sub localize_html_string($)
 {
   local ($_) = @_;
   $_ = widen_string $_, WEB_CODESET;
-  return HTML::Entities::decode_entities $_;
+  $_ = HTML::Entities::decode_entities $_;
+  return Encode::encode($::locale_codeset, $_, \&encoding_fallback);
 }
 
 sub lwp_init()
@@ -351,7 +367,7 @@ sub do_operations($$)
       $details =~ s{ *<br /> *$}{};
       $details =~ s{<[/]?span>}{}g;
       $details =~ s{ *<br />}{\t}g;
-      $details = decode_entities $details;
+      $details = localize_html_string $details;
       $details =~ y/\xa0/ /;
       printf "$name\t", $name if defined $name;
       printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date, $date2, $amount, $currency, $balance, $currency, $details;
@@ -569,7 +585,7 @@ if ($action eq 'funds')
   my $fund_re = qr{<a.*?onclick="doSubmit\('if_fund_details.aspx',[^>]+?>([^<]+?)<.*?</span>.*?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_funds_list->{content} =~ m{$fund_re}go)
   {
-    my $name = decode_entities $1;
+    my $name = localize_html_string $1;
     my $amount = parse_amount $2;
     defined $amount or api_error('Funds2');
     my $currency = $3;
@@ -581,7 +597,7 @@ if ($action eq 'funds')
 while ($web_accounts_list->{content} =~ m{$accounts_re}go)
 {
   my $account_details_req = onclick_to_req($accounts_list_form, $1);
-  my $name = decode_entities $2;
+  my $name = localize_html_string $2;
   my $no = $3;
   my $notices_req = onclick_to_req($accounts_list_form, $4);
   $notices_req = undef if $5 eq '';
@@ -634,12 +650,12 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
     while ($web_future_operations->{content} =~ m{$operation_re}go)
     {
       my $date = $1;
-      my $receiver = decode_entities $2;
-      my $title = decode_entities $3;
+      my $receiver = localize_html_string $2;
+      my $title = localize_html_string $3;
       $title =~ y/\xa0/ /;
       my $amount = parse_amount $4;
       # inherit $currency
-      my $status = decode_entities $5;
+      my $status = localize_html_string $5;
       printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%s\t%8.2f %s\t%s\n", $date, $receiver, $title, $amount, $currency, $status;
     }
@@ -660,7 +676,7 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
       my $fin_date = "$6-$5-$4";
       my $amount = parse_amount $7;
       my $currency = $8;
-      my $title = decode_entities $9;
+      my $title = localize_html_string $9;
       printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%8.2f %s\t%s\n", $reg_date, $fin_date, $amount, $currency, $title;
     }
@@ -677,8 +693,8 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
     while ($web_notices->{content} =~ m{$notice_re}go)
     {
       my $date = "$3-$2-$1";
-      my $type = decode_entities $4;
-      my $short_desc = decode_entities $5;
+      my $type = localize_html_string $4;
+      my $short_desc = localize_html_string $5;
       print "$name\t" if $opt_multiple_accounts;
       print "$date\t$type\t$short_desc\n";
     }
