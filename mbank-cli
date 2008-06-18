@@ -392,10 +392,7 @@ sub correct_date($)
   local ($_) = @_;
   return undef unless defined $_;
   my $time;
-  if ($_ eq 'now')
-  {
-    return strftime '%Y-%m-%d', localtime(time)
-  }
+  return $_ if $_ eq 'now';
   if (m/(\d{4})-(\d{2})-(\d{2})/)
   {
     $time = mktime 0, 0, 0, $3, $2-1, $1-1900;
@@ -408,6 +405,14 @@ sub correct_date($)
   }
   debug "Invalid date: $_";
   return undef;
+}
+
+sub ground_date($$)
+{
+  my ($date, $now) = @_;
+  $date = $now if $date eq 'now';
+  $date =~ m/^(\d{4})-(\d\d)-(\d\d)$/ or die;
+  return ($1, $2, $3);
 }
 
 sub check_session_expiry($)
@@ -620,14 +625,16 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
       my @forms = HTML::Form->parse($web_operations->{response});
       $#forms == 0 or api_error('PreHistory1');
       my ($form) = @forms;
-      $opt_from =~ m/^(\d+)-0*(\d+?)-0*(\d+?)$/ or die;
-      $form->value('daterange_from_day', $3);
-      $form->value('daterange_from_month', $2);
-      $form->value('daterange_from_year', $1);
-      $opt_to =~ m/^(\d+)-0*(\d+?)-0*(\d+?)$/ or die;
-      $form->value('daterange_to_day', $3);
-      $form->value('daterange_to_month', $2);
-      $form->value('daterange_to_year', $1);
+      api_error('PreHistory3') unless $web_operations->{content} =~ m{DateValidator[(]theform[.]daterange_from_day, '19010101', '(\d{4})(\d\d)(\d\d)', '', ''[)]};
+      my $now = "$1-$2-$3";
+      my ($y, $m, $d) = ground_date($opt_from, $now);
+      $form->value('daterange_from_day', $d);
+      $form->value('daterange_from_month', $m);
+      $form->value('daterange_from_year', $y);
+      ($y, $m, $d) = ground_date($opt_to, $now);
+      $form->value('daterange_to_day', $d);
+      $form->value('daterange_to_month', $m);
+      $form->value('daterange_to_year', $y);
       $form->value('rangepanel_group', 'daterange');
       $form->find_input($_, undef)->disabled(1) foreach qw(ctl69 lastdays_days lastdays_period);
       api_error('PreHistory2') unless $web_operations->{content} =~ m{<button id="Submit" onclick="([^"]+)" class="button">};
