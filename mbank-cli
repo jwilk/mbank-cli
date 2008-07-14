@@ -324,10 +324,12 @@ sub parse_amount($)
 sub onclick_to_req($$)
 {
   my ($form, $onclick) = @_;
-  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST',(?:'([^']*?)'|null),.*?,(true|false),(?:\w+|'.*?')[)];/ or api_error('OnClick');
+  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST',(?:'([^']*?)'|null),.*?,(true|false),(?:\w+|'.*?')[)];/ or
+    $onclick =~ /^return OperationHistoryExport[(]export_oper_history_check, '\w+[.]aspx', '(\w+[.]aspx)'[)]/ or 
+    api_error('OnClick');
   $form->action("$mbank/$1");
   $form->value('__PARAMETERS', $2) if defined $2;
-  $form->value('sCounter', '1') if $3 eq 'true';
+  $form->value('sCounter', '1') if not defined $3 or $3 eq 'true';
   return $form->click();
 }
 
@@ -378,7 +380,10 @@ sub do_operations($$)
       my @forms = HTML::Form->parse($web->{response});
       $#forms == 0 or api_error('HistoryPrevForm');
       my ($form) = @forms;
-      $form->find_input($_, undef)->disabled(1) foreach qw(ctl72 lastdays_days lastdays_period);
+      foreach my $input ($form->inputs)
+      {
+        $input->disabled(1) if defined $input->name and $input->name =~ '^lastdays_(days|period)|ctl[0-9]+$';
+      }
       my $prev_req = onclick_to_req($form, $onclick);
       $web = download $prev_req;
       next WEB_LOOP;
@@ -636,7 +641,10 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
       $form->value('daterange_to_month', $m);
       $form->value('daterange_to_year', $y);
       $form->value('rangepanel_group', 'daterange');
-      $form->find_input($_, undef)->disabled(1) foreach qw(ctl69 lastdays_days lastdays_period);
+      foreach my $input ($form->inputs)
+      {
+        $input->disabled(1) if defined $input->name and $input->name =~ '^lastdays_(days|period)|ctl[0-9]+$';
+      }
       api_error('PreHistory2') unless $web_operations->{content} =~ m{<button id="Submit" onclick="([^"]+)" class="button">};
       my $onclick = $1;
       $web_operations = download onclick_to_req($form, $onclick);
