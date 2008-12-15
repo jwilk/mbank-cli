@@ -550,7 +550,7 @@ $ua->cookie_jar->scan(
 if (!$need_login)
 {
   debug 'Trying to reuse previous session';
-  $web_accounts_list = download GET("$mbank/accounts_list.aspx?ClearContract=yes");
+  $web_accounts_list = download GET("$mbank/accounts_list.aspx");
   if (check_session_expiry($web_accounts_list))
   {
     debug 'Invalid or expired session key';
@@ -569,7 +569,7 @@ if ($need_login)
   my $web_login = download GET("$mbank/");
   my $web_frames = do_login($web_login, $need_decrypt_config);
   $ua->cookie_jar->set_cookie(0, 'dummy', '', '/login-options/', FAKE_DOMAIN, undef, undef, undef, 604800, undef);
-  $web_accounts_list = download GET("$mbank/accounts_list.aspx?ClearContract=yes");
+  $web_accounts_list = download GET("$mbank/accounts_list.aspx");
 }
 
 my $accounts_re = qr{
