@@ -92,7 +92,7 @@ refsynopsisdiv:before
 	content: "Synopsis";
 }
 
-refsect1 title, refnamediv:before, refsynopsisdiv:before
+refsection title, refnamediv:before, refsynopsisdiv:before
 {
 	display: block;
 	font-size: 120%;
