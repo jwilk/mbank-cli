@@ -396,7 +396,7 @@ EOF</userinput>
 				<term><errorcode>2</errorcode></term>
 				<listitem>
 					<para>
-						Failure because of a <acronym>HTTP</acronym> error. This may be due to a network error but might as well be a result of an <acronym>API</acronym> error (see below).
+						Failure because of an <acronym>HTTP</acronym> error. This may be due to a network error but might as well be a result of an <acronym>API</acronym> error (see below).
 					</para>
 				</listitem>
 			</varlistentry>
