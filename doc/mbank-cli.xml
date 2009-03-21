@@ -328,7 +328,7 @@
 
 <refsection>
 	<title>Files</title>
-	<para>(Due to experimental nature of <application>&p;</application> these files are excepted to be in the current working directory.)</para>
+	<para>(Due to experimental nature of <application>&p;</application> these files are expected to be in the current working directory.)</para>
 	<variablelist>
 		<varlistentry>
 			<term><filename>mbank-cli.conf</filename></term>
