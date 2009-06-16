@@ -720,7 +720,7 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
     my @forms = HTML::Form->parse($web_contract->{response});
     $#forms == 0 or api_error('RenameForm1.0');
     my ($form) = @forms;
-		$web_contract->{content} =~ m{<a onclick="([^"]+?)"[^>]*?>Zmiana nazwy</a>} or api_error 'RenameForm1.1';
+    $web_contract->{content} =~ m{<a onclick="([^"]+?)"[^>]*?>Zmiana nazwy</a>} or api_error 'RenameForm1.1';
     $form->value('ctl22', undef);
     my $web_rename = download onclick_to_req($form, $1);
     @forms = HTML::Form->parse($web_rename->{response});
