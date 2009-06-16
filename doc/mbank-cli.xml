@@ -189,9 +189,8 @@
 	</para>
 	<para>
 		&output-format;
-		<screen><replaceable>AccountName</replaceable> <replaceable>AccountNo</replaceable> <replaceable>Balance</replaceable> <replaceable>AvailResources</replaceable> <replaceable>Notices</replaceable></screen>
+		<screen><replaceable>AccountName</replaceable> <replaceable>AccountNo</replaceable> <replaceable>Balance</replaceable> <replaceable>AvailResources</replaceable></screen>
 		&tab-separated;
-		<replaceable>NewNotices</replaceable> can be ‘<literal>N</literal>’ (for some new notices) or ‘<literal></literal>’ (empty string — for no notices).
 	</para>
 </refsection>
 
