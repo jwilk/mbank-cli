@@ -83,10 +83,11 @@ sub shrink_string($)
   return $_;
 }
 
-sub localize_html_string($)
+sub localize_html_string($;$)
 {
-  local ($_) = @_;
-  $_ = widen_string $_, WEB_CODESET;
+  (local $_, my $codeset) = @_;
+  $codeset = WEB_CODESET unless defined $codeset;
+  $_ = widen_string $_, $codeset;
   $_ = HTML::Entities::decode_entities $_;
   return Encode::encode($::locale_codeset, $_, \&encoding_fallback);
 }
