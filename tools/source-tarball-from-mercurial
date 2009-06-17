@@ -1,0 +1,24 @@
+#!/bin/sh
+if [ $# -ge 1 ]
+then
+  printf '%s [revision]\n' "$0" >&2
+  exit 1
+fi
+set -e -x
+pwd="$PWD"
+name=mbank-cli
+revision="${1:-tip}"
+version=`hg log -r "$revision" --template='{date|isodate}' | head -c 10 | tr -d -`
+sourceroot=`mktemp -d -t "$name-source-XXXXXX"`
+tarflags="--owner root --group root --mode a+rX"
+export GZIP=-9
+mkdir -p "$sourceroot/$name-$version"
+hg archive -r "$revision" "$sourceroot/$name-$version"
+cd "$sourceroot"
+(
+  cd $name-*/doc
+  make
+  rm *.xml *.xsl *.css Makefile
+)
+rm -Rf */.hg*
+tar $tarflags -czf "$pwd/$name-$version.tar.gz" */
