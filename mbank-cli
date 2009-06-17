@@ -306,9 +306,6 @@ sub do_login($$)
   $in_login->value($login);
   $in_passw->value($passw);
   my $web_out = download onclick_to_req($form, $onclick);
-  user_error 'System error: invalid login/password'
-    if $web_out->{error} eq "B\xb3\xb1d systemu" and 
-    $web_out->{content} =~ m{<center><b>B\xb3\xeadnie podano identyfikator lub has\xb3o\.</b></center>};
   user_error 'Login error: incorrect login/password' if $web_out->{error} eq "B\xb3\xb1d logowania";
   api_error(sprintf 'LoginX [%s]', $web_out->{error}) if $web_out->{error} ne '';
   return $web_out;
