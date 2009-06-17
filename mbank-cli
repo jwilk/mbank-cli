@@ -360,7 +360,7 @@ sub do_operations($$)
   while ($content =~ m{<tr>(.*?)</tr>}sgo)
   {
     my $line = $1;
-    my @data = $line =~ m{<td class="data".*?>(.*?)</td>}sg;
+    my @data = $line =~ m{<td class="data"[^>]*>(.*?)</td>}sg;
     if ($#data == -1)
     {
       unless ($line =~ /<div align="left"><b>Saldo/)
@@ -584,12 +584,12 @@ $web_accounts_list->{content} =~ s/$accounts_re/$1/ or api_error('AccountsList0'
 $accounts_re = qr{
 <li(?:[ ]class="alternate"|)>
 <p[ ]class="Account">
-<a[ ]id="\w+"[ ]title="Wybierz[ ]ten[ ]rachunek"[ ]onclick="(.*?)" [^>]*?>
+<a[ ]id="\w+"[ ]title="Wybierz[ ]ten[ ]rachunek"[ ]onclick="([^"]*)" [^>]*?>
 (.+?) [ ] (\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d)
 </a>
 </p>
 <p[ ]class="Amount">
-<a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni" [ ] onclick="(.*?)" [^>]*?>
+<a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni" [ ] onclick="([^"]*)" [^>]*?>
 (-?[0-9 ,]+) [ ] ([A-Z]+)
 </a>
 </p>
@@ -611,7 +611,7 @@ my ($accounts_list_form) = @accounts_list_forms;
 if ($action eq 'funds')
 {
   $web_accounts_list->{content} =~ m{Brak rachunk\xf3w inwestycyjnych - </span><a onclick="doSubmit[(]'if_fund_list[.]aspx'} and exit;
-  $web_accounts_list->{content} =~ m{<a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="(.*?)" [^>]+?>Fundusze inwestycyjne} or api_error('Funds1');
+  $web_accounts_list->{content} =~ m{<a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="([^"]*)" [^>]+?>Fundusze inwestycyjne} or api_error('Funds1');
   my $web_funds_list = download onclick_to_req($accounts_list_form, $1);
   my $fund_re = qr{<a.*?onclick="doSubmit\('if_fund_details.aspx',[^>]+?>([^<]+?)<.*?</span>.*?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_funds_list->{content} =~ m{$fund_re}go)
