@@ -166,7 +166,10 @@ sub shorten_uri($)
 sub check_for_error($)
 {
   local ($_) = @_;
-  return $1 if m{<caption class="error">\s*(.*?)\s*</caption>};
+  return $1 if m{
+    <div[ ]id="errorView"[ ]class="[^"]+">
+    \s* <h3> \s* (.*?) \s* </h3> \s*
+  }x;
   return '';
 }
 
@@ -427,7 +430,11 @@ sub check_session_expiry($)
   my ($web) = @_;
   return 1
     if ($web->{error} eq "B\xb3\xb1d systemu" and 
-    $web->{content} =~ m{<b><span>Alarm bezpiecze\xf1stwa[.] Nieprawid\xb3owy lub niewa\xbfny klucz sesji[.]</span></b>});
+    $web->{content} =~ m{
+      <p[ ]class="message">
+      Alarm[ ]bezpiecze\xf1stwa[.][ ]Nieprawid\xb3owy[ ]lub[ ]niewa\xbfny[ ]klucz[ ]sesji[.]
+      </p>
+    }x);
 }
 
 my ($opt_from, $opt_to);
