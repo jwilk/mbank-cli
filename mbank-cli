@@ -5,7 +5,7 @@
 #   Jakub Wilk <ubanus@users.sf.net>.
 #
 # This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License, version 2, as 
+# under the terms of the GNU General Public License, version 2, as
 # published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful,
@@ -215,7 +215,7 @@ sub preread_config()
   $main::digest_module->addfile(*CONFIG);
   close CONFIG or die;
   my $digest = $main::digest_module->b64digest();
-  $ua->cookie_jar->scan( 
+  $ua->cookie_jar->scan(
     sub
     {
       my ($version, $key, $val, $path, $domain) = @_;
@@ -268,12 +268,12 @@ sub do_logout()
   debug 'Logging out...';
   $ua->protocols_allowed(['http', 'https']);
   my $have_cookies = 0;
-  $ua->cookie_jar->scan( 
-    sub 
-    { 
+  $ua->cookie_jar->scan(
+    sub
+    {
       my ($version, $key, $val, $path, $domain) = @_;
-      $have_cookies = 1 unless $domain eq FAKE_DOMAIN; 
-    } 
+      $have_cookies = 1 unless $domain eq FAKE_DOMAIN;
+    }
   );
   user_error 'You are not logged in' unless $have_cookies;
   my $web_logout = download GET("$mbank/logout.aspx");
@@ -326,7 +326,7 @@ sub onclick_to_req($$)
 {
   my ($form, $onclick) = @_;
   $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST',(?:'([^']*?)'|null),.*?,(?:\w+|'(.*?)')[)];/ or
-    $onclick =~ /^return OperationHistoryExport[(]export_oper_history_check, '(\w+[.]aspx)', '\w+[.]aspx'[)]/ or 
+    $onclick =~ /^return OperationHistoryExport[(]export_oper_history_check, '(\w+[.]aspx)', '\w+[.]aspx'[)]/ or
     api_error('OnClick');
   $form->action("$mbank/$1");
   $form->value('__PARAMETERS', $2) if defined $2;
@@ -426,7 +426,7 @@ sub check_session_expiry($)
 {
   my ($web) = @_;
   return 1
-    if ($web->{error} eq "B\xb3\xb1d systemu" and 
+    if ($web->{error} eq "B\xb3\xb1d systemu" and
     $web->{content} =~ m{
       <p[ ]class="message">
       Alarm[ ]bezpiecze\xf1stwa[.][ ]Nieprawid\xb3owy[ ]lub[ ]niewa\xbfny[ ]klucz[ ]sesji[.]
@@ -440,20 +440,20 @@ my $opt_multiple_accounts = 0;
 GetOptions(
   'verbose' => \$verbose,
   'config=s' => \$config_file,
-  'from=s' => sub 
+  'from=s' => sub
     {
       shift;
       $opt_from = correct_date shift;
-      $opt_range = 0; 
+      $opt_range = 0;
     },
-  'to=s' => sub 
-    { 
+  'to=s' => sub
+    {
       shift;
       $opt_to = correct_date shift;
-      $opt_range = 0; 
+      $opt_range = 0;
     },
-  'range=s{2}' => sub 
-    { 
+  'range=s{2}' => sub
+    {
       shift;
       if (($opt_range || 0) == 0)
       {
@@ -467,13 +467,13 @@ GetOptions(
         $opt_range = 0;
       }
     },
-  'multiple-accounts' => sub 
-    { 
-      $opt_multiple_accounts = 1; 
-    },
-  'all-accounts' => sub 
+  'multiple-accounts' => sub
     {
-      $opt_multiple_accounts = 99; 
+      $opt_multiple_accounts = 1;
+    },
+  'all-accounts' => sub
+    {
+      $opt_multiple_accounts = 99;
     },
 ) or exit EC_USER_ERROR;
 
@@ -499,7 +499,7 @@ elsif ($action =~ '^history|future|withholdings|notices$')
   if ($opt_multiple_accounts > 1)
   {
     $selected_accounts = qr(^);
-  } 
+  }
   else
   {
     user_error 'No account selected' if $#ARGV < 0;
@@ -546,8 +546,8 @@ else
 my $need_login = 1;
 my $web_accounts_list;
 
-$ua->cookie_jar->scan( 
-  sub 
+$ua->cookie_jar->scan(
+  sub
   {
     my ($version, $key, $val, $path, $domain) = @_;
     $need_login = 0 if $domain eq FAKE_DOMAIN and $path eq '/login-options/';
