@@ -589,7 +589,7 @@ $accounts_re = qr{
 </a>
 </p>
 <p[ ]class="Amount">
-<a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni" [ ] onclick="([^"]*)" [^>]*?>
+<a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni" [^>]*? onclick="([^"]*)" [^>]*?>
 (-?[0-9 ,]+) [ ] ([A-Z]+)
 </a>
 </p>
