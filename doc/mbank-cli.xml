@@ -219,7 +219,7 @@
 				</listitem>
 			</varlistentry>
 		</variablelist>
-		Date can be '<literal>now</literal>' or in the <literal><replaceable>YYYY</replaceable>-<replaceable>MM</replaceable>-<replaceable>DD</replaceable></literal> format.
+		Date can be ‘<literal>now</literal>’ or in the <literal><replaceable>YYYY</replaceable>-<replaceable>MM</replaceable>-<replaceable>DD</replaceable></literal> format.
 	</para>
 	&select-accounts;
 	&select-accounts-wildcard;
@@ -315,11 +315,11 @@
 	<title>Usage examples</title>
 	<screen><!--
 --><prompt>$</prompt> <command>./&p;</command> list <lineannotation># list available accounts</lineannotation> &#10;
-<prompt>$</prompt> <command>./&p;</command> history Foo <lineannotation># show history of the 'Foo' account</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> history Foo <lineannotation># show history of the ‘Foo’ account</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> history Bar --range 2005-01-01 2005-12-31 &#10;
 <prompt>$</prompt> <command>./&p;</command> history Quux --from 2006-06-01 &#10;
-<prompt>$</prompt> <command>./&p;</command> future Foo <lineannotation># show list of planned operations for the 'Foo' account</lineannotation> &#10;
-<prompt>$</prompt> <command>./&p;</command> rename 'eFoo - Bar' 'quux' <lineannotation># from now on, it will be called 'eFoo - quux'</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> future Foo <lineannotation># show list of planned operations for the ‘Foo’ account</lineannotation> &#10;
+<prompt>$</prompt> <command>./&p;</command> rename 'eFoo - Bar' 'quux' <lineannotation># from now on, it will be called ‘eFoo - quux’</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> funds <lineannotation># list available investment funds</lineannotation> &#10;
 <prompt>$</prompt> <command>./&p;</command> logout
 	</screen>

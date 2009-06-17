@@ -5,5 +5,6 @@ all: mbank-cli.1
 
 %.1: %.xml
 	xsltproc $(XSL) $(<)
+	sed -i -e "s/\\\\'/\\\\(aq/g" $(@)
 
 # vim:ts=4
