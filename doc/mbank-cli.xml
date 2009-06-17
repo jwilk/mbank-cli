@@ -42,7 +42,7 @@
 >
 	<!ENTITY output-format 'The output consists of lines in the following format:'>
 	<!ENTITY tab-separated 'Fields are tab-separated.'>
-	<!ENTITY omit-account-name '<replaceable>AccountName</replaceable> will be omitted unless <option>--multiple-accounts</option> or <option>--all-accounts</option> option is used.'>
+	<!ENTITY omit-account-name '<replaceable>account-name</replaceable> will be omitted unless <option>--multiple-accounts</option> or <option>--all-accounts</option> option is used.'>
 ]>
 <refentry>
 
@@ -73,83 +73,83 @@
 <refsynopsisdiv>
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='opt'>list</arg>
 	</cmdsynopsis>
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>history</arg>
 		<group choice='opt'>
 			<arg choice='plain'>
-				<option>--range</option> <replaceable>StartDate</replaceable> <replaceable>EndDate</replaceable>
+				<option>--range</option> <replaceable>start-date</replaceable> <replaceable>end-date</replaceable>
 			</arg>
 			<arg choice='plain'>
-				<option>--from</option> <replaceable>StartDate</replaceable>
-				<arg choice='opt'><option>--to</option> <replaceable>EndDate</replaceable></arg>
+				<option>--from</option> <replaceable>start-date</replaceable>
+				<arg choice='opt'><option>--to</option> <replaceable>end-date</replaceable></arg>
 			</arg>
 		</group>
 		<group choice='req'>
-			<arg choice='plain'><replaceable>Account</replaceable></arg>
-			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
+			<arg choice='plain'><replaceable>account</replaceable></arg>
+			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
 			<arg choice='plain'><option>--all-accounts</option></arg>
 		</group>
 	</cmdsynopsis>
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>future</arg>
 		<group choice='req'>
-			<arg choice='plain'><replaceable>Account</replaceable></arg>
-			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
+			<arg choice='plain'><replaceable>account</replaceable></arg>
+			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
 			<arg choice='plain'><option>--all-accounts</option></arg>
 		</group>
 	</cmdsynopsis>
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>withholdings</arg>
 		<group choice='req'>
-			<arg choice='plain'><replaceable>Account</replaceable></arg>
-			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
+			<arg choice='plain'><replaceable>account</replaceable></arg>
+			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
 			<arg choice='plain'><option>--all-accounts</option></arg>
 		</group>
 	</cmdsynopsis>
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>notices</arg>
 		<group choice='req'>
-			<arg choice='plain'><replaceable>Account</replaceable></arg>
-			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>Account</replaceable></arg></arg>
+			<arg choice='plain'><replaceable>account</replaceable></arg>
+			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
 			<arg choice='plain'><option>--all-accounts</option></arg>
 		</group>
 	</cmdsynopsis>
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>rename</arg>
 		<group choice='plain'>
-			<arg choice='plain'><replaceable>Account</replaceable></arg>
+			<arg choice='plain'><replaceable>account</replaceable></arg>
 		</group>
 		<group choice='plain'>
-			<arg choice='plain'><replaceable>NewName</replaceable></arg>
+			<arg choice='plain'><replaceable>new-name</replaceable></arg>
 		</group>
 	</cmdsynopsis>
 
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>funds</arg>
 	</cmdsynopsis>
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>logout</arg>
 	</cmdsynopsis>
 	<cmdsynopsis>
 		<command>&p;</command>
-		<arg choice='opt' rep='repeat'><replaceable>Option</replaceable></arg>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>void</arg>
 	</cmdsynopsis>
 </refsynopsisdiv>
@@ -173,9 +173,9 @@
 				</listitem>
 			</varlistentry>
 			<varlistentry>
-				<term><option>--config</option> <replaceable>ConfigFile</replaceable></term>
+				<term><option>--config</option> <replaceable>config-file</replaceable></term>
 				<listitem>
-					<para>Use <replaceable>ConfigFile</replaceable> as an alternate configuration file.</para>
+					<para>Use <replaceable>config-file</replaceable> as an alternate configuration file.</para>
 				</listitem>
 			</varlistentry>
 		</variablelist>
@@ -189,7 +189,7 @@
 	</para>
 	<para>
 		&output-format;
-		<screen><replaceable>AccountName</replaceable> <replaceable>AccountNo</replaceable> <replaceable>Balance</replaceable> <replaceable>AvailResources</replaceable></screen>
+		<screen><replaceable>account-name</replaceable> <replaceable>account-no</replaceable> <replaceable>balance</replaceable> <replaceable>avail-resources</replaceable></screen>
 		&tab-separated;
 	</para>
 </refsection>
@@ -203,18 +203,18 @@
 		Time range can be selected with the following options:
 		<variablelist>
 			<varlistentry>
-				<term><option>--from</option> <replaceable>StartDate</replaceable></term>
+				<term><option>--from</option> <replaceable>start-date</replaceable></term>
 				<listitem>
-					<para>Show operations with the date not before <replaceable>StartDate</replaceable>.</para>
+					<para>Show operations with the date not before <replaceable>start-date</replaceable>.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
-				<term><option>--range</option> <replaceable>StartDate</replaceable> <replaceable>EndDate</replaceable></term>
-				<term><option>--from</option> <replaceable>StartDate</replaceable> <option>--to</option> <replaceable>EndDate</replaceable></term>
+				<term><option>--range</option> <replaceable>start-date</replaceable> <replaceable>end-date</replaceable></term>
+				<term><option>--from</option> <replaceable>start-date</replaceable> <option>--to</option> <replaceable>end-date</replaceable></term>
 				<listitem>
 					<para>
-						Show operations with the date neither before <replaceable>StartDate</replaceable>,
-						nor after <replaceable>EndDate</replaceable>.
+						Show operations with the date neither before <replaceable>start-date</replaceable>,
+						nor after <replaceable>end-date</replaceable>.
 					</para>
 				</listitem>
 			</varlistentry>
@@ -225,10 +225,10 @@
 	&select-accounts-wildcard;
 	<para>
 		&output-format;
-		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>AccountingDate</replaceable> <replaceable>Amount</replaceable> <replaceable>Balance</replaceable> <replaceable>Description</replaceable></screen>
+		<screen><replaceable>account-name</replaceable> <replaceable>date</replaceable> <replaceable>accounting-date</replaceable> <replaceable>amount</replaceable> <replaceable>balance</replaceable> <replaceable>description</replaceable></screen>
 		&tab-separated;
 		&omit-account-name;
-		<replaceable>Description</replaceable> may consist of multiple lines, which are tab-separated in the output.
+		<replaceable>description</replaceable> may consist of multiple lines, which are tab-separated in the output.
 	</para>
 </refsection>
 
@@ -241,7 +241,7 @@
 	&select-accounts-wildcard;
 	<para>
 		&output-format;
-		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>Receiver</replaceable> <replaceable>Title</replaceable> <replaceable>Amount</replaceable> <replaceable>Status</replaceable></screen>
+		<screen><replaceable>account-name</replaceable> <replaceable>date</replaceable> <replaceable>receiver</replaceable> <replaceable>title</replaceable> <replaceable>amount</replaceable> <replaceable>status</replaceable></screen>
 		&tab-separated;
 		&omit-account-name;
 	</para>
@@ -256,7 +256,7 @@
 	&select-accounts-wildcard;
 	<para>
 		&output-format;
-		<screen><replaceable>AccountName</replaceable> <replaceable>Date</replaceable> <replaceable>Type</replaceable> <replaceable>Title</replaceable></screen>
+		<screen><replaceable>account-name</replaceable> <replaceable>date</replaceable> <replaceable>type</replaceable> <replaceable>title</replaceable></screen>
 		&tab-separated;
 		&omit-account-name;
 	</para>
@@ -271,7 +271,7 @@
 	&select-accounts-wildcard;
 	<para>
 		&output-format;
-		<screen><replaceable>AccountName</replaceable> <replaceable>RegistrationDate</replaceable> <replaceable>FinalizationDate</replaceable> <replaceable>Amount</replaceable> <replaceable>Title</replaceable></screen>
+		<screen><replaceable>account-name</replaceable> <replaceable>registration-date</replaceable> <replaceable>finalization-date</replaceable> <replaceable>amount</replaceable> <replaceable>title</replaceable></screen>
 		&tab-separated;
 		&omit-account-name;
 	</para>
@@ -292,7 +292,7 @@
 	</para>
 	<para>
 		&output-format;
-		<screen><replaceable>FundName</replaceable> <replaceable>Amount</replaceable></screen>
+		<screen><replaceable>fund-name</replaceable> <replaceable>amount</replaceable></screen>
 		&tab-separated;
 	</para>
 </refsection>
@@ -339,7 +339,7 @@
 					<screen><!--
 --><prompt>$</prompt> <command>cat</command> &lt;&lt;EOF | <command>gpg</command> --armor --encrypt --default-recipient-self &gt; <filename><replaceable>mbank-cli.conf</replaceable></filename>
 <userinput>Login <replaceable>123456</replaceable>
-Password "<replaceable>YourPassword</replaceable>"
+Password "<replaceable>your-password</replaceable>"
 EOF</userinput>
 					</screen>
 				</para>
