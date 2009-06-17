@@ -20,5 +20,6 @@ cd "$sourceroot"
   make
   rm *.xml *.xsl *.css Makefile
 )
+rm -Rf $name-*/tools/
 rm -Rf */.hg*
 tar $tarflags -czf "$pwd/$name-$version.tar.gz" */
