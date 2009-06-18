@@ -325,10 +325,10 @@ sub parse_amount($)
 sub onclick_to_req($$)
 {
   my ($form, $onclick) = @_;
-  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)','','POST',(?:'([^']*?)'|null),.*?,(?:\w+|'(.*?)')[)];/ or
-    $onclick =~ /^return OperationHistoryExport[(]export_oper_history_check, '(\w+[.]aspx)', '\w+[.]aspx'[)]/ or
+  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)?','','(?:POST)?',(?:'([^']*?)'|null),.*?,(?:\w+|'(.*?)')[)];/ or
+    $onclick =~ /^return OperationHistoryExport[(]export_oper_history_check, '\w+[.]aspx', '(\w+[.]aspx)'[)]/ or
     api_error('OnClick');
-  $form->action("$mbank/$1");
+  $form->action("$mbank/$1") if defined $1;
   $form->value('__PARAMETERS', $2) if defined $2;
   my $js = $3;
   if (defined $js and $js eq 'var dt\\; dt = new Date(\\)\\; document.MainForm.localDT.value = dt.toLocaleString(\\)\\;')
@@ -345,52 +345,63 @@ sub do_operations($$)
 
   return if $web->{content} =~ m{<p class="message">Brak operacji w przeszukiwanym okresie.</p>};
 
-  $web->{content} =~ m{
-    <td> \s* Waluta \s+ </td> \s*
-    <td> \s* ([A-Z]+) \s* </td>
-  }x or api_error('History1');
-  my $currency = $1;
-
-  $web->{content} =~ m{
-    <table[ ]cellpadding="1"[ ]cellspacing="0"[ ]border="1"[ ]align="left"[ ]bgcolor="#F9F9F9"[ ]bordercolor="#000000"[ ]width="760">
-    (.*?)
-    </table>
-  }sx or api_error('History2');
-  my $content = $1;
-  while ($content =~ m{<tr>(.*?)</tr>}sgo)
+  WEB_LOOP: while (1)
   {
-    my $line = $1;
-    my @data = $line =~ m{<td class="data"[^>]*>(.*?)</td>}sg;
-    if ($#data == -1)
+    $web->{content} =~ m{
+      <div[ ]id="account_operations"[ ]class="grid">
+      (.*?)
+      </div>
+    }sx or api_error('History1');
+    my $content = $1;
+    while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
     {
-      unless ($line =~ /<div align="left"><b>Saldo/)
-      {
-        api_error('History3');
-      }
-    }
-    elsif ($#data == 3)
-    {
-      my ($dates, $details, $amount, $balance) = @data;
-      $dates =~ /^(\d{4}-\d{2}-\d{2})\s+(\d{4}-\d{2}-\d{2})$/ or api_error('History4.1');
-      my ($date, $date2) = ($1, $2);
-      $details = localize_html_string $details, 'Windows-1250';
-      $details =~ s/ $//;
-      $details =~ s/ *<br> */\t/g;
-      $details =~ s/^(PRZELEW [^\t]+)\t(.*?)[ ][ ]([^ ].*)[ ](\d{26})$/$1\t$3\t$4\t$2/;
-      $details =~ s/[ ]+/ /g;
-      $amount =~ s{</?nobr>}{}g;
-      $amount = parse_amount $amount;
-      defined $amount or api_error('History4.2');
-      $balance =~ s{</?nobr>}{}g;
-      $balance = parse_amount $balance;
-      defined $amount or api_error('History4.3');
+      my $line = $1;
+      $line =~ m{
+        <p[ ]class="Date">
+        <span> (\d{2})-(\d{2})-(\d{4}) </span>
+        <span> (\d{2})-(\d{2})-(\d{4}) </span>
+        </p>
+        <p[ ]class="CheckBox">
+        <span[ ]class="checkBox"><input[ ]id="\w+" [^>]*></span>
+        </p>
+        <p[ ]class="OperationDescription">
+        <a[ ]id="\w+"[ ]title="Zobacz[ ]szczeg\xf3\xb3y[ ]operacji"[ ][^>]*> ( [^<]+ ) </a>
+        ( (?: <span> (?:[^<]+|<wbr[ ]/>)+ </span> )* )
+        </p>
+        <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
+        <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
+      }x or api_error('History2');
+      my $date1 = "$3-$2-$1";
+      my $date2 = "$6-$5-$4";
+      my $amount = parse_amount($9);
+      defined $amount or api_error('History3');
+      my $amount_c = $10;
+      my $balance = parse_amount($11);
+      defined $balance or api_error('History4');
+      my $balance_c = $12;
+      my $details = "$7\t$8";
+      $details =~ s{</span><span>}{\t}g;
+      $details =~ s{<[^>]*>}{}g;
+      $details =~ s{&shy;}{}g;
+      $details = localize_html_string($details);
       print "$name\t" if defined $name;
-      printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date, $date2, $amount, $currency, $balance, $currency, $details;
+      printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date1, $date2, $amount, $amount_c, $balance, $balance_c, $details;
     }
-    else
+    if ($content =~ m{<button id="PrevPage" onclick="([^"]+)" class="button">Poprzednie&nbsp;operacje</button>})
     {
-      api_error('History5');
+      my $onclick = $1;
+      my @forms = HTML::Form->parse($web->{response});
+      $#forms == 0 or api_error('HistoryPrevForm');
+      my ($form) = @forms;
+      foreach my $input ($form->inputs)
+      {
+        $input->disabled(1) if defined $input->name and $input->name =~ '^lastdays_\w+$';
+      }
+      my $prev_req = onclick_to_req($form, $onclick);
+      $web = download $prev_req;
+      next WEB_LOOP;
     }
+    last WEB_LOOP;
   }
 }
 
@@ -666,8 +677,6 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
     {
       $input->disabled(1) if defined $input->name and $input->name =~ '^lastdays_(days|period)|ctl[0-9]+$';
     }
-    $form->value('export_oper_history_check', 'on');
-    $form->value('export_oper_history_format', 'HTML');
     api_error('PreHistory2') unless $web_operations->{content} =~ m{<button id="Submit" onclick="([^"]+)" class="button">};
     my $onclick = $1;
     $web_operations = download onclick_to_req($form, $onclick);
