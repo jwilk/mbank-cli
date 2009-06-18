@@ -343,7 +343,11 @@ sub do_operations($$)
 {
   my ($web, $name) = @_;
 
-  return if $web->{content} =~ m{<p class="message">Brak operacji w przeszukiwanym okresie.</p>};
+  return if $web->{content} =~ m{<p class="message">Brak operacji [^<]*</p>};
+  if ($web->{content} =~ m{<p class="message">Nieprawid\xB3owa data lub data poza dopuszczalnym zakresem</p>})
+  {
+    user_error "Invalid date range"
+  }
 
   WEB_LOOP: while (1)
   {
@@ -365,8 +369,8 @@ sub do_operations($$)
         <span[ ]class="checkBox"><input[ ]id="\w+" [^>]*></span>
         </p>
         <p[ ]class="OperationDescription">
-        <a[ ]id="\w+"[ ]title="Zobacz[ ]szczeg\xf3\xb3y[ ]operacji"[ ][^>]*> ( [^<]+ ) </a>
-        ( (?: <span> (?:[^<]+|<wbr[ ]/>)+ </span> )* )
+        <a[ ]id="\w+"[ ]title="Zobacz[ ]szczeg\xf3\xb3y[ ]operacji"[ ][^>]*> ( (?:[^<]+|<wbr(?:[ ]/)?>)+ ) </a>
+        ( (?: <span> (?:[^<]+|<wbr(?:[ ]/)?>)+ </span> )* )
         </p>
         <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
         <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
