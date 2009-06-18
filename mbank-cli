@@ -690,29 +690,26 @@ while ($web_accounts_list->{content} =~ m{$accounts_re}go)
 		exit if $content =~ m{<p class="message">Brak planowanych operacji</p>};
     $content =~ m{<div id="future_operation_list" class="grid">(.*)</div>}s or api_error('Future1');
     $content = $1;
-    my $operation_re = qr{
-      <li>
-      <p[ ]class="Date">
-      <span[ ]id="\w+"> (\d{4}-\d\d-\d\d) </span>
-      </p>
-      <p[ ]class="Customer">
-      <a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="[^"]+?" [^>]+?> ([^>]+?) </a>
-      </p>
-      <p[ ]class="OperationDescription">
-      <span[ ]id="\w+"> ([^>]+?) </span>
-      </p>
-      <p[ ]class="Amount">
-      <span[ ]id="\w+"> ([0-9, ]+) [ ] ([A-Z]+) </span>
-      </p>
-      <p[ ]class="OperationStatus">
-      <span[ ]id="\w+"> ([^>]+?) </span>
-      </p>
-      .*?
-      </li>
-    }x;
-    $content =~ $operation_re or api_error('Future2');
-    while ($content =~ m{$operation_re}go)
+    while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
     {
+      my $line = $1;
+      $line =~ m{
+        <p[ ]class="Date">
+        <span[ ]id="\w+"> (\d{4}-\d\d-\d\d) </span>
+        </p>
+        <p[ ]class="Customer">
+        <a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="[^"]+?" [^>]+?> ([^>]+?) </a>
+        </p>
+        <p[ ]class="OperationDescription">
+        <span[ ]id="\w+"> ([^>]+?) </span>
+        </p>
+        <p[ ]class="Amount">
+        <span[ ]id="\w+"> ([0-9, ]+) [ ] ([A-Z]+) </span>
+        </p>
+        <p[ ]class="OperationStatus">
+        <span[ ]id="\w+"> ([^>]+?) </span>
+        </p>
+      }x or api_error('Future2');
       my $date = $1;
       my $receiver = localize_html_string $2;
       my $title = localize_html_string $3;
