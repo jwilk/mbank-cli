@@ -384,6 +384,7 @@ sub do_operations($$)
       $details =~ s{<[^>]*>}{}g;
       $details =~ s{&shy;}{}g;
       $details = localize_html_string($details);
+      $details =~ s/ +/ /g;
       print "$name\t" if defined $name;
       printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date1, $date2, $amount, $amount_c, $balance, $balance_c, $details;
     }
