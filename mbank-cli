@@ -366,7 +366,7 @@ sub do_operations($$)
         <span> (\d{2})-(\d{2})-(\d{4}) </span>
         </p>
         <p[ ]class="CheckBox">
-        <span[ ]class="checkBox"><input[ ]id="\w+" [^>]*></span>
+        (?: <span[ ]class="checkBox"><input[ ]id="\w+" [^>]*></span> | &nbsp; )
         </p>
         <p[ ]class="OperationDescription">
         <a[ ]id="\w+"[ ]title="Zobacz[ ]szczeg\xf3\xb3y[ ]operacji"[ ][^>]*> ( (?:[^<]+|<wbr(?:[ ]/)?>)+ ) </a>
