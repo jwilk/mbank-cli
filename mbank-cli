@@ -601,18 +601,27 @@ $web_accounts_list->{content} =~ s/$accounts_re/$1/ or api_error('AccountsList0'
 $accounts_re = qr{
 <p[ ]class="Account">
 <a[ ]id="\w+"[ ]title="Wybierz[ ]ten[ ]rachunek"[ ]onclick="([^"]*)" [^>]*?>
-(.+?) [ ] (\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d)
+(?:
+  (.+?) [ ] (\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d) |
+  Konto [ ] MOBILE
+)
 </a>
 </p>
 <p[ ]class="Amount">
-<a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni" [^>]*? onclick="([^"]*)" [^>]*?>
-(-?[0-9 ,]+) [ ] ([A-Z]+)
-</a>
+(?:
+  <a[ ]id="\w+"[ ]title="Zobacz[ ]operacje[ ]z[ ]ostatnich[ ]14[ ]dni" [^>]*? onclick="([^"]*)" [^>]*?>
+  (-?[0-9 ,]+) [ ] ([A-Z]+)
+  </a>
+|
+  <span> [0-9]+ [ ] MIN </span>
+)
 </p>
 <p[ ]class="Amount">
-<span[ ]id="\w+">
-(-?[0-9 ,]+) [ ] ([A-Z]+)
-</span>
+(?:
+  <span[ ]id="\w+">
+  (-?[0-9 ,]+) [ ] ([A-Z]+)
+  </span>
+)?
 </p>
 }x;
 $web_accounts_list->{content} =~ m{$accounts_re} or api_error('AccountsList0');
@@ -642,6 +651,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
 {
   my $line = $1;
   $line =~ m{$accounts_re}go or api_error('AccountsList1');
+  next unless defined $3;
   # FIXME: will the above fail if a balance / resources is negative?
   my $account_details_req = onclick_to_req($accounts_list_form, $1);
   my $name = localize_html_string $2;
