@@ -66,7 +66,8 @@ use constant
 
 chdir dirname($0) or die "Can't change working directory: $!";
 
-my $mbank = 'https://www.mbank.com.pl';
+my $mbank_host = 'www.mbank.com.pl';
+my $mbank = "https://$mbank_host";
 my $cookie_jar_file = './cookie-jar.txt';
 my $config_file = './mbank-cli.conf';
 
@@ -198,6 +199,11 @@ sub check_for_error($)
 sub download($)
 {
   my ($request) = @_;
+  my $subject_regex = $mbank_host;
+  # LWP does not check if hostname matches CN, we need to check that manually.
+  $subject_regex =~ s/[.]/[.]/g;
+  $subject_regex = "[/]CN=$subject_regex\$";
+  $request->header('If-SSL-Cert-Subject' => $subject_regex);
   debug sprintf('Download <%s %s>', $request->method, $request->uri);
   my $response = $ua->request($request);
   http_error $request unless $response->is_success;
