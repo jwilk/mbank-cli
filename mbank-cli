@@ -313,7 +313,7 @@ sub do_logout()
   }
   else
   {
-    $web_logout->{content} =~ '<title>mBank - wylogowanie</title>' or api_error('Logout1');
+    $web_logout->{content} =~ '<title>mBank &#45; wylogowanie</title>' or api_error('Logout1');
   }
 }
 
