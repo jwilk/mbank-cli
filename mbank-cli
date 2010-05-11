@@ -98,14 +98,6 @@ sub widen_string($;$)
   return Encode::decode($codeset, $_);
 }
 
-sub shrink_string($)
-{
-  (local $_) = @_;
-  eval { $_ = Encode::encode(WEB_CODESET, $_); };
-  return undef if $@;
-  return $_;
-}
-
 sub localize_html_string($;$)
 {
   (local $_, my $codeset) = @_;
@@ -577,8 +569,7 @@ elsif ($action eq 'rename')
   s/\\\*/.*/g;
   $selected_accounts = qr/^$_$/;
   $_ = widen_string shift;
-  $_ = shrink_string $_;
-  user_error 'Invalid new account name' if (not defined $_) or /{/;
+  user_error 'Invalid new account name' if not defined $_;
   $new_account_name = $_;
 }
 elsif ($action eq 'list' or $action eq 'funds')
@@ -793,7 +784,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   elsif ($action eq 'rename')
   {
     my $web_contract = download $account_details_req;
-    my @forms = HTML::Form->parse($web_contract->{response});
+    my @forms = HTML::Form->parse($web_contract->{response}, charset => WEB_CODESET);
     $#forms == 0 or api_error('RenameForm1.0');
     my ($form) = @forms;
     $web_contract->{content} =~ m{
