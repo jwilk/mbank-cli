@@ -353,7 +353,7 @@ sub parse_amount($)
 sub onclick_to_req($$)
 {
   my ($form, $onclick) = @_;
-  $onclick =~ /^doSubmit[(]'(\w+[.]aspx)?','','(?:POST)?',(?:'([^']*?)'|null),.*?,(?:\w+|'(.*?)')[)];/ or
+  $onclick =~ m{^doSubmit[(]'(/?\w+[.]aspx)?','','(?:POST)?',(?:'([^']*?)'|null),.*?,(?:\w+|'(.*?)')[)];} or
     $onclick =~ /^return OperationHistoryExport[(]export_oper_history_check, '\w+[.]aspx', '(\w+[.]aspx)'[)]/ or
     api_error('OnClick');
   $form->action("$mbank/$1") if defined $1;
