@@ -691,7 +691,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   my $resources = parse_amount $7;
   defined $resources or api_error('AccountsList3');
   my $resources_c = $8;
-  next if defined $selected_accounts and $name !~ m/$selected_accounts/;
+  next if defined $selected_accounts and widen_string($name) !~ m/$selected_accounts/;
   if ($action eq 'list')
   {
     printf "%s\t%32s\t%8.2f %s\t%8.2f %s\n", $name, $no, $balance, $balance_c, $resources, $resources_c;
