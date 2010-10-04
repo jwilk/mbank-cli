@@ -614,6 +614,28 @@ if ($need_login)
   $web_accounts_list = download GET("$mbank/accounts_list.aspx");
 }
 
+my @accounts_list_forms = HTML::Form->parse($web_accounts_list->{response});
+$#accounts_list_forms == 0 or api_error('AccountListForm');
+my ($accounts_list_form) = @accounts_list_forms;
+
+if ($action eq 'funds')
+{
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Inwestycje} or api_error('Funds1');
+  my $web_investments_list = download onclick_to_req($accounts_list_form, $1);
+  $web_investments_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Fundusze inwestycyjne} or api_error('Funds1.5');
+  my $web_funds_list = download onclick_to_req($accounts_list_form, $1);
+  my $fund_re = qr{<a.*?onclick="doSubmit\('/if_fund_details.aspx',[^>]+?>([^<]+?)<.*?>([0-9 ,]+) ([A-Z]+)</span>};
+  while ($web_funds_list->{content} =~ m{$fund_re}go)
+  {
+    my $name = localize_html_string $1;
+    my $amount = parse_amount $2;
+    defined $amount or api_error('Funds2');
+    my $currency = $3;
+    printf "%s\t%8.2f %s\n", $name, $amount, $currency;
+  }
+  exit;
+}
+
 my $accounts_re = qr{.*<div id="AccountsGrid" class="grid">(.*?)</div>.*}s;
 $web_accounts_list->{content} =~ s/$accounts_re/$1/ or api_error('AccountsList0');
 
@@ -644,27 +666,6 @@ $accounts_re = qr{
 </p>
 }x;
 $web_accounts_list->{content} =~ m{$accounts_re} or api_error('AccountsList0');
-
-my @accounts_list_forms = HTML::Form->parse($web_accounts_list->{response});
-$#accounts_list_forms == 0 or api_error('AccountListForm');
-my ($accounts_list_form) = @accounts_list_forms;
-
-if ($action eq 'funds')
-{
-  $web_accounts_list->{content} =~ m{Brak rachunk\xf3w inwestycyjnych - </span><a onclick="doSubmit[(]'if_fund_list[.]aspx'} and exit;
-  $web_accounts_list->{content} =~ m{<a[ ]id="\w+"[ ]title="[^"]+?"[ ]onclick="([^"]*)" [^>]+?>Fundusze inwestycyjne} or api_error('Funds1');
-  my $web_funds_list = download onclick_to_req($accounts_list_form, $1);
-  my $fund_re = qr{<a.*?onclick="doSubmit\('if_fund_details.aspx',[^>]+?>([^<]+?)<.*?</span>.*?>([0-9 ,]+) ([A-Z]+)</span>};
-  while ($web_funds_list->{content} =~ m{$fund_re}go)
-  {
-    my $name = localize_html_string $1;
-    my $amount = parse_amount $2;
-    defined $amount or api_error('Funds2');
-    my $currency = $3;
-    printf "%s\t%8.2f %s\n", $name, $amount, $currency;
-  }
-  exit;
-}
 
 while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
 {
