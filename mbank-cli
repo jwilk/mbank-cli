@@ -573,7 +573,7 @@ elsif ($action eq 'rename')
   user_error 'Invalid new account name' if not defined $_;
   $new_account_name = $_;
 }
-elsif (grep $action eq $_, qw(funds notices))
+elsif (grep $action eq $_, qw(list funds notices))
 { }
 else
 {
