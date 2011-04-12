@@ -120,11 +120,6 @@
 		<command>&p;</command>
 		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>notices</arg>
-		<group choice='req'>
-			<arg choice='plain'><replaceable>account</replaceable></arg>
-			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
-			<arg choice='plain'><option>--all-accounts</option></arg>
-		</group>
 	</cmdsynopsis>
 	<cmdsynopsis>
 		<command>&p;</command>
@@ -251,15 +246,13 @@
 <refsection>
 	<title>notices action</title>
 	<para>
-		Show list of notices for the selected account(s).
+		Show list of notices.
 	</para>
-	&select-accounts;
-	&select-accounts-wildcard;
 	<para>
 		&output-format;
-		<screen><replaceable>account-name</replaceable> <replaceable>date</replaceable> <replaceable>type</replaceable> <replaceable>title</replaceable></screen>
+		<screen><replaceable>new</replaceable> <replaceable>date</replaceable> <replaceable>title</replaceable></screen>
 		&tab-separated;
-		&omit-account-name;
+		<replaceable>new</replaceable> can be either ‘<literal>N</literal>’ (for an unread notice) or ‘<literal></literal>’ (empty string — otherwise).
 	</para>
 </refsection>
 

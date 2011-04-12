@@ -531,7 +531,7 @@ if ($action eq 'logout')
   do_logout();
   exit EC_OK;
 }
-elsif ($action =~ '^history|future|withholdings|notices$')
+elsif (grep $action eq $_, qw(history future withholdings))
 {
   $opt_multiple_accounts++ if $opt_multiple_accounts == 0 and $#ARGV > 0;
   if ($opt_multiple_accounts > 1)
@@ -573,7 +573,7 @@ elsif ($action eq 'rename')
   user_error 'Invalid new account name' if not defined $_;
   $new_account_name = $_;
 }
-elsif ($action eq 'list' or $action eq 'funds')
+elsif (grep $action eq $_, qw(funds notices))
 { }
 else
 {
@@ -633,6 +633,22 @@ if ($action eq 'funds')
     defined $amount or api_error('Funds2');
     my $currency = $3;
     printf "%s\t%8.2f %s\n", $name, $amount, $currency;
+  }
+  exit;
+}
+
+if ($action eq 'notices')
+{
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Wiadomo} or api_error('Notices1');
+  my $web_notices_list = download onclick_to_req($accounts_list_form, $1);
+  my $notice_re = qr{<li(|[ ]class="[^"]+?")><p class="Date"><span[^>]+?>(\d\d)-(\d\d)-(\d\d\d\d)</span>.*?<a.*?onclick="doSubmit\('/customer_notice_details.aspx',[^>]+?>([^<]+)</a>};
+  while ($web_notices_list->{content} =~ m{$notice_re}go)
+  {
+    my $new = '';
+    $new = 'N' if index($1, 'selected') > -1;
+    my $date = "$4-$3-$2";
+    my $subject = localize_html_string $5;
+    printf "%s\t%s\t%s\n", $new, $date, $subject;
   }
   exit;
 }
@@ -777,11 +793,6 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
       printf "$name\t", $name if $opt_multiple_accounts;
       printf "%s\t%s\t%8.2f %s\t%s\n", $reg_date, $fin_date, $amount, $currency, $title;
     }
-  }
-  elsif ($action eq 'notices')
-  {
-    api_error('Notices');
-    # TODO
   }
   elsif ($action eq 'rename')
   {
