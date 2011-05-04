@@ -149,7 +149,7 @@ sub user_error($)
 {
   local ($_) = @_;
   write_log $_;
-  Carp::cluck $_;
+  print STDERR "$_\n";
   exit EC_USER_ERROR;
 }
 
