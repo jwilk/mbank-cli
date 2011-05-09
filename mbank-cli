@@ -212,7 +212,7 @@ sub download($)
   if (open LOG, '>', "debug/$filename")
   {
     print LOG $content;
-    close LOG or die;
+    close LOG or die "Can't close log file: $!";
   }
   return { response => $response, content => $content, error => $error };
 }
@@ -234,7 +234,7 @@ sub preread_config()
   my $need_decrypt = $header eq "-----BEGIN PGP MESSAGE-----\n" || $header =~ /^\x85\x02/;
   $main::digest_module->add($header);
   $main::digest_module->addfile(*CONFIG);
-  close CONFIG or die;
+  close CONFIG or die "Can't close config file: $!";
   my $digest = $main::digest_module->b64digest();
   $ua->cookie_jar->scan(
     sub
@@ -274,7 +274,7 @@ sub read_config($)
     raise_error  => 1
   );
   close GPG or user_error q(Can't read the config file) if $need_decrypt;
-  close STDIN or die;
+  close STDIN or die "Can't close pipe: $!";
   my $login = $ac->cmd_config('Login');
   user_error('No login name provided') unless defined $login;
   user_error("Invalid login name '$login'") unless $login =~ /\d+/;
