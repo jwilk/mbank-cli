@@ -677,7 +677,7 @@ $accounts_re = qr{
 </p>
 <p[ ]class="Amount">
 (?:
-  <span[ ]id="\w+">
+  <span[ ]id="\w+"[^>]*>
   (-?[0-9 ,]+) [ ] ([A-Z]+)
   </span>
 )?
@@ -690,7 +690,6 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   my $line = $1;
   $line =~ m{$accounts_re}go or api_error('AccountsList1');
   next unless defined $3;
-  # FIXME: will the above fail if a balance / resources is negative?
   my $account_details_req = onclick_to_req($accounts_list_form, $1);
   my $name = localize_html_string $2;
   my $no = $3;
