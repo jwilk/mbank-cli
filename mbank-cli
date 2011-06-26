@@ -95,14 +95,14 @@ sub encoding_fallback($)
 sub widen_string($;$)
 {
   (local $_, my $codeset) = @_;
-  $codeset = $::locale_codeset unless defined $codeset;
+  $codeset //= $::locale_codeset;
   return Encode::decode($codeset, $_);
 }
 
 sub localize_html_string($;$)
 {
   (local $_, my $codeset) = @_;
-  $codeset = WEB_CODESET unless defined $codeset;
+  $codeset //= WEB_CODESET;
   $_ = widen_string $_, $codeset;
   $_ = HTML::Entities::decode_entities $_;
   return Encode::encode($::locale_codeset, $_, \&encoding_fallback);
@@ -111,7 +111,7 @@ sub localize_html_string($;$)
 sub lwp_init()
 {
   my $ca_dir = $ENV{HTTPS_CA_DIR};
-  $ca_dir = '/etc/ssl/certs/' if not defined $ca_dir;
+  $ca_dir //= '/etc/ssl/certs/';
   map { delete $ENV{$_}; } grep(/^HTTPS_/, keys %ENV);
   $ENV{'HTTPS_VERSION'} = 3;
   $ENV{'HTTPS_DEBUG'} = 0;
@@ -519,7 +519,7 @@ GetOptions(
 my $need_decrypt_config = preread_config();
 
 my $action = shift @ARGV;
-$action = 'list' unless defined $action;
+$action //= 'list';
 my $selected_accounts;
 my $new_account_name;
 

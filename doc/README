@@ -13,7 +13,7 @@ which is subject to change unexpectedly.
 Requirements
 ------------
 
-- perl with the following perl modules:
+- perl (≥ 5.10) with the following perl modules:
 
   - Apache::ConfigFile
 
