@@ -739,7 +739,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     my $web_operations = download $operations_req;
     my $web_future_operations = download POST("$mbank/future_operation_list.aspx");
     my $content = $web_future_operations->{content};
-		exit if $content =~ m{<p class="message">Brak planowanych operacji</p>};
+    next if $content =~ m{<p class="message">Brak planowanych operacji</p>};
     $content =~ m{<div id="future_operation_list" class="grid">(.*)</div>}s or api_error('Future1');
     $content = $1;
     while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
