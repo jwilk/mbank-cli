@@ -737,6 +737,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   elsif ($action eq 'future')
   {
     my $web_operations = download $operations_req;
+    next if not $web_operations->{content} =~ m{<a onclick="doSubmit\('/future_operation_list.aspx'};
     my $web_future_operations = download POST("$mbank/future_operation_list.aspx");
     my $content = $web_future_operations->{content};
     next if $content =~ m{<p class="message">Brak planowanych operacji</p>};
@@ -776,6 +777,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   elsif ($action eq 'withholdings')
   {
     my $web_operations = download $operations_req;
+    next if not $web_operations->{content} =~ m{<a onclick="doSubmit\('/witholdings_list.aspx'};
     my $web_withholdings = download POST("$mbank/witholdings_list.aspx");
     my $withholding_re = qr{
       <span[ ]id="\w+"> (\d\d)-(\d\d)-(\d{4}) </span>   .*?
