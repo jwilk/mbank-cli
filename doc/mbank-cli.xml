@@ -126,6 +126,11 @@
 	<cmdsynopsis>
 		<command>&p;</command>
 		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
+		<arg choice='plain'>deposits</arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+		<command>&p;</command>
+		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
 		<arg choice='plain'>notices</arg>
 	</cmdsynopsis>
 	<cmdsynopsis>
@@ -256,6 +261,18 @@
 		<screen><replaceable>account-name</replaceable> <replaceable>registration-date</replaceable> <replaceable>finalization-date</replaceable> <replaceable>amount</replaceable> <replaceable>title</replaceable></screen>
 		&tab-separated;
 		&omit-account-name;
+	</para>
+</refsection>
+
+<refsection>
+	<title>deposits action</title>
+	<para>
+		List time deposits.
+	</para>
+	<para>
+		&output-format;
+		<screen><replaceable>deposit-name</replaceable> <replaceable>establishment-date</replaceable> <replaceable>maturity-date</replaceable> <replaceable>term</replaceable> <replaceable>interest</replaceable> <replaceable>status</replaceable> <replaceable>amount</replaceable></screen>
+		&tab-separated;
 	</para>
 </refsection>
 
