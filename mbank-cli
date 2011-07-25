@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2006, 2007, 2008, 2009, 2010, 2011
+# Copyright © 2006, 2007, 2008, 2009, 2010, 2011
 #   Piotr Lewandowski <piotr.lewandowski@gmail.com>,
 #   Jakub Wilk <jwilk@jwilk.net>.
 #
@@ -824,4 +824,4 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   }
 }
 
-# vim:ts=2 sw=2 et fenc=ascii
+# vim:ts=2 sw=2 et fenc=utf-8
