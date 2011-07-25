@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 # Copyright © 2006, 2007, 2008, 2009, 2010, 2011
+#   Łukasz Indeka <lukaszindeka@o2.pl>,
 #   Piotr Lewandowski <piotr.lewandowski@gmail.com>,
 #   Jakub Wilk <jwilk@jwilk.net>.
 #
@@ -574,7 +575,7 @@ elsif ($action eq 'rename')
   user_error 'Invalid new account name' if not defined $_;
   $new_account_name = $_;
 }
-elsif (grep $action eq $_, qw(list funds notices))
+elsif (grep $action eq $_, qw(list funds deposits notices))
 { }
 else
 {
@@ -634,6 +635,28 @@ if ($action eq 'funds')
     defined $amount or api_error('Funds2');
     my $currency = $3;
     printf "%s\t%8.2f %s\n", $name, $amount, $currency;
+  }
+  exit;
+}
+
+if ($action eq 'deposits')
+{
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Lokaty} or api_error('Deposits1');
+  my $web_deposits_list = download onclick_to_req($accounts_list_form, $1);
+  my $deposit_re = qr{<a.*?onclick="doSubmit\('/termdeposit_details.aspx',[^>]+?>([^<]+?)<.*?<p class="Date"><span[^>]+?>(\d\d\d\d)-(\d\d)-(\d\d)</span><span>(\d\d\d\d)-(\d\d)-(\d\d)</span>.*?<p class="DepositLength"><span[^>]+?>([^<]+?)</span>.*?<p class="Percent"><span[^>]+?>([0-9,]+)[^<]+?</span>.*?<p class="DepositStatus"><span[^>]+?>([^<]*?)</span>.*?<p class="Amount"><span[^>]+?>([0-9 ,]+) ([A-Z]+)</span>};
+  while ($web_deposits_list->{content} =~ m{$deposit_re}go)
+  {
+    my $name = localize_html_string $1;
+    my $establishment_date = "$2-$3-$4";
+    my $maturity_date = "$5-$6-$7";
+    my $length = localize_html_string $8;
+    my $interest = parse_amount $9;
+    defined $interest or api_error('Deposits2a');
+    my $status = $10;
+    my $amount = parse_amount $11;
+    defined $amount or api_error('Deposits2b');
+    my $currency = $12;
+    printf "%s\t%s\t%s\t%s\t%8.2f%%\t%s\t%8.2f %s\n", $name, $establishment_date, $maturity_date, $length, $interest, $status, $amount, $currency;
   }
   exit;
 }
