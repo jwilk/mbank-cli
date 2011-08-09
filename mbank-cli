@@ -708,6 +708,7 @@ $accounts_re = qr{
 }x;
 $web_accounts_list->{content} =~ m{$accounts_re} or api_error('AccountsList0');
 
+my $n_matches = 0;
 while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
 {
   my $line = $1;
@@ -724,6 +725,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   defined $resources or api_error('AccountsList3');
   my $resources_c = $8;
   next if defined $selected_accounts and widen_string($name) !~ m/$selected_accounts/;
+  $n_matches++;
   if ($action eq 'list')
   {
     printf "%s\t%32s\t%8.2f %s\t%8.2f %s\n", $name, $no, $balance, $balance_c, $resources, $resources_c;
@@ -845,6 +847,11 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     $web_rename = download onclick_to_req($form, $onclick);
     $web_rename->{content} =~ m{<p class="message">Operacja wykonana poprawnie</p>} or api_error 'RenameAfter';
   }
+}
+
+if ($n_matches == 0)
+{
+  user_error('No such account name');
 }
 
 # vim:ts=2 sw=2 et fenc=utf-8
