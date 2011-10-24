@@ -40,7 +40,6 @@ use strict;
 use warnings;
 no encoding;
 
-use Apache::ConfigFile ();
 use Carp ();
 use Crypt::SSLeay ();
 use Digest ();
@@ -54,6 +53,7 @@ use HTML::Entities ();
 use LWP::UserAgent ();
 use POSIX qw(mktime strftime);
 use Encode ();
+use Text::ParseWords ();
 
 use constant
 {
@@ -260,32 +260,54 @@ sub preread_config()
   return $need_decrypt;
 }
 
+sub read_config_file($)
+{
+  my ($fp) = @_;
+  my %result = ();
+  my $error;
+  local $_;
+  while (<$fp>)
+  {
+    next if /^(?:#|\s*)$/;
+    if (/^\s*([\w-]+)\s+(.*\S)\s*$/)
+    {
+      my $key = lc $1;
+      my ($value) = Text::ParseWords::parse_line('^$', 0, $2);
+      $result{$key} = $value;
+    }
+    elsif (not defined $error)
+    {
+      $error = $.;
+    }
+  }
+  if (defined $error)
+  {
+    user_error("Can't parse the config file (line $.)");
+  }
+  return %result;
+}
+
 sub read_config($)
 {
   my ($need_decrypt) = @_;
   user_error "Can't open the config file: $!" unless open STDIN, '<', $config_file;
-  my $fileno;
+  my $fp;
   if ($need_decrypt)
   {
-    open GPG, '-|', GPG, '--decrypt' or die "Can't invoke gpg: $!";
-    $fileno = fileno GPG;
+    open GPGCHILD, '-|', GPG, '--decrypt' or die "Can't invoke gpg: $!";
+    $fp = \*GPGCHILD;
   }
   else
   {
-    $fileno = fileno STDIN;
+    $fp = \*STDIN;
   }
-  my $ac = Apache::ConfigFile->read(
-    file => "&$fileno",
-    ignore_case  => 1,
-    fix_booleans => 1,
-    raise_error  => 1
-  );
-  close GPG or user_error q(Can't read the config file) if $need_decrypt;
+  my %config = read_config_file($fp);
+  close GPGCHILD or user_error q(Can't read the config file) if $need_decrypt;
   close STDIN or die "Can't close pipe: $!";
-  my $login = $ac->cmd_config('Login');
+  my $login = $config{'login'};
   user_error('No login name provided') unless defined $login;
   user_error("Invalid login name '$login'") unless $login =~ /\d+/;
-  my $password = $ac->cmd_config('Password');
+  my $password = $config{'password'};
   user_error('No password provided') unless defined $password;
   user_error("Invalid password '$password'") unless length($password) > 0;
   return ($login, $password)

@@ -15,8 +15,6 @@ Requirements
 
 - Perl (≥ 5.10) with the following Perl modules:
 
-  - Apache::ConfigFile
-
   - Crypt::SSLeay
 
   - HTML::Form
@@ -32,8 +30,6 @@ Requirements
 If you are using Debian, dependencies will be satisfied by the following packages:
 
 - perl
-
-- libapache-configfile-perl
 
 - libcrypt-ssleay-perl
 
