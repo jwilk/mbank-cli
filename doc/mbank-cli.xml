@@ -180,6 +180,12 @@
 					<para>Use <replaceable>config-file</replaceable> as an alternate configuration file.</para>
 				</listitem>
 			</varlistentry>
+			<varlistentry>
+				<term><option>--cookie-jar</option> <replaceable>cookie-jar-file</replaceable></term>
+				<listitem>
+					<para>Use <replaceable>cookie-jar-file</replaceable> to store state of the phony web browser.</para>
+				</listitem>
+			</varlistentry>
 		</variablelist>
 	</para>
 </refsection>

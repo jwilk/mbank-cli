@@ -127,7 +127,7 @@ sub lwp_init()
   return $ua;
 }
 
-my $ua = lwp_init();
+my $ua;
 
 my $verbose = 0;
 
@@ -508,6 +508,7 @@ my $opt_multiple_accounts = 0;
 GetOptions(
   'verbose' => \$verbose,
   'config=s' => \$config_file,
+  'cookie-jar=s' => \$cookie_jar_file,
   'from=s' => sub
     {
       shift;
@@ -544,6 +545,8 @@ GetOptions(
       $opt_multiple_accounts = 99;
     },
 ) or exit EXIT_USER_ERROR;
+
+$ua = lwp_init();
 
 my $need_decrypt_config = preread_config();
 
