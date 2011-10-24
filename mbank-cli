@@ -57,13 +57,13 @@ use Text::ParseWords ();
 
 use constant
 {
-  EC_OK => 0,
-  EC_USER_ERROR => 1,
-  EC_HTTP_ERROR => 2,
-  EC_API_ERROR => 3,
+  EXIT_OK => 0,
+  EXIT_USER_ERROR => 1,
+  EXIT_HTTP_ERROR => 2,
+  EXIT_API_ERROR => 3,
   WEB_CODESET => 'ISO-8859-2',
   FAKE_DOMAIN => 'mbank-cli.invalid',
-  GPG => '/usr/bin/gpg'
+  GPG_EXECUTABLE => '/usr/bin/gpg'
 };
 
 chdir dirname($0) or die "Can't change working directory: $!";
@@ -151,7 +151,7 @@ sub user_error($)
   local ($_) = @_;
   write_log $_;
   print STDERR "$_\n";
-  exit EC_USER_ERROR;
+  exit EXIT_USER_ERROR;
 }
 
 sub api_error($)
@@ -160,7 +160,7 @@ sub api_error($)
   $_ = sprintf 'Oops, API error! [%s]', $_;
   write_log $_;
   Carp::cluck $_;
-  exit EC_API_ERROR;
+  exit EXIT_API_ERROR;
 }
 
 sub http_error($)
@@ -175,7 +175,7 @@ sub http_error($)
   }
   write_log $_;
   Carp::cluck $_;
-  exit EC_HTTP_ERROR;
+  exit EXIT_HTTP_ERROR;
 }
 
 sub shorten_uri($)
@@ -294,15 +294,15 @@ sub read_config($)
   my $fp;
   if ($need_decrypt)
   {
-    open GPGCHILD, '-|', GPG, '--decrypt' or die "Can't invoke gpg: $!";
-    $fp = \*GPGCHILD;
+    open GPG, '-|', GPG_EXECUTABLE, '--decrypt' or die "Can't invoke gpg: $!";
+    $fp = \*GPG;
   }
   else
   {
     $fp = \*STDIN;
   }
   my %config = read_config_file($fp);
-  close GPGCHILD or user_error q(Can't read the config file) if $need_decrypt;
+  close GPG or user_error q(Can't read the config file) if $need_decrypt;
   close STDIN or die "Can't close pipe: $!";
   my $login = $config{'login'};
   user_error('No login name provided') unless defined $login;
@@ -543,7 +543,7 @@ GetOptions(
     {
       $opt_multiple_accounts = 99;
     },
-) or exit EC_USER_ERROR;
+) or exit EXIT_USER_ERROR;
 
 my $need_decrypt_config = preread_config();
 
@@ -554,12 +554,12 @@ my $new_account_name;
 
 debug "Action: $action";
 
-exit EC_OK if $action eq 'void';
+exit EXIT_OK if $action eq 'void';
 
 if ($action eq 'logout')
 {
   do_logout();
-  exit EC_OK;
+  exit EXIT_OK;
 }
 elsif (grep $action eq $_, qw(history future withholdings))
 {
