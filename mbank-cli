@@ -167,6 +167,12 @@ sub http_error($)
 {
   my ($request) = @_;
   $_ = sprintf 'HTTP error while processing request <%s %s>', $request->method, $request->uri;
+  if ($@)
+  {
+    my $extra_message = $@;
+    $extra_message =~ s/^/| /gm;
+    $_ = "$_\n$extra_message";
+  }
   write_log $_;
   Carp::cluck $_;
   exit EC_HTTP_ERROR;
