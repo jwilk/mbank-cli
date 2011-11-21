@@ -49,17 +49,23 @@
 <refentryinfo>
 	<title>&p; manual</title>
 	<productname>&p;</productname>
-	<copyright>
-		<year>2006</year>
-		<year>2007</year>
-		<year>2008</year>
-		<year>2009</year>
-		<year>2010</year>
-		<year>2011</year>
-		<holder>Łukasz Indeka</holder>
-		<holder>Piotr Lewandowski</holder>
-		<holder>Jakub Wilk</holder>
-	</copyright>
+	<authorgroup>
+		<author>
+			<firstname>Łukasz</firstname> <surname>Indeka</surname>
+			<contrib>developer</contrib>
+			<email>lukaszindeka@o2.pl</email>
+		</author>
+		<author>
+			<firstname>Piotr</firstname> <surname>Lewandowski</surname>
+			<contrib>developer</contrib>
+			<email>piotr.lewandowski@gmail.com</email>
+		</author>
+		<author>
+			<firstname>Jakub</firstname> <surname>Wilk</surname>
+			<contrib>project leader</contrib>
+			<email>jwilk@jwilk.net</email>
+		</author>
+	</authorgroup>
 </refentryinfo>
 
 <refmeta>
