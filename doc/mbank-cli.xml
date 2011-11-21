@@ -3,7 +3,7 @@
 <!DOCTYPE refentry PUBLIC '-//OASIS//DTD DocBook XML V4.5//EN' 'http://www.docbook.org/xml/4.5/docbookx.dtd'
 [
 	<!ENTITY p 'mbank-cli'>
-	<!ENTITY version '20111121'>
+	<!ENTITY version '20111122'>
 	<!ENTITY select-accounts
 '<para>
 	You can select account(s) in the following ways:
@@ -51,6 +51,11 @@
 	<productname>&p;</productname>
 	<authorgroup>
 		<author>
+			<firstname>Jakub</firstname> <surname>Wilk</surname>
+			<contrib>project leader</contrib>
+			<email>jwilk@jwilk.net</email>
+		</author>
+		<author>
 			<firstname>Łukasz</firstname> <surname>Indeka</surname>
 			<contrib>developer</contrib>
 			<email>lukaszindeka@o2.pl</email>
@@ -59,11 +64,6 @@
 			<firstname>Piotr</firstname> <surname>Lewandowski</surname>
 			<contrib>developer</contrib>
 			<email>piotr.lewandowski@gmail.com</email>
-		</author>
-		<author>
-			<firstname>Jakub</firstname> <surname>Wilk</surname>
-			<contrib>project leader</contrib>
-			<email>jwilk@jwilk.net</email>
 		</author>
 	</authorgroup>
 </refentryinfo>
