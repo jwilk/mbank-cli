@@ -73,6 +73,26 @@ my $mbank = "https://$mbank_host";
 my $cookie_jar_file = './cookie-jar.txt';
 my $config_file = './mbank-cli.conf';
 
+# Strings that differ across countries:
+my %messages = (
+  account_rename => qr{Zmiana&nbsp;nazwy&nbsp;rachunku},
+  account_rename_confirm => qr{Zatwierd\xbc},
+  account_rename_successful => qr{Operacja wykonana poprawnie},
+  bad_date => qr{Nieprawid\xB3owa data lub data poza dopuszczalnym zakresem},
+  future_none => qr{Brak planowanych operacji},
+  history_details => qr{Zobacz szczeg\xf3\xb3y operacji},
+  history_previous => qr{Poprzednie&nbsp;operacje},
+  history_show => qr{Zobacz[^"]*operacje[^"]*},
+  invalid_session_key => qr{Alarm bezpiecze\xf1stwa[.] Nieprawid\xb3owy lub niewa\xbfny klucz sesji[.]},
+  logout => qr{mBank - wylogowanie},
+  menu_deposits => qr{Lokaty},
+  menu_funds => qr{Fundusze inwestycyjne},
+  menu_investments => qr{Inwestycje},
+  notices => qr{Wiadomo\xb6\xe6},
+  select_this_account => qr{Wybierz ten rachunek},
+  system_error => qr{B\xb3\xb1d systemu},
+);
+
 $::locale_codeset = langinfo(CODESET);
 %::fallback_map = (
   0x104 => 'A', 0x105 => 'a',
@@ -359,7 +379,7 @@ sub do_logout()
   }
   else
   {
-    $web_logout->{content} =~ '<title>mBank - wylogowanie</title>' or api_error('logout-failed');
+    $web_logout->{content} =~ "<title>$messages{logout}</title>" or api_error('logout-failed');
   }
 }
 
@@ -418,7 +438,7 @@ sub do_operations($$)
   my ($web, $name) = @_;
 
   return if $web->{content} =~ m{<p class="message">Brak operacji [^<]*</p>};
-  if ($web->{content} =~ m{<p class="message">Nieprawid\xB3owa data lub data poza dopuszczalnym zakresem</p>})
+  if ($web->{content} =~ m{<p class="message">$messages{bad_date}</p>})
   {
     user_error "Invalid date range"
   }
@@ -443,7 +463,7 @@ sub do_operations($$)
         (?: <span[ ]class="checkBox"><input[ ]id="\w+" [^>]*></span> | &nbsp; )
         </p>
         <p[ ]class="OperationDescription">
-        <a[ ]id="\w+"[ ]title="Zobacz[ ]szczeg\xf3\xb3y[ ]operacji"[ ][^>]*> ( (?:[^<]+|<wbr(?:[ ]/)?>)+ ) </a>
+        <a[ ]id="\w+"[ ]title="$messages{history_details}"[ ][^>]*> ( (?:[^<]+|<wbr(?:[ ]/)?>)+ ) </a>
         ( (?: <span> (?:[^<]+|<wbr(?:[ ]/)?>)+ </span> )* )
         (?: <span[ ]class="FilterType"> [^>]* </span> )?
         </p>
@@ -468,7 +488,7 @@ sub do_operations($$)
       print "$name\t" if defined $name;
       printf "%s\t%s\t%8.2f %s\t%8.2f %s\t%s\n", $date1, $date2, $amount, $amount_c, $balance, $balance_c, $details;
     }
-    if ($content =~ m{<button id="PrevPage" onclick="([^"]+)" class="button">Poprzednie&nbsp;operacje</button>})
+    if ($content =~ m{<button id="PrevPage" onclick="([^"]+)" class="button">$messages{history_previous}</button>})
     {
       my $onclick = $1;
       my @forms = HTML::Form->parse($web->{response});
@@ -518,10 +538,10 @@ sub check_session_expiry($)
 {
   my ($web) = @_;
   return 1
-    if ($web->{error} eq "B\xb3\xb1d systemu" and
+    if ($web->{error} =~ m{^$messages{system_error}$} and
     $web->{content} =~ m{
       <p[ ]class="message">
-      Alarm[ ]bezpiecze\xf1stwa[.][ ]Nieprawid\xb3owy[ ]lub[ ]niewa\xbfny[ ]klucz[ ]sesji[.]
+      $messages{invalid_session_key}
       </p>
     }x);
 }
@@ -679,9 +699,9 @@ my ($accounts_list_form) = @accounts_list_forms;
 
 if ($action eq 'funds')
 {
-  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Inwestycje} or api_error('funds-link-1');
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{menu_investments}} or api_error('funds-link-1');
   my $web_investments_list = download onclick_to_req($accounts_list_form, $1);
-  $web_investments_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Fundusze inwestycyjne} or api_error('funds-link-2');
+  $web_investments_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{menu_funds}} or api_error('funds-link-2');
   my $web_funds_list = download onclick_to_req($accounts_list_form, $1);
   my $fund_re = qr{<a.*?onclick="doSubmit\('/if_fund_details.aspx',[^>]+?>([^<]+?)<.*?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_funds_list->{content} =~ m{$fund_re}go)
@@ -697,7 +717,7 @@ if ($action eq 'funds')
 
 if ($action eq 'deposits')
 {
-  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Lokaty} or api_error('deposits-link');
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{menu_deposits}} or api_error('deposits-link');
   my $web_deposits_list = download onclick_to_req($accounts_list_form, $1);
   my $deposit_re = qr{<a.*?onclick="doSubmit\('/termdeposit_details.aspx',[^>]+?>([^<]+?)<.*?<p class="Date"><span[^>]+?>(\d\d\d\d)-(\d\d)-(\d\d)</span><span>(\d\d\d\d)-(\d\d)-(\d\d)</span>.*?<p class="DepositLength"><span[^>]+?>([^<]+?)</span>.*?<p class="Percent"><span[^>]+?>([0-9,]+)[^<]+?</span>.*?<p class="DepositStatus"><span[^>]+?>([^<]*?)</span>.*?<p class="Amount"><span[^>]+?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_deposits_list->{content} =~ m{$deposit_re}go)
@@ -719,7 +739,7 @@ if ($action eq 'deposits')
 
 if ($action eq 'notices')
 {
-  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Wiadomo} or api_error('notices-link');
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{notices}} or api_error('notices-link');
   my $web_notices_list = download onclick_to_req($accounts_list_form, $1);
   my $notice_re = qr{<li(|[ ]class="[^"]+?")><p class="Date"><span[^>]+?>(\d\d)-(\d\d)-(\d\d\d\d)</span>.*?<a.*?onclick="doSubmit\('/(?:customer|account)_notice_details.aspx',[^>]+?>([^<]+)</a>};
   while ($web_notices_list->{content} =~ m{$notice_re}go)
@@ -738,7 +758,7 @@ $web_accounts_list->{content} =~ s/$accounts_re/$1/ or api_error('accounts-list'
 
 $accounts_re = qr{
 <p[ ]class="Account">
-<a[ ]id="\w+"[ ]title="Wybierz[ ]ten[ ]rachunek"[ ]onclick="([^"]*)" [^>]*?>
+<a[ ]id="\w+"[ ]title="$messages{select_this_account}"[ ]onclick="([^"]*)" [^>]*?>
 (?:
   (.+?) [ ] (\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d[ ]\d\d\d\d) |
   Konto [ ] MOBILE
@@ -747,7 +767,7 @@ $accounts_re = qr{
 </p>
 <p[ ]class="Amount">
 (?:
-  <a[ ]id="\w+"[ ]title="Zobacz[^"]*operacje[^"]*" [^>]*? onclick="([^"]*)" [^>]*?>
+  <a[ ]id="\w+"[ ]title="$messages{history_show}" [^>]*? onclick="([^"]*)" [^>]*?>
   (-?[0-9 ,]+) [ ] ([A-Z]+)
   </a>
 |
@@ -821,7 +841,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     next if not $web_operations->{content} =~ m{<a onclick="doSubmit\('/future_operation_list.aspx'};
     my $web_future_operations = download POST("$mbank/future_operation_list.aspx");
     my $content = $web_future_operations->{content};
-    next if $content =~ m{<p class="message">Brak planowanych operacji</p>};
+    next if $content =~ m{<p class="message">$messages{future_none}</p>};
     $content =~ m{<div id="future_operation_list" class="grid">(.*)</div>}s or api_error('future-table');
     $content = $1;
     while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
@@ -887,7 +907,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     my ($form) = @forms;
     $web_contract->{content} =~ m{
       <button[ ]onclick="([^"]*)"[ ]class="button">
-      Zmiana&nbsp;nazwy&nbsp;rachunku
+      $messages{account_rename}
       </button>
     }x or api_error 'RenameForm1.1';
     my $web_rename = download onclick_to_req($form, $1);
@@ -897,13 +917,13 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     $form->value('tbVarPartAccName', $new_account_name);
     $web_rename->{content} =~ m{
       <button[ ]id="(Confirm)"[ ]onclick="([^"]*)"[ ]class="button">
-      Zatwierd\xbc
+      $messages{account_rename_confirm}
       </button>
     }x or api_error 'RenameForm2.1';
     my ($submit, $onclick) = ($1, $2);
     $form->value($submit, undef);
     $web_rename = download onclick_to_req($form, $onclick);
-    $web_rename->{content} =~ m{<p class="message">Operacja wykonana poprawnie</p>} or api_error 'RenameAfter';
+    $web_rename->{content} =~ m{<p class="message">$messages{account_rename_successful}</p>} or api_error 'RenameAfter';
   }
 }
 
