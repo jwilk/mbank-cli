@@ -849,6 +849,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
       my $title = localize_html_string $3;
       $title =~ y/\xa0/ /;
       my $amount = parse_amount $4;
+      defined $amount or api_error('future-amount');
       my $currency = $5;
       my $status = localize_html_string $6;
       printf "$name\t", $name if $opt_multiple_accounts;
@@ -871,6 +872,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
       my $reg_date = "$3-$2-$1";
       my $fin_date = "$6-$5-$4";
       my $amount = parse_amount $7;
+      defined $amount or api_error('withholdings-amount');
       my $currency = $8;
       my $title = localize_html_string $9;
       printf "$name\t", $name if $opt_multiple_accounts;
