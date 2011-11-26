@@ -396,7 +396,7 @@ sub do_logout()
   user_error 'You are not logged in' unless $have_cookies;
   my $web_logout = download GET("$mbank/logout.aspx");
   $ua->cookie_jar->clear();
-  debug 'Cookies has been wiped out';
+  debug 'Cookies have been wiped out';
   if (check_session_expiry($web_logout))
   {
     debug 'Probably you have been already logged out'
