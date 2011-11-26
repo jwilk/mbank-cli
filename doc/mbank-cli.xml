@@ -16,12 +16,14 @@
 				to select multiple accounts — use one of these options:
 				<variablelist>
 					<varlistentry>
+						<term><option>-M</option></term>
 						<term><option>--multiple-accounts</option></term>
 						<listitem>
 							<para>to select accounts specified in the command line,</para>
 						</listitem>
 					</varlistentry>
 					<varlistentry>
+						<term><option>-A</option></term>
 						<term><option>--all-accounts</option></term>
 						<listitem>
 							<para>
@@ -42,7 +44,7 @@
 >
 	<!ENTITY output-format 'The output consists of lines in the following format:'>
 	<!ENTITY tab-separated 'Fields are tab-separated.'>
-	<!ENTITY omit-account-name '<replaceable>account-name</replaceable> will be omitted unless <option>--multiple-accounts</option> or <option>--all-accounts</option> option is used.'>
+	<!ENTITY omit-account-name '<replaceable>account-name</replaceable> will be omitted unless <option>M</option>/<option>--multiple-accounts</option> or <option>A</option>/<option>--all-accounts</option> option is used.'>
 ]>
 <refentry>
 
@@ -100,8 +102,8 @@
 		</group>
 		<group choice='req'>
 			<arg choice='plain'><replaceable>account</replaceable></arg>
-			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
-			<arg choice='plain'><option>--all-accounts</option></arg>
+			<arg choice='plain'><option>-M</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
+			<arg choice='plain'><option>-A</option></arg>
 		</group>
 	</cmdsynopsis>
 	<cmdsynopsis>
@@ -110,8 +112,8 @@
 		<arg choice='plain'>future</arg>
 		<group choice='req'>
 			<arg choice='plain'><replaceable>account</replaceable></arg>
-			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
-			<arg choice='plain'><option>--all-accounts</option></arg>
+			<arg choice='plain'><option>-M</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
+			<arg choice='plain'><option>-A</option></arg>
 		</group>
 	</cmdsynopsis>
 	<cmdsynopsis>
@@ -120,8 +122,8 @@
 		<arg choice='plain'>withholdings</arg>
 		<group choice='req'>
 			<arg choice='plain'><replaceable>account</replaceable></arg>
-			<arg choice='plain'><option>--multiple-accounts</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
-			<arg choice='plain'><option>--all-accounts</option></arg>
+			<arg choice='plain'><option>-M</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
+			<arg choice='plain'><option>-A</option></arg>
 		</group>
 	</cmdsynopsis>
 	<cmdsynopsis>

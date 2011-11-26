@@ -536,11 +536,11 @@ GetOptions(
         $opt_range = 0;
       }
     },
-  'multiple-accounts' => sub
+  'M|multiple-accounts' => sub
     {
       $opt_multiple_accounts = 1;
     },
-  'all-accounts' => sub
+  'A|all-accounts' => sub
     {
       $opt_multiple_accounts = 99;
     },
