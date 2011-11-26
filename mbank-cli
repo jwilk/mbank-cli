@@ -390,7 +390,7 @@ sub do_logout()
   }
   else
   {
-    $web_logout->{content} =~ "<title>$messages{logout}</title>" or api_error('logout-failed');
+    $web_logout->{content} =~ m(<title>$messages{logout}</title>) or api_error('logout-failed');
   }
 }
 
