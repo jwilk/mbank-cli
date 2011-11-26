@@ -359,7 +359,7 @@ sub do_logout()
   }
   else
   {
-    $web_logout->{content} =~ '<title>mBank - wylogowanie</title>' or api_error('Logout1');
+    $web_logout->{content} =~ '<title>mBank - wylogowanie</title>' or api_error('logout-failed');
   }
 }
 
@@ -368,20 +368,20 @@ sub do_login($$)
   debug 'Loggin in...';
   my ($web_in, $need_decrypt) = @_;
   my @forms = HTML::Form->parse($web_in->{response});
-  $#forms == 0 or api_error('Login1');
+  $#forms == 0 or api_error('login-form');
   my ($form) = @forms;
   my $in_login = $form->find_input('customer', 'text');
   my $in_passw = $form->find_input('password', 'password');
-  api_error('Login2L') unless defined $in_login;
-  api_error('Login2P') unless defined $in_passw;
-  api_error('Login2S') unless $web_in->{content} =~ m{<button id="confirm" onclick="([^"]+)" class="button">};
+  api_error('login-field') unless defined $in_login;
+  api_error('password-field') unless defined $in_passw;
+  api_error('login-button') unless $web_in->{content} =~ m{<button id="confirm" onclick="([^"]+)" class="button">};
   my $onclick = $1;
   my ($login, $passw) = read_config($need_decrypt);
   $in_login->value($login);
   $in_passw->value($passw);
   my $web_out = download onclick_to_req($form, $onclick);
   user_error 'Login error: incorrect login/password' if $web_out->{error} eq "B\xb3\xb1d logowania";
-  api_error(sprintf 'LoginX [%s]', $web_out->{error}) if $web_out->{error} ne '';
+  api_error('login-error ' . $web_out->{error}) if $web_out->{error} ne '';
   return $web_out;
 }
 
@@ -401,7 +401,7 @@ sub onclick_to_req($$)
   my ($form, $onclick) = @_;
   $onclick =~ m{^doSubmit[(]'(/?\w+[.]aspx)?','','(?:POST)?',(?:'([^']*?)'|null),.*?,(?:\w+|'(.*?)')[)];} or
     $onclick =~ m{^return OperationHistoryExport[(]export_oper_history_check, '/?\w+[.]aspx', '(/?\w+[.]aspx)'[)]} or
-    api_error('OnClick');
+    api_error('onclick');
   $form->action("$mbank/$1") if defined $1;
   $form->value('__PARAMETERS', $2) if defined $2;
   my $js = $3;
@@ -429,7 +429,7 @@ sub do_operations($$)
       <div[ ]id="account_operations"[ ]class="grid">
       (.*?)
       </div>
-    }sx or api_error('History1');
+    }sx or api_error('history-table');
     my $content = $1;
     while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
     {
@@ -449,14 +449,14 @@ sub do_operations($$)
         </p>
         <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
         <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
-      }x or api_error('History2');
+      }x or api_error('history-table-item');
       my $date1 = "$3-$2-$1";
       my $date2 = "$6-$5-$4";
       my $amount = parse_amount($9);
-      defined $amount or api_error('History3');
+      defined $amount or api_error('history-table-amount');
       my $amount_c = $10;
       my $balance = parse_amount($11);
-      defined $balance or api_error('History4');
+      defined $balance or api_error('history-table-balance');
       my $balance_c = $12;
       my $details = "$7\t$8";
       $details =~ s{</span><span>}{\t}g;
@@ -472,7 +472,7 @@ sub do_operations($$)
     {
       my $onclick = $1;
       my @forms = HTML::Form->parse($web->{response});
-      $#forms == 0 or api_error('HistoryPrevForm');
+      $#forms == 0 or api_error('history-table-button');
       my ($form) = @forms;
       foreach my $input ($form->inputs)
       {
@@ -659,7 +659,7 @@ if (!$need_login)
   }
   elsif ($web_accounts_list->{error} ne '')
   {
-    api_error('PreLogin: ' . $web_accounts_list->{error});
+    api_error('pre-login ' . $web_accounts_list->{error});
   }
 }
 
@@ -674,21 +674,21 @@ if ($need_login)
 }
 
 my @accounts_list_forms = HTML::Form->parse($web_accounts_list->{response});
-$#accounts_list_forms == 0 or api_error('AccountListForm');
+$#accounts_list_forms == 0 or api_error('account-list');
 my ($accounts_list_form) = @accounts_list_forms;
 
 if ($action eq 'funds')
 {
-  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Inwestycje} or api_error('Funds1');
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Inwestycje} or api_error('funds-link-1');
   my $web_investments_list = download onclick_to_req($accounts_list_form, $1);
-  $web_investments_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Fundusze inwestycyjne} or api_error('Funds1.5');
+  $web_investments_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Fundusze inwestycyjne} or api_error('funds-link-2');
   my $web_funds_list = download onclick_to_req($accounts_list_form, $1);
   my $fund_re = qr{<a.*?onclick="doSubmit\('/if_fund_details.aspx',[^>]+?>([^<]+?)<.*?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_funds_list->{content} =~ m{$fund_re}go)
   {
     my $name = localize_html_string $1;
     my $amount = parse_amount $2;
-    defined $amount or api_error('Funds2');
+    defined $amount or api_error('funds-amount');
     my $currency = $3;
     printf "%s\t%8.2f %s\n", $name, $amount, $currency;
   }
@@ -697,7 +697,7 @@ if ($action eq 'funds')
 
 if ($action eq 'deposits')
 {
-  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Lokaty} or api_error('Deposits1');
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Lokaty} or api_error('deposits-link');
   my $web_deposits_list = download onclick_to_req($accounts_list_form, $1);
   my $deposit_re = qr{<a.*?onclick="doSubmit\('/termdeposit_details.aspx',[^>]+?>([^<]+?)<.*?<p class="Date"><span[^>]+?>(\d\d\d\d)-(\d\d)-(\d\d)</span><span>(\d\d\d\d)-(\d\d)-(\d\d)</span>.*?<p class="DepositLength"><span[^>]+?>([^<]+?)</span>.*?<p class="Percent"><span[^>]+?>([0-9,]+)[^<]+?</span>.*?<p class="DepositStatus"><span[^>]+?>([^<]*?)</span>.*?<p class="Amount"><span[^>]+?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_deposits_list->{content} =~ m{$deposit_re}go)
@@ -707,10 +707,10 @@ if ($action eq 'deposits')
     my $maturity_date = "$5-$6-$7";
     my $length = localize_html_string $8;
     my $interest = parse_amount $9;
-    defined $interest or api_error('Deposits2a');
+    defined $interest or api_error('deposits-interest');
     my $status = $10;
     my $amount = parse_amount $11;
-    defined $amount or api_error('Deposits2b');
+    defined $amount or api_error('deposits-amount');
     my $currency = $12;
     printf "%s\t%s\t%s\t%s\t%8.2f%%\t%s\t%8.2f %s\n", $name, $establishment_date, $maturity_date, $length, $interest, $status, $amount, $currency;
   }
@@ -719,7 +719,7 @@ if ($action eq 'deposits')
 
 if ($action eq 'notices')
 {
-  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Wiadomo} or api_error('Notices1');
+  $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>Wiadomo} or api_error('notices-link');
   my $web_notices_list = download onclick_to_req($accounts_list_form, $1);
   my $notice_re = qr{<li(|[ ]class="[^"]+?")><p class="Date"><span[^>]+?>(\d\d)-(\d\d)-(\d\d\d\d)</span>.*?<a.*?onclick="doSubmit\('/(?:customer|account)_notice_details.aspx',[^>]+?>([^<]+)</a>};
   while ($web_notices_list->{content} =~ m{$notice_re}go)
@@ -734,7 +734,7 @@ if ($action eq 'notices')
 }
 
 my $accounts_re = qr{.*<div id="AccountsGrid" class="grid">(.*?)</div>.*}s;
-$web_accounts_list->{content} =~ s/$accounts_re/$1/ or api_error('AccountsList0');
+$web_accounts_list->{content} =~ s/$accounts_re/$1/ or api_error('accounts-list');
 
 $accounts_re = qr{
 <p[ ]class="Account">
@@ -762,23 +762,23 @@ $accounts_re = qr{
 )?
 </p>
 }x;
-$web_accounts_list->{content} =~ m{$accounts_re} or api_error('AccountsList0');
+$web_accounts_list->{content} =~ m{$accounts_re} or api_error('accounts-list-item');
 
 my $n_matches = 0;
 while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
 {
   my $line = $1;
-  $line =~ m{$accounts_re}go or api_error('AccountsList1');
+  $line =~ m{$accounts_re}go or api_error('accounts-list-item');
   next unless defined $3;
   my $account_details_req = onclick_to_req($accounts_list_form, $1);
   my $name = localize_html_string $2;
   my $no = $3;
   my $operations_req = onclick_to_req($accounts_list_form, $4);
   my $balance = parse_amount $5;
-  defined $balance or api_error('AccountsList2');
+  defined $balance or api_error('accounts-list-balance');
   my $balance_c = $6;
   my $resources = parse_amount $7;
-  defined $resources or api_error('AccountsList3');
+  defined $resources or api_error('accounts-list-resources');
   my $resources_c = $8;
   next if defined $selected_accounts and widen_string($name) !~ m/$selected_accounts/;
   $n_matches++;
@@ -790,11 +790,11 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   {
     my $web_operations = download $operations_req;
     my @forms = HTML::Form->parse($web_operations->{response});
-    $#forms == 0 or api_error('PreHistory1');
+    $#forms == 0 or api_error('history-form');
     my ($form) = @forms;
     if (defined $opt_range)
     {
-      api_error('PreHistory3') unless $web_operations->{content} =~ m{DateValidator[(]theform[.]daterange_from_day, '19010101', '(\d{4})(\d\d)(\d\d)', '', ''[)]};
+      api_error('history-date') unless $web_operations->{content} =~ m{DateValidator[(]theform[.]daterange_from_day, '19010101', '(\d{4})(\d\d)(\d\d)', '', ''[)]};
       my $now = "$1-$2-$3";
       my ($y, $m, $d) = ground_date($opt_from, $now);
       $form->value('daterange_from_day', $d);
@@ -810,7 +810,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     {
       $input->disabled(1) if defined $input->name and $input->name =~ '^lastdays_(days|period)|ctl[0-9]+$';
     }
-    api_error('PreHistory2') unless $web_operations->{content} =~ m{<button id="Submit" onclick="([^"]+)" class="button">};
+    api_error('history-button') unless $web_operations->{content} =~ m{<button id="Submit" onclick="([^"]+)" class="button">};
     my $onclick = $1;
     $web_operations = download onclick_to_req($form, $onclick);
     do_operations($web_operations, $opt_multiple_accounts ? $name : undef);
@@ -822,7 +822,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     my $web_future_operations = download POST("$mbank/future_operation_list.aspx");
     my $content = $web_future_operations->{content};
     next if $content =~ m{<p class="message">Brak planowanych operacji</p>};
-    $content =~ m{<div id="future_operation_list" class="grid">(.*)</div>}s or api_error('Future1');
+    $content =~ m{<div id="future_operation_list" class="grid">(.*)</div>}s or api_error('future-table');
     $content = $1;
     while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
     {
@@ -843,7 +843,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
         <p[ ]class="OperationStatus">
         <span[ ]id="\w+"> ([^>]+?) </span>
         </p>
-      }x or api_error('Future2');
+      }x or api_error('future-item');
       my $date = $1;
       my $receiver = localize_html_string $2;
       my $title = localize_html_string $3;
