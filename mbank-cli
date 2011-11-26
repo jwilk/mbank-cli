@@ -269,10 +269,8 @@ sub check_for_error($)
 sub download($)
 {
   my ($request) = @_;
-  my $subject_regex = $mbank_host;
   # LWP does not check if hostname matches CN, we need to check that manually.
-  $subject_regex =~ s/[.]/[.]/g;
-  $subject_regex = "[/]CN=$subject_regex\$";
+  my $subject_regex = qr(/CN=\Q$mbank_host\E$);
   $request->header('If-SSL-Cert-Subject' => $subject_regex);
   debug sprintf('Download <%s %s>', $request->method, $request->uri);
   my $response = $ua->request($request);
