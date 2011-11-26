@@ -95,15 +95,34 @@ my %messages = (
 
 $::locale_codeset = langinfo(CODESET);
 %::fallback_map = (
-  0x104 => 'A', 0x105 => 'a',
-  0x106 => 'C', 0x107 => 'c',
-  0x118 => 'E', 0x119 => 'e',
-  0x141 => 'L', 0x142 => 'l',
-  0x143 => 'N', 0x144 => 'n',
-  0x0d3 => 'O', 0x0f3 => 'o',
-  0x15a => 'S', 0x15b => 's',
-  0x179 => 'Z', 0x17a => 'z',
-  0x17b => 'Z', 0x17c => 'z',
+  0x104 => 'A', 0x105 => 'a', # letter A with ogonek
+  0x0c1 => 'A', 0x0e1 => 'a', # letter A with acute
+  0x0c4 => 'A', 0x0e4 => 'a', # letter A with diaeresis
+  0x106 => 'C', 0x107 => 'c', # letter C with acute
+  0x10c => 'C', 0x10d => 'c', # letter C with caron
+  0x10e => 'D', 0x10f => 'd', # letter D with caron
+  0x118 => 'E', 0x119 => 'e', # letter E with ogonek
+  0x0c9 => 'E', 0x0e9 => 'e', # letter E with acute
+  0x11a => 'E', 0x11b => 'e', # letter E with caron
+  0x0cd => 'I', 0x0ed => 'i', # letter I with acute
+  0x141 => 'L', 0x142 => 'l', # letter L with stroke
+  0x139 => 'L', 0x13a => 'l', # letter L with acute
+  0x13d => 'L', 0x13e => 'l', # letter L with caron
+  0x143 => 'N', 0x144 => 'n', # letter N with acute
+  0x147 => 'N', 0x148 => 'n', # letter N with caron
+  0x0d3 => 'O', 0x0f3 => 'o', # letter O with acute
+  0x0d4 => 'O', 0x0f4 => 'o', # letter O with circumflex
+  0x154 => 'R', 0x155 => 'r', # letter R with acute
+  0x158 => 'R', 0x159 => 'r', # letter R with caron
+  0x15a => 'S', 0x15b => 's', # letter S with acute
+  0x160 => 'S', 0x161 => 's', # letter S with caron
+  0x164 => 'T', 0x165 => 't', # letter T with caron
+  0x0da => 'U', 0x0fa => 'u', # letter U with acute
+  0x16e => 'U', 0x16f => 'u', # letter U with ring above
+  0x0dd => 'Y', 0x0fd => 'y', # letter Y with acute
+  0x179 => 'Z', 0x17a => 'z', # letter Z with acute
+  0x17b => 'Z', 0x17c => 'z', # letter Z with dot above
+  0x17d => 'Z', 0x17e => 'z', # letter Z with caron
 );
 
 sub show_help()
