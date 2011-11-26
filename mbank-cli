@@ -86,6 +86,29 @@ $::locale_codeset = langinfo(CODESET);
   0x17B => 'Z', 0x17C => 'z',
 );
 
+sub show_help()
+{
+  print STDERR <<EOF ;
+Usage:
+  mbank-cli [list]
+  mbank-cli history [--range <start-date> <end-date> | --from <start-date> [--to <end-date>] ] {<account> | -M <account>... | -A}
+  mbank-cli future {<account> | -M <account>... | -A}
+  mbank-cli withholdings {<account> | -M <account>... | -A}
+  mbank-cli funds
+  mbank-cli deposits
+  mbank-cli notices
+  mbank-cli rename <account> <new-name>
+  mbank-cli logout
+  mbank-cli void
+
+Common options:
+  --verbose
+  --config <config-file>
+  --cookie-jar <cookie-jar-file>
+EOF
+  exit EXIT_OK;
+}
+
 sub encoding_fallback($)
 {
   (local $_) = @_;
@@ -544,6 +567,7 @@ GetOptions(
     {
       $opt_multiple_accounts = 99;
     },
+  'h|help' => \&show_help,
 ) or exit EXIT_USER_ERROR;
 
 $ua = lwp_init();
