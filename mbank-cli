@@ -222,14 +222,6 @@ sub http_error($)
   exit EXIT_HTTP_ERROR;
 }
 
-sub shorten_uri($)
-{
-  local ($_) = @_;
-  s/&sMenu=.*?&/&/;
-  s/[?]sErrDescr=&sErrSource=&/?/;
-  return $_;
-}
-
 sub check_for_error($)
 {
   local ($_) = @_;
