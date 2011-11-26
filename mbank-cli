@@ -101,9 +101,9 @@ $::locale_codeset = langinfo(CODESET);
   0x141 => 'L', 0x142 => 'l',
   0x143 => 'N', 0x144 => 'n',
   0x0d3 => 'O', 0x0f3 => 'o',
-  0x15a => 'S', 0x15B => 's',
-  0x179 => 'Z', 0x17A => 'z',
-  0x17B => 'Z', 0x17C => 'z',
+  0x15a => 'S', 0x15b => 's',
+  0x179 => 'Z', 0x17a => 'z',
+  0x17b => 'Z', 0x17c => 'z',
 );
 
 sub show_help()
