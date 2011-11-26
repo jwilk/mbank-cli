@@ -98,6 +98,7 @@ my %messages = (
   history_previous => qr{Poprzednie&nbsp;operacje},
   history_show => qr{Zobacz[^"]*operacje[^"]*},
   invalid_session_key => qr{Alarm bezpiecze\xf1stwa[.] Nieprawid\xb3owy lub niewa\xbfny klucz sesji[.]},
+  login_error => qr{B\xb3\xb1d logowania},
   logout => qr{mBank - wylogowanie},
   menu_deposits => qr{Lokaty},
   menu_funds => qr{Fundusze inwestycyjne},
@@ -425,7 +426,7 @@ sub do_login($$)
   $in_login->value($login);
   $in_passw->value($passw);
   my $web_out = download onclick_to_req($form, $onclick);
-  user_error 'Login error: incorrect login/password' if $web_out->{error} eq "B\xb3\xb1d logowania";
+  user_error 'Login error: incorrect login/password' if $web_out->{error} =~ m(^$messages{login_error}$);
   api_error('login-error ' . $web_out->{error}) if $web_out->{error} ne '';
   return $web_out;
 }
