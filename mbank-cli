@@ -68,10 +68,24 @@ use constant
 
 chdir dirname($0) or die "Can't change working directory: $!";
 
-my $mbank_host = 'www.mbank.com.pl';
-my $mbank = "https://$mbank_host";
+my $mbank_host = undef; # use set_country() to define
+my $mbank = undef; # use set_country() to define
 my $cookie_jar_file = './cookie-jar.txt';
 my $config_file = './mbank-cli.conf';
+
+sub set_country($)
+{
+  my ($cc) = @_;
+  $cc = lc $cc;
+  $cc =~ m/^[a-z][a-z]$/ or
+    user_error("Invalid country code: $cc");
+  $mbank_host = $cc eq 'pl'
+  ? 'www.mbank.com.pl'
+  : "$cc.mbank.eu";
+  $mbank = "https://$mbank_host";
+}
+
+set_country('pl');
 
 # Strings that differ across countries:
 my %messages = (
