@@ -396,7 +396,7 @@ sub do_logout()
 
 sub do_login($$)
 {
-  debug 'Loggin in...';
+  debug 'Logging in...';
   my ($web_in, $need_decrypt) = @_;
   my @forms = HTML::Form->parse($web_in->{response});
   $#forms == 0 or api_error('login-form');
