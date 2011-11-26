@@ -375,7 +375,7 @@ sub read_config($)
   close STDIN or die "Can't close pipe: $!";
   my $login = $config{'login'};
   user_error('No login name provided') unless defined $login;
-  user_error("Invalid login name '$login'") unless $login =~ /\d+/;
+  user_error("Invalid login name '$login'") unless $login =~ /^\d+$/;
   my $password = $config{'password'};
   user_error('No password provided') unless defined $password;
   user_error("Invalid password '$password'") unless length($password) > 0;
