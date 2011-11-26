@@ -465,7 +465,7 @@ sub do_operations($$)
     while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
     {
       my $line = $1;
-      $line =~ m{
+      $line =~ m(
         <p[ ]class="Date">
         <span[ ]id="\w+"> (\d{2})-(\d{2})-(\d{4}) </span>
         <span[ ]id="\w+"> (\d{2})-(\d{2})-(\d{4}) </span>
@@ -480,7 +480,7 @@ sub do_operations($$)
         </p>
         <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
         <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
-      }x or api_error('history-table-item');
+      )x or api_error('history-table-item');
       my $date1 = "$3-$2-$1";
       my $date2 = "$6-$5-$4";
       my $amount = parse_amount($9);
@@ -767,7 +767,7 @@ if ($action eq 'notices')
 my $accounts_re = qr{.*<div id="AccountsGrid" class="grid">(.*?)</div>.*}s;
 $web_accounts_list->{content} =~ s/$accounts_re/$1/ or api_error('accounts-list');
 
-$accounts_re = qr{
+$accounts_re = qr(
 <p[ ]class="Account">
 <a[ ]id="\w+"[ ]title="$messages{select_this_account}"[ ]onclick="([^"]*)" [^>]*?>
 (?:
@@ -792,7 +792,7 @@ $accounts_re = qr{
   </span>
 )?
 </p>
-}x;
+)x;
 $web_accounts_list->{content} =~ m{$accounts_re} or api_error('accounts-list-item');
 
 my $n_matches = 0;
