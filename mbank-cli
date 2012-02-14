@@ -103,7 +103,7 @@ my %messages = (
   menu_deposits => qr{Lokaty},
   menu_funds => qr{Fundusze inwestycyjne},
   menu_investments => qr{Inwestycje},
-  notices => qr{Wiadomo\xb6\xe6},
+  notices => qr{Wiadomo\xb6(\xe6|ci)},
   select_this_account => qr{Wybierz ten rachunek},
   system_error => qr{B\xb3\xb1d systemu},
 );
