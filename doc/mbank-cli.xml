@@ -363,7 +363,8 @@
 				<para>
 					To create the configuration file, use the following command:
 					<screen><!--
---><prompt>$</prompt> <command>cat</command> &lt;&lt;EOF | <command>gpg</command> --armor --encrypt --default-recipient-self &gt; <filename><replaceable>mbank-cli.conf</replaceable></filename>
+--><prompt>$</prompt> <command>umask</command> 077
+<prompt>$</prompt> <command>cat</command> &lt;&lt;EOF | <command>gpg</command> --armor --encrypt --default-recipient-self &gt; <filename><replaceable>mbank-cli.conf</replaceable></filename>
 <userinput>Login <replaceable>123456</replaceable>
 Password "<replaceable>your-password</replaceable>"
 EOF</userinput>
