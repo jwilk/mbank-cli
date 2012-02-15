@@ -1,0 +1,7 @@
+mbank-cli (20091208) unstable; urgency=high
+
+  It was discovered that mbank-cli did not check if SSL certificate CN matched
+  the host name, making attacks feasible. Upgrading to this version (or later)
+  is highly recommended.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 08 Dec 2009 19:54:26 +0100
