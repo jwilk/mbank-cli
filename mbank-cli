@@ -101,6 +101,7 @@ my %messages = (
   login_error => qr{B\xb3\xb1d logowania},
   logout => qr{mBank - wylogowanie},
   menu_deposits => qr{Lokaty},
+  menu_term_deposits => qr{mLokaty},
   menu_funds => qr{Fundusze inwestycyjne},
   menu_investments => qr{Inwestycje},
   notices => qr{Wiadomo\xb6(\xe6|ci)},
@@ -742,6 +743,8 @@ if ($action eq 'funds')
 if ($action eq 'deposits')
 {
   $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{menu_deposits}} or api_error('deposits-link');
+  my $web_deposits_types = download onclick_to_req($accounts_list_form, $1);
+  $web_deposits_types->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{menu_term_deposits}} or api_error('term-deposits-link');
   my $web_deposits_list = download onclick_to_req($accounts_list_form, $1);
   my $deposit_re = qr{<a.*?onclick="doSubmit\('/termdeposit_details[.]aspx',[^>]+?>([^<]+?)<.*?<p class="Date"><span[^>]+?>(\d\d\d\d)-(\d\d)-(\d\d)</span><span>(\d\d\d\d)-(\d\d)-(\d\d)</span>.*?<p class="DepositLength"><span[^>]+?>([^<]+?)</span>.*?<p class="Percent"><span[^>]+?>([0-9,]+)[^<]+?</span>.*?<p class="DepositStatus"><span[^>]+?>([^<]*?)</span>.*?<p class="Amount"><span[^>]+?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_deposits_list->{content} =~ m{$deposit_re}go)
@@ -751,10 +754,10 @@ if ($action eq 'deposits')
     my $maturity_date = "$5-$6-$7";
     my $length = localize_html_string $8;
     my $interest = parse_amount $9;
-    defined $interest or api_error('deposits-interest');
+    defined $interest or api_error('term-deposits-interest');
     my $status = $10;
     my $amount = parse_amount $11;
-    defined $amount or api_error('deposits-amount');
+    defined $amount or api_error('term-deposits-amount');
     my $currency = $12;
     printf "%s\t%s\t%s\t%s\t%8.2f%%\t%s\t%8.2f %s\n", $name, $establishment_date, $maturity_date, $length, $interest, $status, $amount, $currency;
   }
