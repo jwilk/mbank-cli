@@ -1,3 +1,19 @@
+mbank-cli (20110215) unstable; urgency=medium
+
+  mbank-cli didn't ensure that files (including some of security-sensitive
+  nature, e.g. the cookie jar) are created with secure permissions.
+
+  If your files were actually exposed to other local users, the following
+  procedure is highly recommended:
+
+     cd /path/to/mbank-cli
+     chown -R go-rwx .  # revoke excessive permissions
+     ./mbank-cli logout  # invalidate existing session
+     rm -f cookie-jar.txt  # unlink the cookie jar
+     rm -f debug/*  # unlink the debug dumps
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 15 Feb 2012 22:21:37 +0100
+
 mbank-cli (20091208) unstable; urgency=high
 
   It was discovered that mbank-cli did not check if SSL certificate CN matched
