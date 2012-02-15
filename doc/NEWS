@@ -7,7 +7,7 @@ mbank-cli (20110215) unstable; urgency=medium
   procedure is highly recommended:
 
      cd /path/to/mbank-cli
-     chown -R go-rwx .  # revoke excessive permissions
+     chmod -R go-rwx .  # revoke excessive permissions
      ./mbank-cli logout  # invalidate existing session
      rm -f cookie-jar.txt  # unlink the cookie jar
      rm -f debug/*  # unlink the debug dumps
