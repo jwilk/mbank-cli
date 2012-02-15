@@ -727,7 +727,7 @@ if ($action eq 'funds')
   my $web_investments_list = download onclick_to_req($accounts_list_form, $1);
   $web_investments_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{menu_funds}} or api_error('funds-link-2');
   my $web_funds_list = download onclick_to_req($accounts_list_form, $1);
-  my $fund_re = qr{<a.*?onclick="doSubmit\('/if_fund_details.aspx',[^>]+?>([^<]+?)<.*?>([0-9 ,]+) ([A-Z]+)</span>};
+  my $fund_re = qr{<a.*?onclick="doSubmit\('/if_fund_details[.]aspx',[^>]+?>([^<]+?)<.*?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_funds_list->{content} =~ m{$fund_re}go)
   {
     my $name = localize_html_string $1;
@@ -743,7 +743,7 @@ if ($action eq 'deposits')
 {
   $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{menu_deposits}} or api_error('deposits-link');
   my $web_deposits_list = download onclick_to_req($accounts_list_form, $1);
-  my $deposit_re = qr{<a.*?onclick="doSubmit\('/termdeposit_details.aspx',[^>]+?>([^<]+?)<.*?<p class="Date"><span[^>]+?>(\d\d\d\d)-(\d\d)-(\d\d)</span><span>(\d\d\d\d)-(\d\d)-(\d\d)</span>.*?<p class="DepositLength"><span[^>]+?>([^<]+?)</span>.*?<p class="Percent"><span[^>]+?>([0-9,]+)[^<]+?</span>.*?<p class="DepositStatus"><span[^>]+?>([^<]*?)</span>.*?<p class="Amount"><span[^>]+?>([0-9 ,]+) ([A-Z]+)</span>};
+  my $deposit_re = qr{<a.*?onclick="doSubmit\('/termdeposit_details[.]aspx',[^>]+?>([^<]+?)<.*?<p class="Date"><span[^>]+?>(\d\d\d\d)-(\d\d)-(\d\d)</span><span>(\d\d\d\d)-(\d\d)-(\d\d)</span>.*?<p class="DepositLength"><span[^>]+?>([^<]+?)</span>.*?<p class="Percent"><span[^>]+?>([0-9,]+)[^<]+?</span>.*?<p class="DepositStatus"><span[^>]+?>([^<]*?)</span>.*?<p class="Amount"><span[^>]+?>([0-9 ,]+) ([A-Z]+)</span>};
   while ($web_deposits_list->{content} =~ m{$deposit_re}go)
   {
     my $name = localize_html_string $1;
@@ -765,7 +765,7 @@ if ($action eq 'notices')
 {
   $web_accounts_list->{content} =~ m{<a[ ]onclick="([^"]*)" [^>]+?>$messages{notices}} or api_error('notices-link');
   my $web_notices_list = download onclick_to_req($accounts_list_form, $1);
-  my $notice_re = qr{<li(|[ ]class="[^"]+?")><p class="Date"><span[^>]+?>(\d\d)-(\d\d)-(\d\d\d\d)</span>.*?<a.*?onclick="doSubmit\('/(?:customer|account)_notice_details.aspx',[^>]+?>([^<]+)</a>};
+  my $notice_re = qr{<li(|[ ]class="[^"]+?")><p class="Date"><span[^>]+?>(\d\d)-(\d\d)-(\d\d\d\d)</span>.*?<a.*?onclick="doSubmit\('/(?:customer|account)_notice_details[.]aspx',[^>]+?>([^<]+)</a>};
   while ($web_notices_list->{content} =~ m{$notice_re}go)
   {
     my $new = '';
@@ -862,7 +862,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   elsif ($action eq 'future')
   {
     my $web_operations = download $operations_req;
-    next if not $web_operations->{content} =~ m{<a onclick="doSubmit\('/future_operation_list.aspx'};
+    next if not $web_operations->{content} =~ m{<a onclick="doSubmit\('/future_operation_list[.]aspx'};
     my $web_future_operations = download POST("$mbank/future_operation_list.aspx");
     my $content = $web_future_operations->{content};
     next if $content =~ m{<p class="message">$messages{future_none}</p>};
