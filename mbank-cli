@@ -927,23 +927,23 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   {
     my $web_contract = download $account_details_req;
     my @forms = HTML::Form->parse($web_contract->{response}, charset => WEB_CODESET);
-    $#forms == 0 or api_error('RenameForm1.0');
+    $#forms == 0 or api_error('rename-form');
     my ($form) = @forms;
     $web_contract->{content} =~ m{
       <button[ ]onclick="([^"]*)"[ ]class="button">
       $messages{account_rename}
       </button>
-    }x or api_error 'RenameForm1.1';
+    }x or api_error('rename-button');
     my $web_rename = download onclick_to_req($form, $1);
     @forms = HTML::Form->parse($web_rename->{response});
-    $#forms == 0 or api_error('RenameForm2.0');
+    $#forms == 0 or api_error('rename-submit');
     ($form) = @forms;
     $form->value('tbVarPartAccName', $new_account_name);
     $web_rename->{content} =~ m{
       <button[ ]id="(Confirm)"[ ]onclick="([^"]*)"[ ]class="button">
       $messages{account_rename_confirm}
       </button>
-    }x or api_error 'RenameForm2.1';
+    }x or api_error('rename-confirm');
     my ($submit, $onclick) = ($1, $2);
     $form->value($submit, undef);
     $web_rename = download onclick_to_req($form, $onclick);
