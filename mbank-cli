@@ -158,6 +158,7 @@ Usage:
 
 Common options:
   --verbose
+  --debug <debug-directory>
   --config <config-file>
   --cookie-jar <cookie-jar-file>
 EOF
@@ -209,13 +210,18 @@ sub lwp_init()
 my $ua;
 
 my $verbose = 0;
+my $debug_directory = undef;
 
 sub write_log($)
 {
   local ($_) = @_;
-  open LOG, '>>', "debug/log" or return;
+  return unless defined $debug_directory;
+  my $logfile = "$debug_directory/log";
+  open(LOG, '>>', $logfile)
+    or die "Can't create $logfile: $!";
   print LOG "$_\n";
-  close LOG;
+  close(LOG)
+    or die "Can't close $logfile: $!";
 }
 
 sub debug($)
@@ -285,10 +291,14 @@ sub download($)
   $filename =~ s/[^[:alnum:].]/_/g;
   $filename =~ s/(?:[.]\w+)?$/.html/;
   $filename = 'index.html' if $filename eq '.html';
-  if (open LOG, '>', "debug/$filename")
+  if (defined $debug_directory)
   {
+    my $debugfile = "$debug_directory/$filename";
+    open(LOG, '>', "$debugfile")
+      or die "Can't create $debugfile: $!";
     print LOG $content;
-    close LOG or die "Can't close log file: $!";
+    close(LOG)
+      or die "Can't close $debugfile: $!";
   }
   return { response => $response, content => $content, error => $error };
 }
@@ -576,6 +586,7 @@ my $opt_range = undef;
 my $opt_multiple_accounts = 0;
 GetOptions(
   'verbose' => \$verbose,
+  'debug=s' => \$debug_directory,
   'config=s' => \$config_file,
   'cookie-jar=s' => \$cookie_jar_file,
   'from=s' => sub

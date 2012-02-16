@@ -3,7 +3,7 @@
 <!DOCTYPE refentry PUBLIC '-//OASIS//DTD DocBook XML V4.5//EN' 'http://www.docbook.org/xml/4.5/docbookx.dtd'
 [
 	<!ENTITY p 'mbank-cli'>
-	<!ENTITY version '20111122'>
+	<!ENTITY version '20120216'>
 	<!ENTITY select-accounts
 '<para>
 	You can select account(s) in the following ways:
@@ -180,6 +180,15 @@
 				<term><option>--verbose</option></term>
 				<listitem>
 					<para>Display lots of debugging information.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>--debug</option> <replaceable>debug-directory</replaceable></term>
+				<listitem>
+					<para>
+						Save debugging information (including dumps of downloaded pages)
+						in the specified directory.
+					</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
@@ -381,24 +390,7 @@ EOF</userinput>
 				<para>State of the phony web browser.</para>
 			</listitem>
 		</varlistentry>
-		<varlistentry>
-			<term><filename>debug/<replaceable>*</replaceable>.html</filename></term>
-			<listitem>
-				<para>Dumps of pages downloaded from the web interface.</para>
-			</listitem>
-		</varlistentry>
-		<varlistentry>
-			<term><filename>debug/log</filename></term>
-			<listitem>
-				<para>
-					Debugging information.
-				</para>
-			</listitem>
-		</varlistentry>
 	</variablelist>
-	<para>
-		Note that <application>&p;</application> would silently refuse to create files inside <filename>debug</filename> unless the directory already existed.
-	</para>
 </refsection>
 
 <refsection>
