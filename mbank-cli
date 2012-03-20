@@ -40,6 +40,10 @@ use strict;
 use warnings;
 no encoding;
 
+BEGIN {
+  $ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = 'Net::SSL'; # prefer Crypt-SSLeay
+}
+
 use Carp ();
 use Crypt::SSLeay ();
 use Digest ();
