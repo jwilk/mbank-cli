@@ -189,6 +189,7 @@ sub localize_html_string($;$)
   $codeset //= WEB_CODESET;
   $_ = widen_string $_, $codeset;
   $_ = HTML::Entities::decode_entities $_;
+  s/\xad//g; # strip soft hyphens
   return Encode::encode($::locale_codeset, $_, \&encoding_fallback);
 }
 
