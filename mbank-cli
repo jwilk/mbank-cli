@@ -493,6 +493,7 @@ sub do_operations($$)
     while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
     {
       my $line = $1;
+      $line =~ s{<wbr ?/>}{}g;
       $line =~ m(
         <p[ ]class="Date">
         <span[ ]id="\w+"> (\d{2})-(\d{2})-(\d{4}) </span>
@@ -502,8 +503,8 @@ sub do_operations($$)
         (?: <span[ ]class="checkBox"><input[ ]id="\w+" [^>]*></span> | &nbsp; )
         </p>
         <p[ ]class="OperationDescription">
-        <a[ ]id="\w+"[ ]title="$messages{history_details}"[ ][^>]*> ( (?:[^<]+|<wbr(?:[ ]/)?>)+ ) </a>
-        ( (?: <span> (?:[^<]+|<wbr(?:[ ]/)?>)+ </span> )* )
+        <a[ ]id="\w+"[ ]title="$messages{history_details}"[ ][^>]*> ( [^<]+ ) </a>
+        ( (?: <span> [^<]+ </span> )* )
         (?: <span[ ]class="FilterType"> [^>]* </span> )?
         </p>
         <p[ ]class="Amount"><span[ ]id="\w+"[^>]*> ( [0-9, -]+ ) ( [A-Z]+ ) </span></p>
@@ -889,6 +890,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     while ($content =~ m{<li(?:[ ]class="alternate")?>(.*?)</li>}go)
     {
       my $line = $1;
+      $line =~ s{<wbr ?/>}{}g;
       $line =~ m{
         <p[ ]class="Date">
         <span[ ]id="\w+"> (\d{4}-\d\d-\d\d) </span>
