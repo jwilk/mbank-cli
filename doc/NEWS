@@ -1,3 +1,10 @@
+mbank-cli (20110617) unstable; urgency=low
+
+  mbank-cli no longer creates debug files automatically by default. Use the
+  --debug option to enable this feature.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Sun, 17 Jun 2012 11:23:16 +0200
+
 mbank-cli (20110215) unstable; urgency=medium
 
   mbank-cli didn't ensure that files (including some of security-sensitive
