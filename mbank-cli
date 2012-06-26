@@ -36,6 +36,8 @@
 # it possible to release a modified version which carries forward this
 # exception.
 
+use v5.10; # for the // binary operator
+
 use strict;
 use warnings;
 no encoding;
