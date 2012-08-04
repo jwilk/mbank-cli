@@ -119,7 +119,7 @@
 	<cmdsynopsis>
 		<command>&p;</command>
 		<arg choice='opt' rep='repeat'><replaceable>option</replaceable></arg>
-		<arg choice='plain'>withholdings</arg>
+		<arg choice='plain'>blocked</arg>
 		<group choice='req'>
 			<arg choice='plain'><replaceable>account</replaceable></arg>
 			<arg choice='plain'><option>-M</option> <arg choice='plain' rep='repeat'><replaceable>account</replaceable></arg></arg>
@@ -273,9 +273,9 @@
 </refsection>
 
 <refsection>
-	<title>withholdings action</title>
+	<title>blocked action</title>
 	<para>
-		Show list of withholdings for the selected account(s).
+		Show list of operations that were carried out but not booked.
 	</para>
 	&select-accounts;
 	&select-accounts-wildcard;

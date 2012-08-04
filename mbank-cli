@@ -154,7 +154,7 @@ Usage:
   mbank-cli [list]
   mbank-cli history [--range <start-date> <end-date> | --from <start-date> [--to <end-date>] ] {<account> | -M <account>... | -A}
   mbank-cli future {<account> | -M <account>... | -A}
-  mbank-cli withholdings {<account> | -M <account>... | -A}
+  mbank-cli blocked {<account> | -M <account>... | -A}
   mbank-cli funds
   mbank-cli deposits
   mbank-cli notices
@@ -653,7 +653,7 @@ if ($action eq 'logout')
   do_logout();
   exit EXIT_OK;
 }
-elsif (grep $action eq $_, qw(history future withholdings))
+elsif (grep $action eq $_, qw(history future blocked))
 {
   $opt_multiple_accounts++ if $opt_multiple_accounts == 0 and $#ARGV > 0;
   if ($opt_multiple_accounts > 1)
@@ -923,23 +923,23 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
       printf "%s\t%s\t%s\t%8.2f %s\t%s\n", $date, $receiver, $title, $amount, $currency, $status;
     }
   }
-  elsif ($action eq 'withholdings')
+  elsif ($action eq 'blocked')
   {
     my $web_operations = download $operations_req;
     next if not $web_operations->{content} =~ m{<a onclick="doSubmit\('/witholdings_list.aspx'};
-    my $web_withholdings = download POST("$mbank/witholdings_list.aspx");
-    my $withholding_re = qr{
+    my $web_blocked = download POST("$mbank/witholdings_list.aspx");
+    my $blocked_re = qr{
       <span[ ]id="\w+"> (\d\d)-(\d\d)-(\d{4}) </span>   .*?
       <span[ ]id="\w+"> (\d\d)-(\d\d)-(\d{4}) </span>   .*?
       <span[ ]id="\w+"> ([0-9, ]+) \s+ ([A-Z]+) </span>   .*?
       <span[ ]id="\w+"> ([^>]+?) </span>
     }x;
-    while ($web_withholdings->{content} =~ m{$withholding_re}go)
+    while ($web_blocked->{content} =~ m{$blocked_re}go)
     {
       my $reg_date = "$3-$2-$1";
       my $fin_date = "$6-$5-$4";
       my $amount = parse_amount $7;
-      defined $amount or api_error('withholdings-amount');
+      defined $amount or api_error('blocked-amount');
       my $currency = $8;
       my $title = localize_html_string $9;
       printf "$name\t", $name if $opt_multiple_accounts;
