@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ $# -ge 1 ]
+if [ $# -ge 2 ]
 then
   printf '%s [revision]\n' "$0" >&2
   exit 1
