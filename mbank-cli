@@ -224,10 +224,10 @@ sub write_log($)
   local ($_) = @_;
   return unless defined $debug_directory;
   my $logfile = "$debug_directory/log";
-  open(LOG, '>>', $logfile)
+  open(my $log, '>>', $logfile)
     or die "Can't create $logfile: $!";
-  print LOG "$_\n";
-  close(LOG)
+  print $log "$_\n";
+  close($log)
     or die "Can't close $logfile: $!";
 }
 
@@ -301,10 +301,10 @@ sub download($)
   if (defined $debug_directory)
   {
     my $debugfile = "$debug_directory/$filename";
-    open(LOG, '>', "$debugfile")
+    open(my $log, '>', "$debugfile")
       or die "Can't create $debugfile: $!";
-    print LOG $content;
-    close(LOG)
+    print $log $content;
+    close($log)
       or die "Can't close $debugfile: $!";
   }
   return { response => $response, content => $content, error => $error };
@@ -319,15 +319,15 @@ sub preread_config()
     eval { $digest_module = Digest->new('SHA-1'); } if $@;
     $digest_module = Digest->new('MD5') if $@;
   }
-  user_error "Can't open the config file: $!" unless open CONFIG, '<', $config_file;
+  user_error "Can't open the config file: $!" unless open my $config, '<', $config_file;
   my $prev_digest = '';
   $main::digest_module->new();
   my $header = '';
-  read CONFIG, $header, 28;
+  read $config, $header, 28;
   my $need_decrypt = $header eq "-----BEGIN PGP MESSAGE-----\n" || $header =~ /^\x85\x02/;
   $main::digest_module->add($header);
-  $main::digest_module->addfile(*CONFIG);
-  close CONFIG or die "Can't close config file: $!";
+  $main::digest_module->addfile($config);
+  close $config or die "Can't close config file: $!";
   my $digest = $main::digest_module->b64digest();
   $ua->cookie_jar->scan(
     sub
@@ -377,18 +377,18 @@ sub read_config($)
 {
   my ($need_decrypt) = @_;
   user_error "Can't open the config file: $!" unless open STDIN, '<', $config_file;
-  my $fp;
+  my $fp, my $gpg;
   if ($need_decrypt)
   {
-    open GPG, '-|', GPG_EXECUTABLE, '--decrypt' or die "Can't invoke gpg: $!";
-    $fp = \*GPG;
+    open $gpg, '-|', GPG_EXECUTABLE, '--decrypt' or die "Can't invoke gpg: $!";
+    $fp = $gpg;
   }
   else
   {
     $fp = \*STDIN;
   }
   my %config = read_config_file($fp);
-  close GPG or user_error q(Can't read the config file) if $need_decrypt;
+  close $gpg or user_error q(Can't read the config file) if $need_decrypt;
   close STDIN or die "Can't close pipe: $!";
   my $login = $config{'login'};
   user_error('No login name provided') unless defined $login;
