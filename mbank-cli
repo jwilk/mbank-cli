@@ -452,7 +452,7 @@ sub parse_amount($)
   local ($_) = @_;
   s/(\s|\xa0)//g;
   my $number_re = qr{(-?)(\d+),(\d{2})};
-  m{^$number_re$} or m{>$number_re<} or return undef;
+  m{^$number_re$} or m{>$number_re<} or return;
   my $amount = int($2) + int($3) / 100.0;
   $amount = -$amount if $1;
   return $amount;
@@ -552,7 +552,7 @@ sub do_operations($$)
 sub correct_date($)
 {
   local ($_) = @_;
-  return undef unless defined $_;
+  return unless defined $_;
   my $time;
   return $_ if $_ eq 'now';
   if (m/(\d{4})-(\d{2})-(\d{2})/)
@@ -566,7 +566,7 @@ sub correct_date($)
       $1 >= 1900;
   }
   debug "Invalid date: $_";
-  return undef;
+  return;
 }
 
 sub ground_date($$)
