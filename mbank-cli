@@ -78,6 +78,7 @@ my $mbank_host = undef; # use set_country() to define
 my $mbank = undef; # use set_country() to define
 my $cookie_jar_file = './cookie-jar.txt';
 my $config_file = './mbank-cli.conf';
+my $http_read_size_hint = 1 << 20; # 1 MiB
 
 sub set_country($)
 {
@@ -287,7 +288,7 @@ sub download($)
   my $subject_regex = qr(/CN=\Q$mbank_host\E$);
   $request->header('If-SSL-Cert-Subject' => $subject_regex);
   debug sprintf('Download <%s %s>', $request->method, $request->uri);
-  my $response = $ua->request($request);
+  my $response = $ua->request($request, undef, $http_read_size_hint);
   http_error $request unless $response->is_success;
   my $content = $response->content;
   $content =~ s/\r//g;
