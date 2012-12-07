@@ -69,7 +69,6 @@ use constant
   EXIT_API_ERROR => 3,
   WEB_CODESET => 'ISO-8859-2',
   FAKE_DOMAIN => 'mbank-cli.invalid',
-  GPG_EXECUTABLE => '/usr/bin/gpg'
 };
 
 chdir dirname($0) or die "Can't change working directory: $!";
@@ -381,7 +380,7 @@ sub read_config($)
   my $fp, my $gpg;
   if ($need_decrypt)
   {
-    open $gpg, '-|', GPG_EXECUTABLE, '--decrypt' or die "Can't invoke gpg: $!";
+    open $gpg, '-|', 'gpg', '--decrypt' or die "Can't invoke gpg: $!";
     $fp = $gpg;
   }
   else
