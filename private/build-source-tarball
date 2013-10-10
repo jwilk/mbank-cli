@@ -10,7 +10,7 @@ name=mbank-cli
 revision="${1:-tip}"
 version=$(hg log -r "$revision" --template='{date|isodate}' | head -c 10 | tr -d -)
 sourceroot=$(mktemp -d -t "$name-source-XXXXXX")
-export TAR_OPTIONS='--owner root --group root --mode a+rX'
+export TAR_OPTIONS="--owner root --group root --mode a+rX --format ustar"
 export GZIP='-9 -n'
 mkdir -p "$sourceroot/$name-$version"
 hg archive -r "$revision" "$sourceroot/$name-$version"
