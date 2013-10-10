@@ -20,7 +20,7 @@ cd "$sourceroot"
   make
   rm *.xsl *.css
 )
-rm -Rf $name-*/private/
-rm -Rf */.hg*
+rm -rf $name-*/private/
+rm -rf */.hg*
 tar -czf "$pwd/$name-$version.tar.gz" */
-rm -Rf "$sourceroot"
+rm -rf "$sourceroot"
