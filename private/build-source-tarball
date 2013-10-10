@@ -20,7 +20,7 @@ cd "$sourceroot"
   make
   rm *.xml *.xsl *.css Makefile
 )
-rm -Rf $name-*/tools/
+rm -Rf $name-*/private/
 rm -Rf */.hg*
 tar -czf "$pwd/$name-$version.tar.gz" */
 rm -Rf "$sourceroot"
