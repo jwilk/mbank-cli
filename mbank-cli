@@ -255,10 +255,10 @@ sub api_error($)
   exit EXIT_API_ERROR;
 }
 
-sub http_error($)
+sub http_error($$)
 {
-  my ($request) = @_;
-  $_ = sprintf 'HTTP error while processing request <%s %s>', $request->method, $request->uri;
+  my ($request, $response) = @_;
+  $_ = sprintf 'HTTP error %d while processing request <%s %s>', $response->code, $request->method, $request->uri;
   if ($@)
   {
     my $extra_message = $@;
@@ -288,7 +288,7 @@ sub download($)
   $request->header('If-SSL-Cert-Subject' => $subject_regex);
   debug sprintf('Download <%s %s>', $request->method, $request->uri);
   my $response = $ua->request($request, undef, $http_read_size_hint);
-  http_error $request unless $response->is_success;
+  http_error($request, $response) unless $response->is_success;
   my $content = $response->content;
   $content =~ s/\r//g;
   my $error = check_for_error($content);
