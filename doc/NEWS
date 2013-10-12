@@ -2,7 +2,7 @@ mbank-cli (20120704) unstable; urgency=low
 
   The “withholdings” command has been renamed to “blocked”.
 
- -- Jakub Wilk <jwilk@debian.org>  Sat, 04 Aug 2012 23:07:47 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 04 Aug 2012 23:07:47 +0200
 
 mbank-cli (20110617) unstable; urgency=low
 
