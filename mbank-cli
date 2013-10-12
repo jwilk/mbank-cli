@@ -731,7 +731,7 @@ if ($need_login)
 {
   debug 'A new session will be created';
   $need_login = 1;
-  my $web_login = download GET("$mbank/");
+  my $web_login = download GET("$mbank/logon.aspx");
   my $web_frames = do_login($web_login, $need_decrypt_config);
   $ua->cookie_jar->set_cookie(0, 'dummy', '', '/login-options/', FAKE_DOMAIN, undef, undef, undef, 604800, undef);
   $web_accounts_list = download GET("$mbank/accounts_list.aspx");
