@@ -280,6 +280,18 @@ sub check_for_error($)
   return '';
 }
 
+sub simple_download($)
+{
+  my ($request) = @_;
+  # LWP does not check if hostname matches CN, we need to check that manually.
+  my $subject_regex = qr(/CN=\Q$mbank_host\E$);
+  $request->header('If-SSL-Cert-Subject' => $subject_regex);
+  debug sprintf('Simple download <%s %s>', $request->method, $request->uri);
+  my $response = $ua->simple_request($request, undef, $http_read_size_hint);
+  http_error($request, $response) if $response->is_error;
+  return $response;
+}
+
 sub download($)
 {
   my ($request) = @_;
@@ -731,6 +743,7 @@ if ($need_login)
 {
   debug 'A new session will be created';
   $need_login = 1;
+  simple_download GET("$mbank/");
   my $web_login = download GET("$mbank/");
   my $web_frames = do_login($web_login, $need_decrypt_config);
   $ua->cookie_jar->set_cookie(0, 'dummy', '', '/login-options/', FAKE_DOMAIN, undef, undef, undef, 604800, undef);
