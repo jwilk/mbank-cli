@@ -679,7 +679,7 @@ elsif (grep $action eq $_, qw(history future blocked))
     @_ = map quotemeta, @_;
     $_ = join '|', @_;
     s/\\\*/.*/g;
-    $selected_accounts = qr/^($_)$/;
+    $selected_accounts = qr/^(?i:($_))$/;
   }
   if ($action eq 'history')
   {
@@ -702,7 +702,7 @@ elsif ($action eq 'rename')
   $_ = widen_string shift;
   $_ = quotemeta $_;
   s/\\\*/.*/g;
-  $selected_accounts = qr/^$_$/;
+  $selected_accounts = qr/^(?i:$_)$/;
   $_ = widen_string shift;
   user_error 'Invalid new account name' if not defined $_;
   $new_account_name = $_;
