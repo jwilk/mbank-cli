@@ -442,7 +442,7 @@ sub do_login($$)
   my ($web_in, $need_decrypt) = @_;
   debug 'Logging in...';
   my @forms = HTML::Form->parse($web_in->{response});
-  $#forms == 0 or api_error('login-form');
+  scalar(@forms) == 1 or api_error('login-form');
   my ($form) = @forms;
   my $in_login = $form->find_input('customer', 'text');
   my $in_passw = $form->find_input('password', 'password');
@@ -547,7 +547,7 @@ sub do_operations($$)
     {
       my $onclick = $1;
       my @forms = HTML::Form->parse($web->{response});
-      $#forms == 0 or api_error('history-table-button');
+      scalar(@forms) == 1 or api_error('history-table-button');
       my ($form) = @forms;
       foreach my $input ($form->inputs)
       {
@@ -667,14 +667,14 @@ if ($action eq 'logout')
 }
 elsif (grep $action eq $_, qw(history future blocked))
 {
-  $opt_multiple_accounts++ if $opt_multiple_accounts == 0 and $#ARGV > 0;
+  $opt_multiple_accounts++ if $opt_multiple_accounts == 0 and scalar(@ARGV) > 1;
   if ($opt_multiple_accounts > 1)
   {
     $selected_accounts = qr(^);
   }
   else
   {
-    user_error 'No account selected' if $#ARGV < 0;
+    user_error 'No account selected' if scalar(@ARGV) < 1;
     @_ = map { widen_string $_ } @ARGV;
     @_ = map quotemeta, @_;
     $_ = join '|', @_;
@@ -697,8 +697,8 @@ elsif (grep $action eq $_, qw(history future blocked))
 }
 elsif ($action eq 'rename')
 {
-  user_error 'No account selected' if $#ARGV < 0;
-  user_error 'No new account name provided' if $#ARGV < 1;
+  user_error 'No account selected' if scalar(@ARGV) < 1;
+  user_error 'No new account name provided' if scalar(@ARGV) < 2;
   $_ = widen_string shift;
   $_ = quotemeta $_;
   s/\\\*/.*/g;
@@ -751,7 +751,7 @@ if ($need_login)
 }
 
 my @accounts_list_forms = HTML::Form->parse($web_accounts_list->{response});
-$#accounts_list_forms == 0 or api_error('account-list');
+scalar(@accounts_list_forms) == 1 or api_error('account-list');
 my ($accounts_list_form) = @accounts_list_forms;
 
 if ($action eq 'funds')
@@ -869,7 +869,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   {
     my $web_operations = download $operations_req;
     my @forms = HTML::Form->parse($web_operations->{response});
-    $#forms == 0 or api_error('history-form');
+    scalar(@forms) == 1 or api_error('history-form');
     my ($form) = @forms;
     if (defined $opt_range)
     {
@@ -963,7 +963,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
   {
     my $web_contract = download $account_details_req;
     my @forms = HTML::Form->parse($web_contract->{response}, charset => WEB_CODESET);
-    $#forms == 0 or api_error('rename-form');
+    scalar(@forms) == 1 or api_error('rename-form');
     my ($form) = @forms;
     $web_contract->{content} =~ m{
       <button[ ]onclick="([^"]*)"[ ]class="button">
@@ -972,7 +972,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
     }x or api_error('rename-button');
     my $web_rename = download onclick_to_req($form, $1);
     @forms = HTML::Form->parse($web_rename->{response});
-    $#forms == 0 or api_error('rename-submit');
+    scalar(@forms) == 1 or api_error('rename-submit');
     ($form) = @forms;
     $form->value('tbVarPartAccName', $new_account_name);
     $web_rename->{content} =~ m{
