@@ -37,33 +37,9 @@ refentryinfo productname
 	display: none;
 }
 
-refentryinfo copyright
+refentryinfo authorgroup
 {
-	background: #eee;
-	display: block;
-    position: fixed; left: 0; top: auto; right: 0; bottom: 0;
-	padding: 0.2em 0.3em;
-	border-top: double 3px #888;
-}
-
-refentryinfo copyright *
-{
-	display: inline;
-}
-
-refentryinfo copyright:before
-{
-	content: "Copyright \A9";
-}
-
-refentryinfo copyright holder:after
-{
-	content: ", ";
-}
-
-refentryinfo copyright holder:last-child:after
-{
-	content: ".";
+	display: none;
 }
 
 refentryinfo date
