@@ -203,6 +203,7 @@ sub lwp_init()
   $ENV{'HTTPS_VERSION'} = 3;
   $ENV{'HTTPS_DEBUG'} = 0;
   $ENV{'HTTPS_CA_DIR'} = $ca_dir;
+  $ENV{'CRYPT_SSLEAY_CIPHER'} = 'HIGH:!aNULL:!eNULL';
   umask(umask() | 077);
   my $ua = new LWP::UserAgent(
     agent => 'Mozilla/5.0',
