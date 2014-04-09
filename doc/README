@@ -37,11 +37,4 @@ If you are using Debian, dependencies will be satisfied by the following package
 
 - gnupg
 
-
-Usage
------
-
-For the complete syntax and usage examples, consult the manual page.
-
-
 .. vim:ft=rst tw=76 ts=2 sw=2 et
