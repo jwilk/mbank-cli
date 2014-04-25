@@ -423,7 +423,7 @@ EOF</userinput>
 				<listitem>
 					<para>
 						Failure because of an unexpected behaviour of the web interface (so called ‘<literal>API error</literal>’).
-						If you encounter this, please file a bug at <ulink url="http://code.google.com/p/mbank-cli/issues/list">the issue tracker</ulink>.
+						If you encounter this, please file a bug at <ulink url="https://code.google.com/p/mbank-cli/issues/list">the issue tracker</ulink>.
 					</para>
 				</listitem>
 			</varlistentry>
