@@ -2,7 +2,7 @@ RANDFILE = /dev/null
 oid_section = new_oids
 
 [new_oids]
-jurisdictionOfIncorporationCountryName=1.3.6.1.4.1.311.60.2.1.3
+jurisdictionOfIncorporationCountryName = 1.3.6.1.4.1.311.60.2.1.3
 
 [req]
 oid_section = new_oids
