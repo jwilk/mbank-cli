@@ -85,10 +85,10 @@ sub set_country($)
   $cc = lc $cc;
   $cc =~ m/^[a-z][a-z]$/ or
     user_error("Invalid country code: $cc");
-  $mbank_host = $cc eq 'pl'
+  $mbank_host //= $cc eq 'pl'
   ? 'www.mbank.com.pl'
   : "$cc.mbank.eu";
-  $mbank = "https://$mbank_host";
+  $mbank //= "https://$mbank_host";
 }
 
 set_country('pl');
