@@ -9,8 +9,8 @@ server.rsa:
 	openssl genrsa -rand /dev/null 2048 > server.rsa
 
 server.crt: server.rsa
-	openssl req -x509 -new -key server.rsa -out server.crt -batch \
-	-subj '/businessCategory=Private Organization/serialNumber=0000025237/C=PL/postalCode=00-950/ST=mazowieckie/L=Warszawa/street=Senatorska 18/O=mBank S.A./OU=DIN/CN=mbank/'
-	# TODO: add /jurisdictionOfIncorporationCountryName=PL/ to the subject
+	openssl req -x509 -new -key server.rsa -out server.crt \
+		-set_serial 0x68f1933f8692ed4b7f58335a073750ac \
+		-config server.cnf -sha1
 
 # vim:ts=4 sw=4 noet
