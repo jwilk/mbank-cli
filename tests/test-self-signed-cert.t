@@ -10,7 +10,6 @@ use v5.10;
 use IPC::Run qw();
 use File::Temp qw(tempdir);
 use Cwd qw(getcwd);
-use File::Copy qw(copy);
 
 my $tmpdir = tempdir(
     template => 'mbank-cli.test.XXXXXX',
@@ -19,27 +18,12 @@ my $tmpdir = tempdir(
 ) or die;
 
 my $home = getcwd();
-
-my $code;
-{
-    open(my $fh, '<', '../mbank-cli') or die $!;
-    local $/;
-    $code = <$fh>;
-    close($fh);
-}
-$code =~ s/^my \$mbank_host = \K([^;]+)/'localhost'/m;
-
 chdir $tmpdir or die $!;
 
-{
-    open(my $fh, '>', 'mbank-cli') or die $!;
-    print {$fh} $code or die $!;
-    close($fh) or die $!;
-    chmod 0700, 'mbank-cli';
-}
-
+symlink("$home/../mbank-cli", 'mbank-cli');
 symlink('/dev/null', 'mbank-cli.conf');
 
+local $ENV{MBANK_CLI_HOST} = 'localhost';
 local $ENV{LD_PRELOAD} = "libsocket_wrapper.so";
 local $ENV{SOCKET_WRAPPER_DIR} = "$tmpdir";
 
