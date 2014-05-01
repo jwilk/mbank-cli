@@ -23,9 +23,10 @@ chdir $tmpdir or die $!;
 symlink("$home/../mbank-cli", 'mbank-cli');
 symlink('/dev/null', 'mbank-cli.conf');
 
-local $ENV{MBANK_CLI_HOST} = 'localhost';
-local $ENV{LD_PRELOAD} = "libsocket_wrapper.so";
+local $ENV{MBANK_CLI_HOST} = 'mbank';
+local $ENV{LD_PRELOAD} = "libsocket_wrapper.so:libnss_wrapper.so";
 local $ENV{SOCKET_WRAPPER_DIR} = "$tmpdir";
+local $ENV{NSS_WRAPPER_HOSTS} = "$home/hosts.local";
 
 my $server = IPC::Run::start(
     'openssl', 's_server',
