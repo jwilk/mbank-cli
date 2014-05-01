@@ -6,8 +6,24 @@ mbank-cli (20120704) unstable; urgency=low
 
 mbank-cli (20120617) unstable; urgency=low
 
-  mbank-cli no longer creates debug files automatically by default. Use the
-  --debug option to enable this feature.
+  * mbank-cli no longer creates debug files automatically by default. Use the
+    --debug option to enable this feature.
+
+  * If the IO::Socket::SSL module was installed, mbank-cli did not verify the
+    SSL certificate, making man-in-the-middle attacks feasible.
+
+    It is highly recommended that affected users:
+
+      1) Upgrade mbank-cli to 20120617 (or a later version).
+
+      2) Invalidate the existing mbank-cli session:
+
+         cd /path/to/mbank-cli
+         ./mbank-cli logout
+
+      3) Change the mBank password.
+
+    See also: https://bugs.debian.org/746579
 
  -- Jakub Wilk <jwilk@jwilk.net>  Sun, 17 Jun 2012 11:23:16 +0200
 
