@@ -73,8 +73,8 @@ use constant
 
 chdir dirname($0) or die "Can't change working directory: $!";
 
-my $mbank_host = undef; # use set_country() to define
-my $mbank = undef; # use set_country() to define
+my $mbank_host = $ENV{MBANK_CLI_HOST}; # use set_country() to define
+my $mbank = $ENV{MBANK_CLI_BASE_URL}; # use set_country() to define
 my $cookie_jar_file = './cookie-jar.txt';
 my $config_file = './mbank-cli.conf';
 my $http_read_size_hint = 1 << 20; # 1 MiB
