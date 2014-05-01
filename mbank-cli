@@ -200,7 +200,6 @@ sub lwp_init()
   my $ca_dir = $ENV{HTTPS_CA_DIR};
   $ca_dir //= '/etc/ssl/certs/';
   map { delete $ENV{$_}; } grep(/^HTTPS_/, keys %ENV);
-  $ENV{'HTTPS_VERSION'} = 3;
   $ENV{'HTTPS_DEBUG'} = 0;
   $ENV{'HTTPS_CA_DIR'} = $ca_dir;
   $ENV{'CRYPT_SSLEAY_CIPHER'} = 'HIGH:!aNULL:!eNULL';
@@ -660,6 +659,15 @@ my $new_account_name;
 debug "Action: $action";
 
 exit EXIT_OK if $action eq 'void';
+
+if ($action eq 'debug-https-get')
+{
+  user_error 'No URL provided' if scalar(@ARGV) < 1;
+  my ($url) = @ARGV;
+  my $web = download GET $url;
+  print $web->{content};
+  exit EXIT_OK;
+}
 
 if ($action eq 'logout')
 {
