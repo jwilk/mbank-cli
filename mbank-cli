@@ -210,7 +210,7 @@ sub lwp_init()
       wildcards_in_alt => 0,
       wildcards_in_cn => 0,
       # FIXME: doesn't work with LWP >= 6.0, because LWP::protocol::https
-      # forcibly sets SSL_verifycn_scheme.
+      # forcibly sets SSL_verifycn_scheme=http.
     }
   );
   umask(umask() | 077);
