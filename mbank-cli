@@ -205,6 +205,13 @@ sub lwp_init()
     SSL_verify_mode => 1,
     SSL_verifycn_scheme => 'http',
     SSL_verifycn_name => $mbank_host,
+    SSL_verifycn_scheme => {
+      check_cn => 0,
+      wildcards_in_alt => 0,
+      wildcards_in_cn => 0,
+      # FIXME: doesn't work with LWP >= 6.0, because LWP::protocol::https
+      # forcibly sets SSL_verifycn_scheme.
+    }
   );
   umask(umask() | 077);
   my $ua = new LWP::UserAgent(
