@@ -44,6 +44,7 @@ no encoding;
 
 BEGIN {
   $ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = 'IO::Socket::SSL';
+  $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 1;
 }
 
 use Carp ();
