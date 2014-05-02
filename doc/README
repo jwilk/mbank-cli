@@ -15,8 +15,6 @@ Requirements
 
 - Perl (≥ 5.10) with the following Perl modules:
 
-  - Crypt::SSLeay
-
   - HTML::Form
 
   - HTML::Entities
@@ -25,17 +23,11 @@ Requirements
 
   - LWP::UserAgent
 
+  - LWP::Protocol::https
+
+  - IO::Socket::SSL
+
 - GNU Privacy Guard (optionally, to protect your password)
-
-If you are using Debian, dependencies will be satisfied by the following packages:
-
-- perl
-
-- libcrypt-ssleay-perl
-
-- libwww-perl
-
-- gnupg
 
 
 Security

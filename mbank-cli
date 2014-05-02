@@ -43,11 +43,10 @@ use warnings;
 no encoding;
 
 BEGIN {
-  $ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = 'Net::SSL'; # prefer Crypt-SSLeay
+  $ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = 'IO::Socket::SSL';
 }
 
 use Carp ();
-use Crypt::SSLeay ();
 use Digest ();
 use Encode ();
 use File::Basename qw(dirname);
@@ -57,6 +56,7 @@ use HTML::Form ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use I18N::Langinfo qw(langinfo CODESET);
+use IO::Socket::SSL ();
 use LWP::UserAgent ();
 use POSIX qw(mktime strftime);
 use Text::ParseWords ();
@@ -197,12 +197,14 @@ sub localize_html_string($;$)
 
 sub lwp_init()
 {
-  my $ca_dir = $ENV{HTTPS_CA_DIR};
-  $ca_dir //= '/etc/ssl/certs/';
-  map { delete $ENV{$_}; } grep(/^HTTPS_/, keys %ENV);
-  $ENV{'HTTPS_DEBUG'} = 0;
-  $ENV{'HTTPS_CA_DIR'} = $ca_dir;
-  $ENV{'CRYPT_SSLEAY_CIPHER'} = 'HIGH:!aNULL:!eNULL';
+  map { delete $ENV{$_}; } grep(/^HTTPS_/, keys %ENV); # https://bugs.debian.org/746579
+  IO::Socket::SSL::set_ctx_defaults(
+    SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
+    SSL_ca_path => '/etc/ssl/certs',
+    SSL_verify_mode => 1,
+    SSL_verifycn_scheme => 'http',
+    SSL_verifycn_name => $mbank_host,
+  );
   umask(umask() | 077);
   my $ua = new LWP::UserAgent(
     agent => 'Mozilla/5.0 (Windows NT 6.1; rv:17.0) Gecko/20100101 Firefox/17.0',
@@ -261,9 +263,17 @@ sub http_error($$)
   $_ = sprintf 'HTTP error %d while processing request <%s %s>', $response->code, $request->method, $request->uri;
   if ($@)
   {
-    my $extra_message = $@;
-    $extra_message =~ s/^/| /gm;
-    $_ = "$_\n$extra_message";
+    my $extra = $@;
+    $extra =~ s/\n+$//;
+    $extra =~ s/\n+/\n/g;
+    if ($extra !~ /[(]/ and $IO::Socket::SSL::SSL_ERROR)
+    {
+      # https://bugs.debian.org/746686
+      $extra .= "\n$IO::Socket::SSL::SSL_ERROR";
+    }
+    $extra =~ s/\n+$//;
+    $extra =~ s/^/| /gm;
+    $_ .= "\n$extra\n";
   }
   write_log $_;
   Carp::cluck $_;
@@ -283,9 +293,6 @@ sub check_for_error($)
 sub simple_download($)
 {
   my ($request) = @_;
-  # LWP does not check if hostname matches CN, we need to check that manually.
-  my $subject_regex = qr(/CN=\Q$mbank_host\E$);
-  $request->header('If-SSL-Cert-Subject' => $subject_regex);
   debug sprintf('Simple download <%s %s>', $request->method, $request->uri);
   my $response = $ua->simple_request($request, undef, $http_read_size_hint);
   http_error($request, $response) if $response->is_error;
@@ -295,9 +302,6 @@ sub simple_download($)
 sub download($)
 {
   my ($request) = @_;
-  # LWP does not check if hostname matches CN, we need to check that manually.
-  my $subject_regex = qr(/CN=\Q$mbank_host\E$);
-  $request->header('If-SSL-Cert-Subject' => $subject_regex);
   debug sprintf('Download <%s %s>', $request->method, $request->uri);
   my $response = $ua->request($request, undef, $http_read_size_hint);
   http_error($request, $response) unless $response->is_success;
