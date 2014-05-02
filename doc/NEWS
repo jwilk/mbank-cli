@@ -23,7 +23,9 @@ mbank-cli (20120617) unstable; urgency=low
 
       3) Change the mBank password.
 
-    See also: https://bugs.debian.org/746579
+    References:
+    - https://bugs.debian.org/746579
+    - https://bitbucket.org/jwilk/mbank-cli/commits/9ed861f1d9c7
 
  -- Jakub Wilk <jwilk@jwilk.net>  Sun, 17 Jun 2012 11:23:16 +0200
 
@@ -45,6 +47,9 @@ mbank-cli (20110215) unstable; urgency=medium
        rm -f cookie-jar.txt  # unlink the cookie jar
        rm -f debug/*  # unlink the debug dumps
 
+  References:
+  - https://bitbucket.org/jwilk/mbank-cli/commits/b0a6e542b33d
+
  -- Jakub Wilk <jwilk@jwilk.net>  Wed, 15 Feb 2012 22:21:37 +0100
 
 mbank-cli (20091208) unstable; urgency=high
@@ -63,6 +68,8 @@ mbank-cli (20091208) unstable; urgency=high
 
     3) Change the mBank password.
 
-  See also: CVE-2011-0633
+  References:
+  - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-0633
+  - https://bitbucket.org/jwilk/mbank-cli/commits/aae4eaa3d5ad
 
  -- Jakub Wilk <jwilk@jwilk.net>  Tue, 08 Dec 2009 19:54:26 +0100
