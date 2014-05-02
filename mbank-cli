@@ -203,7 +203,6 @@ sub lwp_init()
     SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
     SSL_ca_path => '/etc/ssl/certs',
     SSL_verify_mode => 1,
-    SSL_verifycn_scheme => 'http',
     SSL_verifycn_name => $mbank_host,
     SSL_verifycn_scheme => {
       check_cn => 0,
