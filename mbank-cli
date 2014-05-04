@@ -44,7 +44,6 @@ no encoding;
 
 BEGIN {
   $ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = 'IO::Socket::SSL';
-  $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 1;
 }
 
 use Carp ();
@@ -199,7 +198,7 @@ sub localize_html_string($;$)
 sub lwp_init()
 {
   map { delete $ENV{$_}; } grep(/^HTTPS_/, keys %ENV); # https://bugs.debian.org/746579
-  IO::Socket::SSL::set_ctx_defaults(
+  my @ssl_options = (
     SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
     SSL_ca_path => '/etc/ssl/certs',
     SSL_verify_mode => 1,
@@ -212,6 +211,7 @@ sub lwp_init()
       # forcibly sets SSL_verifycn_scheme=http.
     }
   );
+  IO::Socket::SSL::set_ctx_defaults(@ssl_options);
   umask(umask() | 077);
   my $ua = new LWP::UserAgent(
     agent => 'Mozilla/5.0 (Windows NT 6.1; rv:17.0) Gecko/20100101 Firefox/17.0',
@@ -220,6 +220,13 @@ sub lwp_init()
     protocols_allowed => ['https'],
     timeout => 30
   );
+  if ($LWP::UserAgent::VERSION >= 6)
+  {
+    $ua->ssl_opts(
+      verify_hostname => 1,
+      @ssl_options,
+    )
+  };
   return $ua;
 }
 
