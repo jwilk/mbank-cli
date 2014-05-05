@@ -57,6 +57,7 @@ use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use I18N::Langinfo qw(langinfo CODESET);
 use IO::Socket::SSL ();
+use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use LWP::UserAgent ();
 use POSIX qw(mktime strftime);
 use Text::ParseWords ();
@@ -197,6 +198,11 @@ sub localize_html_string($;$)
 
 sub lwp_init()
 {
+  if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL')
+  {
+    # should not happen, but better safe than sorry
+    die "\$Net::HTTPS::SSL_SOCKET_CLASS == $Net::HTTPS::SSL_SOCKET_CLASS"
+  };
   map { delete $ENV{$_}; } grep(/^HTTPS_/, keys %ENV); # https://bugs.debian.org/746579
   my @ssl_options = (
     SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
