@@ -2,10 +2,13 @@ mbank-cli (20140505) unstable; urgency=low
 
   Security improvements:
 
+  * mbank-cli now uses IO::Socket::SSL (rather that Net::SSL aka
+    Crypt::SSLeay) as the SSL/TLS backend.
+
   * mbank-cli no longer trusts any certificate authorities, except for VeriSign
     Class 3 Public Primary Certification Authority.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 05 May 2014 18:35:01 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 05 May 2014 18:36:43 +0200
 
 mbank-cli (20120704) unstable; urgency=low
 
