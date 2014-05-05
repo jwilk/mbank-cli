@@ -1,7 +1,6 @@
 .PHONY: test check
 test check: server.pem
-	ls *.t \
-	| xargs -t -d '\n' -n1 perl
+	cd .. && prove -v
 
 server.pem: server.rsa server.crt
 	cat $(^) > server.pem
