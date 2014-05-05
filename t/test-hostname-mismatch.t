@@ -3,14 +3,14 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
-
 use v5.10;
 
-use IPC::Run qw();
-use File::Temp qw(tempdir);
+use Test::More tests => 3;
+
 use Cwd qw(abs_path);
 use File::Basename qw(dirname);
+use File::Temp qw(tempdir);
+use IPC::Run qw();
 
 my $tmpdir = tempdir(
     template => 'mbank-cli.test.XXXXXX',

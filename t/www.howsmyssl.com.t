@@ -3,16 +3,16 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
-
-use JSON qw(decode_json to_json);
-
 use v5.10;
+
+use Test::More tests => 3;
 
 use IPC::Run qw();
 use File::Temp qw(tempdir);
 use Cwd qw(abs_path);
 use File::Basename qw(dirname);
+
+use JSON qw(decode_json to_json);
 
 my $tmpdir = tempdir(
     template => 'mbank-cli.test.XXXXXX',
