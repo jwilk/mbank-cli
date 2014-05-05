@@ -11,7 +11,8 @@ use v5.10;
 
 use IPC::Run qw();
 use File::Temp qw(tempdir);
-use Cwd qw(getcwd);
+use Cwd qw(abs_path);
+use File::Basename qw(dirname);
 
 my $tmpdir = tempdir(
     template => 'mbank-cli.test.XXXXXX',
@@ -19,7 +20,7 @@ my $tmpdir = tempdir(
     CLEANUP => 1,
 ) or die;
 
-my $home = getcwd();
+my $home = abs_path(dirname($0));
 chdir $tmpdir or die $!;
 
 symlink("$home/../mbank-cli", 'mbank-cli');
