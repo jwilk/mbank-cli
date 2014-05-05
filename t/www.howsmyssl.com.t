@@ -44,6 +44,7 @@ my $home = abs_path(dirname($0));
 chdir $tmpdir or die $!;
 
 symlink("$home/../mbank-cli", 'mbank-cli');
+symlink("$home/ca.crt", 'ca.crt');
 symlink('/dev/null', 'mbank-cli.conf');
 
 local $ENV{MBANK_CLI_HOST} = 'howsmyssl.com';

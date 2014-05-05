@@ -1,3 +1,12 @@
+mbank-cli (20140505) unstable; urgency=low
+
+  Security improvements:
+
+  * mbank-cli no longer trusts any certificate authorities, except for VeriSign
+    Class 3 Public Primary Certification Authority.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 05 May 2014 18:35:01 +0200
+
 mbank-cli (20120704) unstable; urgency=low
 
   The “withholdings” command has been renamed to “blocked”.
