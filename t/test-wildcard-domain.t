@@ -33,6 +33,7 @@ use File::Temp qw(tempdir);
 use IPC::Run qw();
 
 use LWP;
+use IO::Socket::SSL;
 
 my $tmpdir = tempdir(
     template => 'mbank-cli.test.XXXXXX',
@@ -56,7 +57,9 @@ my $cli = IPC::Run::start(
 );
 $cli->finish();
 TODO: {
-    local $TODO = 'LWP::protocol::https stomps on SSL_verifycn_scheme' if $LWP::VERSION >= 6;
+    local $TODO = 'LWP::protocol::https stomps on SSL_verifycn_scheme'
+        if $LWP::VERSION >= 6
+        and $IO::Socket::SSL::VERSION < 1.969;
     cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
     cmp_ok($stdout, 'eq', '', 'empty stdout');
     like($stderr, qr(\bcertificate verify failed\b), 'certificate verification failed');
