@@ -225,7 +225,10 @@ sub lwp_init()
     protocols_allowed => ['https'],
     timeout => 30
   );
-  if ($LWP::UserAgent::VERSION >= 6)
+  if ($IO::Socket::SSL::VERSION >= 1.969) {
+    IO::Socket::SSL::set_args_filter_hack('use_defaults');
+  }
+  elsif ($LWP::UserAgent::VERSION >= 6)
   {
     $ua->ssl_opts(
       verify_hostname => 1,
