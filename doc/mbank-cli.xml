@@ -407,7 +407,7 @@ EOF</userinput>
 			<varlistentry>
 				<term><errorcode>1</errorcode></term>
 				<listitem>
-					<para>Failure because of an user error.</para>
+					<para>Failure because of a user error.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
