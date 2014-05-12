@@ -59,7 +59,7 @@ my $cli = IPC::Run::start(
 $cli->finish();
 TODO: {
     local $TODO = 'LWP::protocol::https stomps on SSL_verifycn_scheme'
-        # http://bugs.debian.org/747225
+        # https://bugs.debian.org/747225
         if $LWP::VERSION >= 6
         and $IO::Socket::SSL::VERSION < 1.969;
     cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
