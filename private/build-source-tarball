@@ -18,7 +18,6 @@ cd "$sourceroot"
 (
   cd $name-*/doc
   make
-  rm *.xsl *.css
 )
 rm -rf $name-*/private/
 rm -rf */.hg*
