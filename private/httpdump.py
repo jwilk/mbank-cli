@@ -26,6 +26,7 @@ usage: mitmdump [options] --anticache -s httpdump.py
 '''
 
 import sys
+import traceback
 
 def response(context, flow, logindex=[0]):
     try:
@@ -34,5 +35,5 @@ def response(context, flow, logindex=[0]):
             for message in [flow.request, flow.response]:
                 log.write(message._assemble_head())
                 log.write(message.get_decoded_content())
-    except Exception, exc:
-        print >>sys.stderr, exc
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
