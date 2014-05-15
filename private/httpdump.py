@@ -44,5 +44,6 @@ def response(context, flow, logindex=[0]):
             for message in [flow.request, flow.response]:
                 log.write(message._assemble_head())
                 log.write(message.get_decoded_content())
+                log.write('\n\n')
     except Exception:
         traceback.print_exc(file=sys.stderr)
