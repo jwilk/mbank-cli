@@ -25,13 +25,22 @@ logging script for mitmdump (part of mitmproxy)
 usage: mitmdump [options] --anticache -s httpdump.py
 '''
 
+import os
+import re
 import sys
 import traceback
 
 def response(context, flow, logindex=[0]):
     try:
         logindex[0] += 1
-        with open('{0:06}.log'.format(*logindex), 'w') as log:
+        path = 'log.{index:06}.{method}.{host}.{path}'.format(
+            index=logindex[0],
+            method=flow.request.method,
+            host=flow.request.host,
+            path=re.sub(r'[^\w.]', '_', flow.request.path),
+        )
+        fd = os.open(path, os.O_TRUNC | os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0600)
+        with os.fdopen(fd, 'w') as log:
             for message in [flow.request, flow.response]:
                 log.write(message._assemble_head())
                 log.write(message.get_decoded_content())
