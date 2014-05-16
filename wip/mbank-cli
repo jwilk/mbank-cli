@@ -46,7 +46,7 @@ my $opt_debug_dir = undef;
 sub write_log
 {
     my ($message) = @_;
-    return unless defined $opt_debug_dir;
+    defined($opt_debug_dir) or return;
     my $path = "$opt_debug_dir/log";
     open(my $log, '>>', $path)
         or die "$path: $ERRNO";
@@ -61,7 +61,9 @@ sub debug
     my ($message) = @_;
     $message = "* $message";
     write_log($message);
-    print {*STDERR} "$message\n" if $opt_verbose;
+    if ($opt_verbose) {
+        print {*STDERR} "$message\n";
+    }
     return;
 }
 
@@ -200,7 +202,9 @@ sub download
         $path =~ s/[?].*//;
         $path =~ s/[^[:alnum:].]/_/g;
         $path =~ s/(?:[.]\w+)?$/.html/;
-        $path = 'index.html' if $path eq '.html';
+        if ($path eq '.html') {
+            $path = 'index.html';
+        }
         $path = "$opt_debug_dir/$path";
         open(my $fh, '>', "$path")
             or die "$path: $ERRNO";
@@ -229,7 +233,9 @@ sub simple_download
     );
     debug($message);
     my $response = $ua->simple_request($request, undef, $http_read_size_hint);
-    http_error($request, $response) if $response->is_error;
+    if ($response->is_error) {
+        http_error($request, $response);
+    }
     return $response;
 }
 
@@ -310,7 +316,9 @@ sub parse_amount
     my ($s) = @_;
     $s =~ m/\A(-?)(\d+),(\d{2})\Z/ or return;
     my $n = int($2) + int($3) / 100.0;
-    $n = -$n if $1;
+    if ($1) {
+        $n = -$n;
+    }
     return $n;
 }
 
