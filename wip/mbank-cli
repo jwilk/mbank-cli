@@ -1,0 +1,464 @@
+#!/usr/bin/perl
+
+# Copyright © 2006-2014 Jakub Wilk <jwilk@jwilk.net>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the “Software”), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+use strict;
+use warnings;
+no encoding;
+
+use English qw(-no_match_vars);
+use File::Basename qw(dirname);
+use HTTP::Cookies ();
+use HTTP::Request::Common qw(GET POST);
+use IO::Socket::SSL ();
+use JSON qw(encode_json decode_json);
+use IPC::Run;
+use LWP::UserAgent;
+use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
+use Text::ParseWords ();
+
+# ==========================
+# logging and error handling
+# ==========================
+
+my $verbose = 1; # TODO
+my $debug_directory = undef; # TODO
+
+sub write_log
+{
+    my ($message) = @_;
+    return unless defined $debug_directory;
+    my $path = "$debug_directory/log";
+    open(my $log, '>>', $path)
+        or die "$path: $ERRNO";
+    print { $log } "$message\n";
+    close($log)
+        or die "$path: $ERRNO";
+    return;
+}
+
+sub debug
+{
+    my ($message) = @_;
+    $message = "* $message";
+    write_log($message);
+    print {*STDERR} "$message\n" if $verbose;
+    return;
+}
+
+sub user_error
+{
+    my ($message) = @_;
+    write_log($message);
+    print {*STDERR} "$message\n";
+    exit(1);
+}
+
+sub http_error
+{
+    my ($request, $response) = @_;
+    my $message = sprintf(
+        'HTTP error %d while processing request <%s %s>',
+        $response->code,
+        $request->method,
+        $request->uri
+    );
+    if ($@) {
+        my $extra = $@;
+        $extra =~ s/\n+$//;
+        $extra =~ s/\n+/\n/g;
+        if ($extra !~ /[(]/ and $IO::Socket::SSL::SSL_ERROR) {
+            # https://bugs.debian.org/746686
+            $extra .= "\n$IO::Socket::SSL::SSL_ERROR";
+        }
+        $extra =~ s/\n+$//;
+        $extra =~ s/^/| /gm;
+        $message .= "\n$extra\n";
+    }
+    write_log($message);
+    Carp::cluck($message);
+    exit(2);
+}
+
+sub scraping_error
+{
+    my ($message) = @_;
+    $message = "Scraping error: $message";
+    write_log($message);
+    Carp::cluck($message);
+    exit(3);
+}
+
+# ====
+# HTTP
+# ====
+
+BEGIN {
+    $ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = 'IO::Socket::SSL';
+}
+
+my $ua = undef;
+
+my $http_product_name = 'Mozilla/5.0 (Windows NT 6.1; rv:17.0) Gecko/20100101 Firefox/17.0';
+my $http_read_size_hint = 1 << 20;  # 1 MiB
+my $http_timeout = 30;
+
+sub http_init
+{
+    my %options = @_;
+    my $host = delete $options{host} or die 'http_init(): missing host';
+    my $cookie_jar_path = delete $options{cookie_jar} // '/dev/null';
+    my $ca_path = delete $options{ca} or die 'http_init(): missing ca';
+    die "http_init(): unexpected options: @{[keys(%options)]}" if %options;
+    if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
+        # should not happen, but better safe than sorry
+        die "\$Net::HTTPS::SSL_SOCKET_CLASS == $Net::HTTPS::SSL_SOCKET_CLASS"
+    };
+    for my $key (grep { m/^HTTPS_/ } keys(%ENV)) {
+        # https://bugs.debian.org/746579
+        delete $ENV{$key};
+    }
+    my @ssl_options = (
+        SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
+        SSL_ca_file => $ca_path,
+        SSL_ca_path => \undef,
+        SSL_verify_mode => 1,
+        SSL_verifycn_name => $host,
+        SSL_verifycn_scheme => {
+            check_cn => 0,
+            wildcards_in_alt => 0,
+            wildcards_in_cn => 0,
+            # FIXME: LWP::protocol::https (>= 6.0) stomps on SSL_verifycn_scheme
+            # https://bugs.debian.org/747225
+        }
+    );
+    IO::Socket::SSL::set_ctx_defaults(@ssl_options);
+    my $cookie_jar;
+    if (defined $cookie_jar_path) {
+        $cookie_jar = HTTP::Cookies->new(
+            file => $cookie_jar_path,
+            autosave => 1,
+            ignore_discard => 1
+        );
+    } else {
+        $cookie_jar = {};
+    };
+    my $ua = LWP::UserAgent->new(
+        agent => $http_product_name,
+        cookie_jar => $cookie_jar,
+        requests_redirectable => ['GET', 'POST'],
+        protocols_allowed => ['https'],
+        timeout => $http_timeout,
+    );
+    if ($IO::Socket::SSL::VERSION >= 1.969) {
+        IO::Socket::SSL::set_args_filter_hack('use_defaults');
+    } elsif ($LWP::UserAgent::VERSION >= 6) {
+        $ua->ssl_opts(
+            verify_hostname => 1,
+            @ssl_options,
+        )
+    };
+    return $ua;
+}
+
+sub download
+{
+    my ($request) = @_;
+    my $message = sprintf(
+        '%s %s',
+        $request->method,
+        $request->uri
+    );
+    debug($message);
+    my $response = $ua->request($request, undef, $http_read_size_hint);
+    my $content = $response->content;
+    $content =~ s/\r//g;
+    if (defined $debug_directory) {
+        my $path = $request->uri;
+        $path =~ s{^\w+://.*?/}{};
+        $path =~ s/[?].*//;
+        $path =~ s/[^[:alnum:].]/_/g;
+        $path =~ s/(?:[.]\w+)?$/.html/;
+        $path = 'index.html' if $path eq '.html';
+        $path = "$debug_directory/$path";
+        open(my $fh, '>', "$path")
+            or die "$path: $ERRNO";
+        print { $fh } $content;
+        close($fh)
+            or die "$path: $ERRNO";
+    }
+    if (not $response->is_success) {
+        http_error($request, $response);
+    }
+    my $url = $response->request->uri;
+    return {
+        response => $response,
+        content => $content,
+        url => $url,
+    };
+}
+
+sub simple_download
+{
+    my ($request) = @_;
+    my $message = sprintf(
+        'simple %s %s',
+        $request->method,
+        $request->uri
+    );
+    debug($message);
+    my $response = $ua->simple_request($request, undef, $http_read_size_hint);
+    http_error($request, $response) if $response->is_error;
+    return $response;
+}
+
+# ===========================
+# configuration file handling
+# ===========================
+
+sub read_config
+{
+    my ($path) = @_;
+    open(my $fh, '<', $path)
+        or die "$path: $ERRNO";
+    my $pgp = undef;
+    my $config = {
+        __pgp__ => [],
+        __path__ => $path,
+    };
+    while (<$fh>) {
+        chomp;
+        if (defined $pgp) {
+            $pgp .= "$_\n";
+            if ($_ eq '-----END PGP MESSAGE-----') {
+                push(@{$config->{__pgp__}}, $pgp);
+                $pgp = undef;
+            }
+        } elsif ($_ eq '-----BEGIN PGP MESSAGE-----') {
+            $pgp = "$_\n";
+        } elsif (m/^(?:#|\s*)$/) {
+            next;
+        } elsif (m/^\s*([\w-]+)\s+(.*\S)\s*$/) {
+            my ($key, $value) = ($1, $2);
+            $key = lc($key);
+            ($value) = Text::ParseWords::parse_line('^$', 0, $value);
+            $config->{$key} = $value;
+        } else {
+            die "$path: syntax error: $_";
+        }
+    }
+    close($fh)
+        or die "$path: $ERRNO";
+    return $config;
+}
+
+sub decrypt_config
+{
+    my ($config) = @_;
+    my $pgp_chunks = delete $config->{__pgp__};
+    foreach my $encrypted_data (@{$pgp_chunks}) {
+        my $decrypted_data;
+        IPC::Run::run(
+            ['gpg', '-d'],
+            '<', \$encrypted_data,
+            '>', \$decrypted_data,
+        ) or die "gpg -d failed";
+        my @decrypted_data = split(/\n/, $decrypted_data);
+        foreach (@decrypted_data) {
+            if (m/^(?:#|\s*)$/) {
+                next;
+            } elsif (m/^\s*([\w-]+)\s+(.*\S)\s*$/) {
+                my ($key, $value) = ($1, $2);
+                $key = lc($key);
+                ($value) = Text::ParseWords::parse_line('^$', 0, $value);
+                $config->{$key} = $value;
+            } else {
+                die "$config->{__path__}: syntax error in encrypted part: $_";
+            }
+        }
+    }
+    return $config;
+}
+
+# ============
+# misc parsing
+# ============
+
+sub parse_amount
+{
+    my ($s) = @_;
+    $s =~ m/\A(-?)(\d+),(\d{2})\Z/ or return;
+    my $n = int($2) + int($3) / 100.0;
+    $n = -$n if $1;
+    return $n;
+}
+
+# =======================
+# command implementations
+# =======================
+
+my $cc = 'pl_PL';
+my ($tld, $lang) = ($cc =~ m/(\w+)_(\w+)/);
+$lang = lc $lang;
+my $mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
+my $base_url = $ENV{MBANK_CLI_BASE_URL} // "https://$mbank_host/$lang";
+
+my @json_headers = (
+    'Accept' => 'application/json, text/javascript, */*; q=0.01',
+    'Content-Type' => 'application/json; charset=UTF-8',
+    'X-Requested-With' => 'XMLHttpRequest',
+);
+
+sub do_login
+{
+    my ($cfg) = @_;
+    my $request = GET("$base_url");
+    my $doc = download($request);
+    if ($doc->{url} =~ m{/Login$}) {
+        debug('logging in...');
+        $doc->{content} =~ m/entrypoint[.]initialize[(]'([a-zA-Z0-9=_-]+)'[)]/
+            or scraping_error('login.seed');
+        my $seed = $1;
+        my $login_url = $doc->{url};
+        my $login = $cfg->{login} // config_error('missing login');
+        my $password = $cfg->{password} // config_error('missing password');
+        $request = POST(
+            "$base_url/LoginMain/Account/JsonLogin",
+            @json_headers,
+            'Referer' => $login_url,
+            'Content' => encode_json({
+                UserName => $login,
+                Password => $password,
+                Seed => $seed,
+                Lang => '',
+            }),
+        );
+        $doc = download($request);
+        my $login_json = decode_json($doc->{content});
+        if ($login_json->{successful}) {
+            $request = GET("$base_url");
+            $doc = download($request);
+        } else {
+            my $message = $login_json->{errorMessageTitle} // 'unknown error';
+            user_error("Login failed: $message");
+        }
+    }
+    my $tabid = undef;
+    $ua->cookie_jar->scan(
+        sub {
+            my ($version, $key, $value, $path, $domain) = @_;
+            if (($domain eq $mbank_host) and ($key eq 'mBank_tabId')) {
+                $tabid = $value;
+            }
+        }
+    );
+    defined($tabid)
+        or scraping_error('login.tabid');
+    $doc->{content} =~ m{<meta\s+content="([a-zA-Z0-9/+]+)"\s+name="__AjaxRequestVerificationToken">}
+        or scraping_error('login.arvt');
+    my $arvt = $1;
+    debug('logged in');
+    return {
+        tabid => $tabid,
+        arvt => $arvt,
+        url => $doc->{url},
+    };
+}
+
+sub do_list
+{
+    my ($login_info) = @_;
+    my $request = POST(
+        "$base_url/MyDesktop/Desktop/GetAccountsList",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @json_headers,
+        'Referer' => $login_info->{url},
+        Content => '{}',
+    );
+    my $doc = download($request);
+    my $json = decode_json($doc->{content});
+    my @accounts = @{$json->{accountDetailsList}};
+    for my $account (@accounts) {
+        my $name = $account->{ProductName} // scraping_error("list.product-name");
+        my $subtitle = $account->{SubTitle} // '';
+        if ($subtitle ne '') {
+            $name .= " - $subtitle";
+        }
+        my $number = $account->{AccountNumber} // scraping_error("list.account-number");
+        my $balance = $account->{Balance};
+        my $available = $account->{AvailableBalance};
+        $balance = parse_amount($balance) // scraping_error("list.balance: $balance");
+        $available = parse_amount($available) // scraping_error("list.available: $available");
+        my $currency = $account->{Currency};
+        printf("%s\t%32s\t%8.2f %s\t%8.2f %s\n", $name, $number, $balance, $currency, $available, $currency);
+    }
+    return;
+}
+
+sub do_logout
+{
+    my ($login_info) = @_;
+    debug('logging out...');
+    my $request = POST(
+        "$base_url/LoginMain/Account/LazyLogout",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @json_headers,
+        'Referer' => $login_info->{url},
+    );
+    my $doc = download($request);
+    my $json = decode_json($doc->{content});
+    $json->{lazy}
+        or scraping_error('logout.lazy');
+    $request = GET(
+        "$base_url/LoginMain/Account/Logout",
+        'Referer' => $login_info->{url},
+    );
+    my $response = simple_download($request);
+    $response->is_redirect
+        or scraping_error('logout.redirect');
+    debug('successful logout');
+    $ua->cookie_jar->clear();
+    debug('cookies have been wiped out');
+    return;
+}
+
+# ============
+# main program
+# ============
+
+my $here = dirname($0);
+chdir($here) or die "$here: $ERRNO";
+
+my $cfg = read_config('mbank-cli.conf');
+decrypt_config($cfg);
+
+$ua = http_init(
+    host => $mbank_host,
+    cookie_jar => './cookie-jar.txt',
+    ca => './ca.crt',
+);
+
+my $login_info = do_login($cfg);
+do_list($login_info);
+
+# vim:ts=4 sw=4 et
