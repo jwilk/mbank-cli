@@ -77,6 +77,19 @@ sub user_error
     exit(1);
 }
 
+sub config_error
+{
+    my ($config, $message) = @_;
+    my $config_path;
+    if (ref $config) {
+        $config_path = $config->{__path__};
+    } else {
+        $config_path = $config;
+    }
+    $message = "$config_path: $message";
+    return user_error($message);
+}
+
 sub http_error
 {
     my ($request, $response) = @_;
@@ -271,7 +284,7 @@ sub read_config
             ($value) = Text::ParseWords::parse_line('^$', 0, $value);
             $config->{$key} = $value;
         } else {
-            die "$path: syntax error: $_";
+            config_error($path, "syntax error: $_");
         }
     }
     close($fh)
@@ -300,7 +313,7 @@ sub decrypt_config
                 ($value) = Text::ParseWords::parse_line('^$', 0, $value);
                 $config->{$key} = $value;
             } else {
-                die "$config->{__path__}: syntax error in encrypted part: $_";
+                config_error($config, "syntax error in encrypted part: $_");
             }
         }
     }
@@ -352,8 +365,8 @@ sub do_login
             or scraping_error('login.seed');
         my $seed = $1;
         my $login_url = $doc->{url};
-        my $login = $cfg->{login} // config_error('missing login');
-        my $password = $cfg->{password} // config_error('missing password');
+        my $login = $cfg->{login} // config_error($cfg, 'missing login');
+        my $password = $cfg->{password} // config_error($cfg, 'missing password');
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
