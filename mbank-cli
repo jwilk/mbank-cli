@@ -156,8 +156,8 @@ Usage:
   mbank-cli history [--range <start-date> <end-date> | --from <start-date> [--to <end-date>] ] {<account> | -M <account>... | -A}
   mbank-cli future {<account> | -M <account>... | -A}
   mbank-cli blocked {<account> | -M <account>... | -A}
-  mbank-cli funds
   mbank-cli deposits
+  mbank-cli funds
   mbank-cli notices
   mbank-cli rename <account> <new-name>
   mbank-cli logout
