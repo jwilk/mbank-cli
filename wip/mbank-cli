@@ -26,6 +26,7 @@ no encoding;
 
 use English qw(-no_match_vars);
 use File::Basename qw(dirname);
+use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL ();
@@ -39,14 +40,14 @@ use Text::ParseWords ();
 # logging and error handling
 # ==========================
 
-my $verbose = 1; # TODO
-my $debug_directory = undef; # TODO
+my $opt_verbose = 0;
+my $opt_debug_dir = undef;
 
 sub write_log
 {
     my ($message) = @_;
-    return unless defined $debug_directory;
-    my $path = "$debug_directory/log";
+    return unless defined $opt_debug_dir;
+    my $path = "$opt_debug_dir/log";
     open(my $log, '>>', $path)
         or die "$path: $ERRNO";
     print { $log } "$message\n";
@@ -60,15 +61,17 @@ sub debug
     my ($message) = @_;
     $message = "* $message";
     write_log($message);
-    print {*STDERR} "$message\n" if $verbose;
+    print {*STDERR} "$message\n" if $opt_verbose;
     return;
 }
 
 sub user_error
 {
     my ($message) = @_;
-    write_log($message);
-    print {*STDERR} "$message\n";
+    if (defined($message)) {
+        write_log($message);
+        print {*STDERR} "$message\n";
+    }
     exit(1);
 }
 
@@ -191,14 +194,14 @@ sub download
     my $response = $ua->request($request, undef, $http_read_size_hint);
     my $content = $response->content;
     $content =~ s/\r//g;
-    if (defined $debug_directory) {
+    if (defined $opt_debug_dir) {
         my $path = $request->uri;
         $path =~ s{^\w+://.*?/}{};
         $path =~ s/[?].*//;
         $path =~ s/[^[:alnum:].]/_/g;
         $path =~ s/(?:[.]\w+)?$/.html/;
         $path = 'index.html' if $path eq '.html';
-        $path = "$debug_directory/$path";
+        $path = "$opt_debug_dir/$path";
         open(my $fh, '>', "$path")
             or die "$path: $ERRNO";
         print { $fh } $content;
@@ -333,6 +336,9 @@ sub do_login
     my $request = GET("$base_url");
     my $doc = download($request);
     if ($doc->{url} =~ m{/Login$}) {
+        if (not defined $cfg) {
+            return;
+        }
         debug('logging in...');
         $doc->{content} =~ m/entrypoint[.]initialize[(]'([a-zA-Z0-9=_-]+)'[)]/
             or scraping_error('login.seed');
@@ -449,16 +455,99 @@ sub do_logout
 my $here = dirname($0);
 chdir($here) or die "$here: $ERRNO";
 
-my $cfg = read_config('mbank-cli.conf');
+my $opt_config = './mbank-cli.conf';
+my $opt_cookie_jar = './cookie-jar.txt';
+my $opt_from = undef;
+my $opt_to = undef;
+my $opt_range = undef;
+my $opt_multi = undef;
+my $opt_all = undef;
+
+sub show_help
+{
+    print { *STDERR } <<'EOF' ;
+Usage:
+  mbank-cli [list]
+  mbank-cli history [--range <start-date> <end-date> | --from <start-date> [--to <end-date>] ] {<account> | -M <account>... | -A}
+  mbank-cli future {<account> | -M <account>... | -A}
+  mbank-cli blocked {<account> | -M <account>... | -A}
+  mbank-cli deposits
+  mbank-cli funds
+  mbank-cli notices
+  mbank-cli rename <account> <new-name>
+  mbank-cli logout
+  mbank-cli void
+
+Common options:
+  --verbose
+  --debug <debug-directory>
+  --config <config-file>
+  --cookie-jar <cookie-jar-file>
+EOF
+    exit();
+}
+
+GetOptions(
+    'verbose' => \$opt_verbose,
+    'debug=s' => \$opt_debug_dir,
+    'config=s' => \$opt_config,
+    'cookie-jar=s' => \$opt_cookie_jar,
+    'from=s' => sub {
+        (undef, my $date) = @_;
+        $opt_from = fix_date($date);
+        $opt_range = 0;
+    },
+    'to=s' => sub {
+        (undef, my $date) = @_;
+        $opt_to = fix_date($date);
+        $opt_range = 0;
+    },
+    'range=s{2}' => sub {
+        (undef, my $date) = @_;
+        if ($opt_range) {
+          $opt_from = fix_date($date);
+          $opt_to = undef;
+          $opt_range = 1;
+        }
+        else
+        {
+          $opt_to = fix_date($date);
+          $opt_range = 0;
+        }
+    },
+    'M|multiple-accounts' => \$opt_multi,
+    'A|all-accounts' => \$opt_all,
+    'h|help' => \&show_help,
+) or user_error();
+
+my $cfg = read_config($opt_config);
 decrypt_config($cfg);
 
 $ua = http_init(
     host => $mbank_host,
-    cookie_jar => './cookie-jar.txt',
+    cookie_jar => $opt_cookie_jar,
     ca => './ca.crt',
 );
 
-my $login_info = do_login($cfg);
-do_list($login_info);
+my ($command, @args) = @ARGV;
+$command //= 'list';
+debug("selected command: $command");
+
+if ($command eq 'void') {
+    # Nothing to do!
+} elsif ($command eq 'list') {
+    my $login_info = do_login($cfg);
+    do_list($login_info);
+} elsif ($command eq 'logout') {
+    my $login_info = do_login();
+    if (not defined $login_info) {
+        user_error('The user is not logged in.')
+    }
+    do_logout($login_info);
+} elsif (grep { $command eq $_ } qw(history future blocked deposits funds notices rename)) {
+    user_error("Command not implemented: $command");
+} else {
+    user_error("Invalid command: $command");
+}
 
 # vim:ts=4 sw=4 et
