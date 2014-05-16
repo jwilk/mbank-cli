@@ -265,11 +265,13 @@ sub download
     my $content = $response->content;
     $content =~ s/\r//g;
     if (defined $opt_debug_dir) {
+        my $is_json = $response->header('Content-Type') =~ m{\Aapplication/json(;|\Z)};
+        my $default_ext = $is_json ? 'json' : 'html';
         my $path = $request->uri;
         $path =~ s{^\w+://.*?/}{};
         $path =~ s/[?].*//;
         $path =~ s/[^[:alnum:].]/_/g;
-        $path =~ s/(?:[.]\w+)?$/.html/;
+        $path =~ s/(?:[.]\w+)?$/.$default_ext/;
         if ($path eq '.html') {
             $path = 'index.html';
         }
