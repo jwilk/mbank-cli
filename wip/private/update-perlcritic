@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e -u
+here=$(basename "$0")
+cd "$here/.."
+target=doc/todo.perlcritic
+if perlcritic --statistics-only mbank-cli > "${target}.new"
+then
+    :
+else
+    rc=$?
+    [ $rc -eq 2 ] || exit $rc
+fi
+diff -u "${target}" "${target}.new" || true
+mv "${target}.new" "${target}"
+
+# vim:ts=4 sw=4 et

@@ -1,0 +1,19 @@
+severity = 1
+verbose = 1
+
+[-CodeLayout::ProhibitParensWithBuiltins]
+# no, thanks
+
+[-RegularExpressions::RequireExtendedFormatting]
+[-RegularExpressions::RequireDotMatchAnything]
+[-RegularExpressions::RequireLineBoundaryMatching]
+# no, thanks
+
+[-ValuesAndExpressions::ProhibitNoisyQuotes]
+[-ValuesAndExpressions::ProhibitEmptyQuotes]
+# no, thanks
+
+[-ValuesAndExpressions::ProhibitMagicNumbers]
+# no, thanks
+
+# vim:ft=dosini
