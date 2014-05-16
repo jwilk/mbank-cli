@@ -129,10 +129,6 @@ sub scraping_error
 # HTTP
 # ====
 
-BEGIN {
-    $ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = 'IO::Socket::SSL';
-}
-
 my $ua = undef;
 
 my $http_product_name = 'Mozilla/5.0 (Windows NT 6.1; rv:17.0) Gecko/20100101 Firefox/17.0';
