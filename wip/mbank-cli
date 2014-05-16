@@ -292,7 +292,7 @@ sub read_config
     return $config;
 }
 
-sub decrypt_config
+sub _decrypt_config
 {
     my ($config) = @_;
     my $pgp_chunks = delete $config->{__pgp__};
@@ -318,6 +318,18 @@ sub decrypt_config
         }
     }
     return $config;
+}
+
+sub get_config_var
+{
+    my ($config, $var) = @_;
+    if (exists $config->{$var}) {
+        return $config->{$var};
+    }
+    if (@{$config->{__pgp__}}) {
+        _decrypt_config($config);
+    }
+    return $config->{$var};
 }
 
 # ============
@@ -365,8 +377,10 @@ sub do_login
             or scraping_error('login.seed');
         my $seed = $1;
         my $login_url = $doc->{url};
-        my $login = $cfg->{login} // config_error($cfg, 'missing login');
-        my $password = $cfg->{password} // config_error($cfg, 'missing password');
+        my $login = get_config_var($cfg, 'login')
+            // config_error($cfg, 'missing login');
+        my $password = get_config_var($cfg, 'password')
+            // config_error($cfg, 'missing password');
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
@@ -542,7 +556,6 @@ GetOptions(
 ) or user_error();
 
 my $cfg = read_config($opt_config);
-decrypt_config($cfg);
 
 $ua = http_init(
     host => $mbank_host,
