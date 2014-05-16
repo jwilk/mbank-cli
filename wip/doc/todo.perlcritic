@@ -11,15 +11,15 @@
 
 Average McCabe score of subroutines was 4.31.
 
-38 violations.
-Violations per file was 38.000.
-Violations per statement was 0.080.
-Violations per line of code was 0.068.
+35 violations.
+Violations per file was 35.000.
+Violations per statement was 0.074.
+Violations per line of code was 0.062.
 
  2 severity 4 violations.
 20 severity 3 violations.
  4 severity 2 violations.
-12 severity 1 violations.
+ 9 severity 1 violations.
 
  1 violations of BuiltinFunctions::ProhibitBooleanGrep.
  1 violations of CodeLayout::RequireTidyCode.
@@ -31,7 +31,6 @@ Violations per line of code was 0.068.
  2 violations of RegularExpressions::ProhibitCaptureWithoutTest.
  1 violations of RegularExpressions::ProhibitComplexRegexes.
  2 violations of RegularExpressions::ProhibitEnumeratedClasses.
- 3 violations of ValuesAndExpressions::ProhibitInterpolationOfLiterals.
  3 violations of Variables::ProhibitPunctuationVars.
  1 violations of Variables::ProhibitReusedNames.
  1 violations of Variables::RequireLocalizedPunctuationVars.

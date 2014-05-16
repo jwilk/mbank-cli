@@ -289,7 +289,7 @@ sub decrypt_config
             ['gpg', '-d'],
             '<', \$encrypted_data,
             '>', \$decrypted_data,
-        ) or die "gpg -d failed";
+        ) or die 'gpg -d failed';
         my @decrypted_data = split(/\n/, $decrypted_data);
         foreach (@decrypted_data) {
             if (m/^(?:#|\s*)$/) {
@@ -412,12 +412,12 @@ sub do_list
     my $json = decode_json($doc->{content});
     my @accounts = @{$json->{accountDetailsList}};
     for my $account (@accounts) {
-        my $name = $account->{ProductName} // scraping_error("list.product-name");
+        my $name = $account->{ProductName} // scraping_error('list.product-name');
         my $subtitle = $account->{SubTitle} // '';
         if ($subtitle ne '') {
             $name .= " - $subtitle";
         }
-        my $number = $account->{AccountNumber} // scraping_error("list.account-number");
+        my $number = $account->{AccountNumber} // scraping_error('list.account-number');
         my $balance = $account->{Balance};
         my $available = $account->{AvailableBalance};
         $balance = parse_amount($balance) // scraping_error("list.balance: $balance");
