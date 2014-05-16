@@ -962,7 +962,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
         </p>
       }x or api_error('future-item');
       my $date = $1;
-      my $receiver = localize_html_string $2;
+      my $recipient = localize_html_string $2;
       my $title = localize_html_string $3;
       $title =~ y/\xa0/ /;
       my $amount = parse_amount $4;
@@ -970,7 +970,7 @@ while ($web_accounts_list->{content} =~ m{<li(?:[ ]class="alternate")?>(.*?)</li
       my $currency = $5;
       my $status = localize_html_string $6;
       printf "$name\t", $name if $opt_multiple_accounts;
-      printf "%s\t%s\t%s\t%8.2f %s\t%s\n", $date, $receiver, $title, $amount, $currency, $status;
+      printf "%s\t%s\t%s\t%8.2f %s\t%s\n", $date, $recipient, $title, $amount, $currency, $status;
     }
   }
   elsif ($action eq 'blocked')

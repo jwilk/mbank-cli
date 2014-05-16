@@ -161,7 +161,7 @@ in the following format:
 
 =item Z<>
 
-I<[account-name]> I<date> I<receiver> I<title> I<amount> I<status>
+I<[account-name]> I<date> I<recipient> I<title> I<amount> I<status>
 
 =back
 
