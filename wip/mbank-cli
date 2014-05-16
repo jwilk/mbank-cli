@@ -24,6 +24,8 @@ use strict;
 use warnings;
 no encoding;
 
+use Encode qw();
+use Encode::Locale qw();
 use English qw(-no_match_vars);
 use File::Basename qw(dirname);
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
@@ -123,6 +125,63 @@ sub scraping_error
     write_log($message);
     Carp::cluck($message);
     exit(3);
+}
+
+# =========
+# encodings
+# =========
+
+my %_encoding_fallback = (
+    0x104 => 'A', 0x105 => 'a', # letter A with ogonek
+    0x0c1 => 'A', 0x0e1 => 'a', # letter A with acute
+    0x0c4 => 'A', 0x0e4 => 'a', # letter A with diaeresis
+    0x106 => 'C', 0x107 => 'c', # letter C with acute
+    0x10c => 'C', 0x10d => 'c', # letter C with caron
+    0x10e => 'D', 0x10f => 'd', # letter D with caron
+    0x118 => 'E', 0x119 => 'e', # letter E with ogonek
+    0x0c9 => 'E', 0x0e9 => 'e', # letter E with acute
+    0x11a => 'E', 0x11b => 'e', # letter E with caron
+    0x0cd => 'I', 0x0ed => 'i', # letter I with acute
+    0x141 => 'L', 0x142 => 'l', # letter L with stroke
+    0x139 => 'L', 0x13a => 'l', # letter L with acute
+    0x13d => 'L', 0x13e => 'l', # letter L with caron
+    0x143 => 'N', 0x144 => 'n', # letter N with acute
+    0x147 => 'N', 0x148 => 'n', # letter N with caron
+    0x0d3 => 'O', 0x0f3 => 'o', # letter O with acute
+    0x0d4 => 'O', 0x0f4 => 'o', # letter O with circumflex
+    0x154 => 'R', 0x155 => 'r', # letter R with acute
+    0x158 => 'R', 0x159 => 'r', # letter R with caron
+    0x15a => 'S', 0x15b => 's', # letter S with acute
+    0x160 => 'S', 0x161 => 's', # letter S with caron
+    0x164 => 'T', 0x165 => 't', # letter T with caron
+    0x0da => 'U', 0x0fa => 'u', # letter U with acute
+    0x16e => 'U', 0x16f => 'u', # letter U with ring above
+    0x0dd => 'Y', 0x0fd => 'y', # letter Y with acute
+    0x179 => 'Z', 0x17a => 'z', # letter Z with acute
+    0x17b => 'Z', 0x17c => 'z', # letter Z with dot above
+    0x17d => 'Z', 0x17e => 'z', # letter Z with caron
+);
+
+sub _encoding_fallback
+{
+    my ($u) = @_;
+    return
+      $_encoding_fallback{$u}
+      // sprintf('<U+%04X>', $u);
+}
+
+sub bytes_to_unicode
+{
+    my ($u, $encoding) = @_;
+    $encoding //= 'locale';
+    return Encode::decode($encoding, $u);
+}
+
+sub unicode_to_bytes
+{
+    my ($s, $encoding) = @_;
+    $encoding //= 'locale';
+    return Encode::encode($encoding, $s, \&_encoding_fallback);
 }
 
 # ====
@@ -343,6 +402,17 @@ sub parse_amount
     return $n;
 }
 
+sub wildcards_to_regexp
+{
+    my (@wildcards) = @_;
+    my $re = join('|',
+        map { quotemeta($_) } @wildcards
+    );
+    $re =~ s/\\[*]/.*/g;
+    $re = qr{^(?i:($re))$};
+    return $re;
+}
+
 # =======================
 # command implementations
 # =======================
@@ -352,6 +422,9 @@ my ($tld, $lang) = ($cc =~ m/(\w+)_(\w+)/);
 $lang = lc $lang;
 my $mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
 my $base_url = $ENV{MBANK_CLI_BASE_URL} // "https://$mbank_host/$lang";
+
+my $opt_multi = undef;
+my $opt_all = undef;
 
 my @json_headers = (
     'Accept' => 'application/json, text/javascript, */*; q=0.01',
@@ -451,6 +524,87 @@ sub do_list
     return;
 }
 
+sub do_future
+{
+    my ($login_info, @args) = @_;
+    if ($opt_all) {
+        @args = '*';
+    } elsif (scalar(@args) < 1) {
+        user_error('No account selected.');
+    }
+    my $request = POST(
+        "$base_url/FutureOperations/Calendar/OPER_GetFutureTransfers",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @json_headers,
+        'Referer' => $login_info->{url},
+        Content => '{"getFilter":true}',
+    );
+    my $doc = download($request);
+    my $json = decode_json($doc->{content});
+    my $selected_re = wildcards_to_regexp(@args);
+    my $account_info = $json->{filter}->{filterAccounts}
+        // scraping_error('future.filter');
+    my %selected_accounts = ();
+    foreach my $account (@{$account_info}) {
+        my $name = $account->{accountName}
+            // scraping_error('future.filter.account-name');
+        my $number = $account->{accountNumber}
+            // scraping_error('future.filter.account-number');
+        if ($name =~ $selected_re) {
+            debug("selected account: $number");
+            $selected_accounts{$number} = $name;
+        } else {
+            debug("deselected account: $number");
+        }
+    }
+    if (not %selected_accounts) {
+        user_error('No matching accounts.')
+    }
+    my $use_multi =
+        $opt_multi ||
+        $opt_all ||
+        (scalar(keys %selected_accounts) > 1);
+    my $transfer_info = $json->{transferInfos}
+        // scraping_error('future.transfer');
+    for my $transfer (@{$transfer_info}) {
+        my $number = $transfer->{accountNumber}
+            // scraping_error('future.transfer.account-number');
+        my $name = $selected_accounts{$number};
+        defined $name or next;
+        if ($use_multi) {
+            print("$name\t");
+        }
+        my $timestamp = $transfer->{date};
+        my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\Z/)
+            or scraping_error('future.transfer.date');
+        if ($time =~ m/\A[0:.]+\Z/) {
+            # boring
+            $timestamp = $date;
+        }
+        my $recipient = $transfer->{benef}
+            // scraping_error('future.transfer.recipient');
+        for my $key (qw(benefAddress benefCity)) {
+            my $recipient_loc = $transfer->{$key} // '';
+            if (length($recipient_loc) > 0) {
+                $recipient .= "; $recipient_loc";
+            }
+        }
+        my $description = $transfer->{description}
+            // scraping_error('future.transfter.description');
+        $description = unicode_to_bytes($description);
+        my $amount = $transfer->{amount}
+            // scraping_error('future.transfter.amount');
+        my $currency = $transfer->{currency}
+            // scraping_error('future.transfter.currency');
+        my $fmt_amount = sprintf('%8.2f %s', $amount, $currency);
+        my $status = $transfer->{transferType}
+            // scraping_error('future.transfter.type');
+        print("$timestamp\t$recipient\t$description\t$fmt_amount\t$status\n");
+    }
+    return;
+}
+
 sub do_logout
 {
     my ($login_info) = @_;
@@ -491,8 +645,6 @@ my $opt_cookie_jar = './cookie-jar.txt';
 my $opt_from = undef;
 my $opt_to = undef;
 my $opt_range = undef;
-my $opt_multi = undef;
-my $opt_all = undef;
 
 sub show_help
 {
@@ -568,13 +720,16 @@ if ($command eq 'void') {
 } elsif ($command eq 'list') {
     my $login_info = do_login($cfg);
     do_list($login_info);
+} elsif ($command eq 'future') {
+    my $login_info = do_login($cfg);
+    do_future($login_info, @args);
 } elsif ($command eq 'logout') {
     my $login_info = do_login();
     if (not defined $login_info) {
         user_error('The user is not logged in.')
     }
     do_logout($login_info);
-} elsif (grep { $command eq $_ } qw(history future blocked deposits funds notices rename)) {
+} elsif (grep { $command eq $_ } qw(history blocked deposits funds notices rename)) {
     user_error("Command not implemented: $command");
 } else {
     user_error("Invalid command: $command");
