@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 '''
-logging script for mitmdump (part of mitmproxy)
-usage: mitmdump [options] --anticache -s httpdump.py
+logging script for mitmproxy
+usage: mitmproxy [options] --anticache -s httpdump.py
 '''
 
 import os
