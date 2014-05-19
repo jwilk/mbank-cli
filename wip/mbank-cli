@@ -455,7 +455,7 @@ sub do_login
             return;
         }
         debug('logging in...');
-        $doc->{content} =~ m/entrypoint[.]initialize[(]'([a-zA-Z0-9=_-]+)'[)]/
+        $doc->{content} =~ m/entrypoint[.]initialize[(]'([\w=-]+)'[)]/
             or scraping_error('login.seed');
         my $seed = $1;
         my $login_url = $doc->{url};
@@ -495,7 +495,7 @@ sub do_login
     );
     defined($tabid)
         or scraping_error('login.tabid');
-    $doc->{content} =~ m{<meta\s+content="([a-zA-Z0-9/+]+)"\s+name="__AjaxRequestVerificationToken">}
+    $doc->{content} =~ m{<meta\s+content="([\w/+]+)"\s+name="__AjaxRequestVerificationToken">}
         or scraping_error('login.arvt');
     my $arvt = $1;
     debug('logged in');
