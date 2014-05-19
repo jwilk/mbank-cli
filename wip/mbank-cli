@@ -222,7 +222,7 @@ sub http_init
             wildcards_in_cn => 0,
             # FIXME: LWP::protocol::https (>= 6.0) stomps on SSL_verifycn_scheme
             # https://bugs.debian.org/747225
-        }
+        },
     );
     IO::Socket::SSL::set_ctx_defaults(@ssl_options);
     my $cookie_jar;
