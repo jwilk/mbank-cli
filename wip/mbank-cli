@@ -198,9 +198,12 @@ my $http_timeout = 30;
 sub http_init
 {
     my %options = @_;
-    my $host = delete $options{host} or die 'http_init(): missing host';
-    my $cookie_jar_path = delete $options{cookie_jar} // '/dev/null';
-    my $ca_path = delete $options{ca} or die 'http_init(): missing ca';
+    my $host = delete $options{host}
+        or die 'http_init(): missing host';
+    my $cookie_jar_path = delete $options{cookie_jar}
+        or die 'http_init(): missing cookie_jar';
+    my $ca_path = delete $options{ca}
+        or die 'http_init(): missing ca';
     die "http_init(): unexpected options: @{[keys(%options)]}" if %options;
     if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
         # should not happen, but better safe than sorry
@@ -225,15 +228,13 @@ sub http_init
         },
     );
     IO::Socket::SSL::set_ctx_defaults(@ssl_options);
-    my $cookie_jar;
-    if (defined $cookie_jar_path) {
+    my $cookie_jar = {};
+    if ($cookie_jar_path ne '/dev/null') {
         $cookie_jar = HTTP::Cookies->new(
             file => $cookie_jar_path,
             autosave => 1,
             ignore_discard => 1
         );
-    } else {
-        $cookie_jar = {};
     };
     my $ua = LWP::UserAgent->new(
         agent => $http_product_name,
