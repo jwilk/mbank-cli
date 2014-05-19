@@ -396,12 +396,9 @@ sub get_config_var
 sub parse_amount
 {
     my ($s) = @_;
-    $s =~ m/\A(-?)(\d+),(\d{2})\Z/ or return;
-    my $n = int($2) + int($3) / 100.0;
-    if ($1) {
-        $n = -$n;
-    }
-    return $n;
+    $s =~ m/\A-?\d+,\d{2}\Z/ or return;
+    $s =~ y/,/./;
+    return $s;
 }
 
 sub wildcards_to_regexp
