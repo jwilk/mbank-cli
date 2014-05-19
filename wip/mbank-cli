@@ -29,6 +29,7 @@ use Encode::Locale qw();
 use English qw(-no_match_vars);
 use File::Basename qw(dirname);
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
+use HTML::TreeBuilder ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL ();
@@ -412,6 +413,13 @@ sub wildcards_to_regexp
     return $re;
 }
 
+sub find_html_class
+{
+    my ($element, $class) = @_;
+    my $re = qr/(?:\A|\s)\Q$class\E(?:\s|\Z)/;
+    return $element->look_down('class', $re);
+}
+
 # =======================
 # command implementations
 # =======================
@@ -428,6 +436,12 @@ my $opt_all = undef;
 my @json_headers = (
     'Accept' => 'application/json, text/javascript, */*; q=0.01',
     'Content-Type' => 'application/json; charset=UTF-8',
+    'X-Requested-With' => 'XMLHttpRequest',
+);
+
+my @ajax_html_headers = (
+    'Accept' => 'text/html, */*; q=0.01',
+    'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
     'X-Requested-With' => 'XMLHttpRequest',
 );
 
@@ -632,6 +646,42 @@ sub do_logout
     return;
 }
 
+sub do_cards
+{
+    my ($login_info) = @_;
+    my $request = POST(
+        "$base_url/Cards/Cards/IndexData",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @ajax_html_headers,
+        'Referer' => $login_info->{url},
+        Content => '',
+    );
+    my $doc = download($request);
+    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_cards = find_html_class($e_root, 'card-properties');
+    for my $e_card (@e_cards) {
+        my $e_name = find_html_class($e_card, 'card-name')
+            // scraping_error('cards.name');
+        my $name = $e_name->as_trimmed_text();
+        my $e_number = find_html_class($e_card, 'card-number')
+            // scraping_error('cards.number');
+        my $number = $e_number->as_trimmed_text();
+        my $e_owner = find_html_class($e_card, 'card-owner')
+            // scraping_error('cards.owner');
+        my $owner = $e_owner->as_trimmed_text();
+        my $e_amount = find_html_class($e_card, 'card-amount')
+            // scraping_error('cards.amount.1');
+        my $amount = $e_amount->as_trimmed_text();
+        ($amount, my $currency) = ($amount =~ m/\s*(\S+)\s+(\S+)\Z/)
+            or scraping_error('cards.amount.2');
+        $amount = parse_amount($amount)
+            // scraping_error('cards.amount.3');
+        printf("%s\t%s\t\%s\t%8.2f %s\n", $name, $number, $owner, $amount, $currency);
+    }
+    return;
+}
+
 # ============
 # main program
 # ============
@@ -722,6 +772,9 @@ if ($command eq 'void') {
 } elsif ($command eq 'future') {
     my $login_info = do_login($cfg);
     do_future($login_info, @args);
+} elsif ($command eq 'cards') {
+    my $login_info = do_login($cfg);
+    do_cards($login_info, @args);
 } elsif ($command eq 'logout') {
     my $login_info = do_login();
     if (not defined $login_info) {
