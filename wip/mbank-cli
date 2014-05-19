@@ -52,10 +52,10 @@ sub write_log
     defined($opt_debug_dir) or return;
     my $path = "$opt_debug_dir/log";
     open(my $log, '>>', $path)
-        or die "$path: $ERRNO";
+        or os_error("$path: $ERRNO");
     print { $log } "$message\n";
     close($log)
-        or die "$path: $ERRNO";
+        or os_error("$path: $ERRNO");
     return;
 }
 
@@ -126,6 +126,22 @@ sub scraping_error
     write_log($message);
     Carp::cluck($message);
     exit(3);
+}
+
+sub os_error
+{
+    my ($message) = @_;
+    write_log($message);
+    Carp::cluck($message);
+    exit(4);
+}
+
+sub internal_error
+{
+    my ($message) = @_;
+    write_log($message);
+    Carp::cluck($message);
+    exit(255);
 }
 
 # =========
@@ -199,15 +215,17 @@ sub http_init
 {
     my %options = @_;
     my $host = delete $options{host}
-        or die 'http_init(): missing host';
+        or internal_error('http_init(): missing host');
     my $cookie_jar_path = delete $options{cookie_jar}
-        or die 'http_init(): missing cookie_jar';
+        or internal_error('http_init(): missing cookie_jar');
     my $ca_path = delete $options{ca}
-        or die 'http_init(): missing ca';
-    die "http_init(): unexpected options: @{[keys(%options)]}" if %options;
+        or internal_error('http_init(): missing ca');
+    if (%options) {
+        internal_error("http_init(): unexpected options: @{[keys(%options)]}");
+    }
     if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
         # should not happen, but better safe than sorry
-        die "\$Net::HTTPS::SSL_SOCKET_CLASS == $Net::HTTPS::SSL_SOCKET_CLASS"
+        internal_error("\$Net::HTTPS::SSL_SOCKET_CLASS == $Net::HTTPS::SSL_SOCKET_CLASS")
     };
     for my $key (grep { m/^HTTPS_/ } keys(%ENV)) {
         # https://bugs.debian.org/746579
@@ -279,10 +297,10 @@ sub download
         }
         $path = "$opt_debug_dir/$path";
         open(my $fh, '>', "$path")
-            or die "$path: $ERRNO";
+            or os_error("$path: $ERRNO");
         print { $fh } $content;
         close($fh)
-            or die "$path: $ERRNO";
+            or os_error("$path: $ERRNO");
     }
     if (not $response->is_success) {
         http_error($request, $response);
@@ -319,10 +337,10 @@ sub read_config
 {
     my ($path) = @_;
     open(my $fh, '<', $path)
-        or die "$path: $ERRNO";
+        or os_error("$path: $ERRNO");
     my $config = _read_config($fh, $path);
     close($fh)
-        or die "$path: $ERRNO";
+        or os_error("$path: $ERRNO");
     return $config;
 }
 
@@ -369,7 +387,7 @@ sub _decrypt_config
             ['gpg', '-d'],
             '<', \$encrypted_data,
             '>', \$decrypted_data,
-        ) or die 'gpg -d failed';
+        ) or os_error('gpg -d failed');
         my @decrypted_data = split(/\n/, $decrypted_data);
         foreach (@decrypted_data) {
             if (m/^(?:#|\s*)$/) {
@@ -692,7 +710,8 @@ sub do_cards
 # ============
 
 my $here = dirname($PROGRAM_NAME);
-chdir($here) or die "$here: $ERRNO";
+chdir($here)
+    or os_error("$here: $ERRNO");
 
 my $opt_config = './mbank-cli.conf';
 my $opt_from = undef;

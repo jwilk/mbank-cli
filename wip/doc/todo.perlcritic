@@ -1,29 +1,28 @@
   1 files.
- 25 subroutines/methods.
-698 statements.
+ 27 subroutines/methods.
+731 statements.
 
-795 lines, consisting of:
-     52 blank lines.
+814 lines, consisting of:
+     54 blank lines.
      49 comment lines.
       0 data lines.
-    694 lines of Perl code.
+    711 lines of Perl code.
       0 lines of POD.
 
-Average McCabe score of subroutines was 3.96.
+Average McCabe score of subroutines was 3.78.
 
-25 violations.
-Violations per file was 25.000.
-Violations per statement was 0.036.
-Violations per line of code was 0.031.
+13 violations.
+Violations per file was 13.000.
+Violations per statement was 0.018.
+Violations per line of code was 0.016.
 
-16 severity 3 violations.
- 1 severity 2 violations.
- 8 severity 1 violations.
+4 severity 3 violations.
+1 severity 2 violations.
+8 severity 1 violations.
 
- 1 violations of BuiltinFunctions::ProhibitBooleanGrep.
- 1 violations of CodeLayout::RequireTidyCode.
- 2 violations of ControlStructures::ProhibitCascadingIfElse.
-12 violations of ErrorHandling::RequireCarping.
- 7 violations of InputOutput::RequireCheckedSyscalls.
- 1 violations of RegularExpressions::ProhibitComplexRegexes.
- 1 violations of Variables::ProhibitReusedNames.
+1 violations of BuiltinFunctions::ProhibitBooleanGrep.
+1 violations of CodeLayout::RequireTidyCode.
+2 violations of ControlStructures::ProhibitCascadingIfElse.
+7 violations of InputOutput::RequireCheckedSyscalls.
+1 violations of RegularExpressions::ProhibitComplexRegexes.
+1 violations of Variables::ProhibitReusedNames.
