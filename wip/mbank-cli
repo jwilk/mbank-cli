@@ -102,8 +102,8 @@ sub http_error
         $request->method,
         $request->uri
     );
-    if ($@) {
-        my $extra = $@;
+    if ($EVAL_ERROR) {
+        my $extra = $EVAL_ERROR;
         $extra =~ s/\n+$//;
         $extra =~ s/\n+/\n/g;
         if ($extra !~ /[(]/ and $IO::Socket::SSL::SSL_ERROR) {
@@ -686,7 +686,7 @@ sub do_cards
 # main program
 # ============
 
-my $here = dirname($0);
+my $here = dirname($PROGRAM_NAME);
 chdir($here) or die "$here: $ERRNO";
 
 my $opt_config = './mbank-cli.conf';
