@@ -115,6 +115,7 @@ sub http_error
         $message .= "\n$extra\n";
     }
     write_log($message);
+    local $Carp::CarpLevel = 1;
     Carp::cluck($message);
     exit(2);
 }
@@ -124,6 +125,7 @@ sub scraping_error
     my ($message) = @_;
     $message = "Scraping error: $message";
     write_log($message);
+    local $Carp::CarpLevel = 1;
     Carp::cluck($message);
     exit(3);
 }
@@ -132,6 +134,7 @@ sub os_error
 {
     my ($message) = @_;
     write_log($message);
+    local $Carp::CarpLevel = 1;
     Carp::cluck($message);
     exit(4);
 }
@@ -139,7 +142,9 @@ sub os_error
 sub internal_error
 {
     my ($message) = @_;
+    $message = "Internal error: $message";
     write_log($message);
+    local $Carp::CarpLevel = 1;
     Carp::cluck($message);
     exit(255);
 }
@@ -215,13 +220,15 @@ sub http_init
 {
     my %options = @_;
     my $host = delete $options{host}
-        or internal_error('http_init(): missing host');
+        or internal_error('missing host');
     my $cookie_jar_path = delete $options{cookie_jar}
-        or internal_error('http_init(): missing cookie_jar');
+        or internal_error('missing cookie_jar');
     my $ca_path = delete $options{ca}
-        or internal_error('http_init(): missing ca');
+        or internal_error('missing ca');
     if (%options) {
-        internal_error("http_init(): unexpected options: @{[keys(%options)]}");
+        local $LIST_SEPARATOR = ', ';
+        my @option_keys = sort keys %options;
+        internal_error("unexpected options: @option_keys");
     }
     if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
         # should not happen, but better safe than sorry
