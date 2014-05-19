@@ -319,6 +319,15 @@ sub read_config
     my ($path) = @_;
     open(my $fh, '<', $path)
         or die "$path: $ERRNO";
+    my $config = _read_config($fh, $path);
+    close($fh)
+        or die "$path: $ERRNO";
+    return $config;
+}
+
+sub _read_config
+{
+    my ($fh, $path) = @_;
     my $pgp = undef;
     my $config = {
         __pgp__ => [],
@@ -345,8 +354,6 @@ sub read_config
             config_error($path, "syntax error: $_");
         }
     }
-    close($fh)
-        or die "$path: $ERRNO";
     return $config;
 }
 
