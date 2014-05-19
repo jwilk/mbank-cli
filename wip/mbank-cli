@@ -710,6 +710,7 @@ Usage:
   mbank-cli blocked {<account> | -M <account>... | -A}
   mbank-cli deposits
   mbank-cli funds
+  mbank-cli cards
   mbank-cli notices
   mbank-cli rename <account> <new-name>
   mbank-cli logout
