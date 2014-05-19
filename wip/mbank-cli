@@ -362,6 +362,7 @@ sub _decrypt_config
 {
     my ($config) = @_;
     my $pgp_chunks = delete $config->{__pgp__};
+    defined($pgp_chunks) or return;
     foreach my $encrypted_data (@{$pgp_chunks}) {
         my $decrypted_data;
         IPC::Run::run(
@@ -388,13 +389,11 @@ sub _decrypt_config
 
 sub get_config_var
 {
-    my ($config, $var) = @_;
-    if (exists $config->{$var}) {
-        return $config->{$var};
+    my ($config, $var, $default) = @_;
+    if (exists($config->{$var}) or defined($default)) {
+        return $config->{$var} // $default;
     }
-    if (@{$config->{__pgp__}}) {
-        _decrypt_config($config);
-    }
+    _decrypt_config($config);
     return $config->{$var};
 }
 
@@ -696,7 +695,6 @@ my $here = dirname($PROGRAM_NAME);
 chdir($here) or die "$here: $ERRNO";
 
 my $opt_config = './mbank-cli.conf';
-my $opt_cookie_jar = './cookie-jar.txt';
 my $opt_from = undef;
 my $opt_to = undef;
 my $opt_range = undef;
@@ -721,7 +719,6 @@ Common options:
   --verbose
   --debug <debug-directory>
   --config <config-file>
-  --cookie-jar <cookie-jar-file>
 EOF
     exit();
 }
@@ -730,7 +727,6 @@ GetOptions(
     'verbose' => \$opt_verbose,
     'debug=s' => \$opt_debug_dir,
     'config=s' => \$opt_config,
-    'cookie-jar=s' => \$opt_cookie_jar,
     'from=s' => sub {
         (undef, my $date) = @_;
         $opt_from = fix_date($date);
@@ -760,11 +756,13 @@ GetOptions(
 ) or user_error();
 
 my $cfg = read_config($opt_config);
+my $cookie_jar_path = get_config_var($cfg, 'cookiejar', './cookie-jar.txt');
+my $ca_path = get_config_var($cfg, 'cafile', './ca.crt');
 
 $ua = http_init(
     host => $mbank_host,
-    cookie_jar => $opt_cookie_jar,
-    ca => './ca.crt',
+    cookie_jar => $cookie_jar_path,
+    ca => $ca_path,
 );
 
 my ($command, @args) = @ARGV;
