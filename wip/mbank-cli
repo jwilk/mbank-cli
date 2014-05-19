@@ -818,4 +818,11 @@ if ($command eq 'void') {
     user_error("Invalid command: $command");
 }
 
+END {
+    # catch write errors:
+    local $ERRNO = 0;
+    close(STDOUT) or os_error("stdout: $ERRNO");
+    close(STDERR) or os_error("stderr: $ERRNO");
+}
+
 # vim:ts=4 sw=4 et

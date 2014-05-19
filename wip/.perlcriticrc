@@ -4,6 +4,11 @@ verbose = 1
 [-CodeLayout::ProhibitParensWithBuiltins]
 # no, thanks
 
+[InputOutput::RequireCheckedSyscalls]
+functions = :builtins
+# print failures are caught in END { ... }
+exclude_functions = print
+
 [-RegularExpressions::RequireExtendedFormatting]
 [-RegularExpressions::RequireDotMatchAnything]
 [-RegularExpressions::RequireLineBoundaryMatching]
