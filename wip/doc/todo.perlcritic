@@ -1,12 +1,12 @@
   1 files.
  28 subroutines/methods.
-745 statements.
+759 statements.
 
-828 lines, consisting of:
-     55 blank lines.
+846 lines, consisting of:
+     58 blank lines.
      50 comment lines.
       0 data lines.
-    723 lines of Perl code.
+    738 lines of Perl code.
       0 lines of POD.
 
 Average McCabe score of subroutines was 3.75.
