@@ -6,7 +6,7 @@ verbose = 1
 
 [InputOutput::RequireCheckedSyscalls]
 functions = :builtins
-# print failures are caught in END { ... }
+# print failures are caught at the END
 exclude_functions = print
 
 [-RegularExpressions::RequireExtendedFormatting]
