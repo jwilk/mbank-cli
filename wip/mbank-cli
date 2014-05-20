@@ -248,6 +248,7 @@ sub http_init
             check_cn => 0,
             wildcards_in_alt => 0,
             wildcards_in_cn => 0,
+            ip_in_cn => 0,
             # FIXME: LWP::protocol::https (>= 6.0) stomps on SSL_verifycn_scheme
             # https://bugs.debian.org/747225
         },
