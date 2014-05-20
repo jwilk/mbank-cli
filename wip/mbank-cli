@@ -149,9 +149,9 @@ sub internal_error
     exit(255);
 }
 
-# =========
-# encodings
-# =========
+# ====================
+# internationalization
+# ====================
 
 my %_encoding_fallback = (
     0x104 => 'A', 0x105 => 'a', # letter A with ogonek
@@ -205,6 +205,14 @@ sub unicode_to_bytes
     $encoding //= 'locale';
     return Encode::encode($encoding, $s, \&_encoding_fallback);
 }
+
+my %country_to_language = (
+    cz => 'cs',  # Czech Republic => Czech
+    pl => 'pl',  # Poland => Polish
+    sk => 'sk',  # Slovakia => Slovak
+);
+
+my @known_countries = keys(%country_to_language);
 
 # ====
 # HTTP
@@ -457,11 +465,8 @@ sub find_html_class
 # command implementations
 # =======================
 
-my $cc = 'pl_PL';
-my ($tld, $lang) = ($cc =~ m/(\w+)_(\w+)/);
-$lang = lc $lang;
-my $mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
-my $base_url = $ENV{MBANK_CLI_BASE_URL} // "https://$mbank_host/$lang";
+my $mbank_host = undef;
+my $base_url = undef;
 
 my $opt_multi = undef;
 my $opt_all = undef;
@@ -785,6 +790,18 @@ GetOptions(
 my $cfg = read_config($opt_config);
 my $cookie_jar_path = get_config_var($cfg, 'cookiejar', './cookie-jar.txt');
 my $ca_path = get_config_var($cfg, 'cafile', './ca.crt');
+my $tld = get_config_var($cfg, 'country')
+    // config_error($cfg, 'missing country');
+$tld = lc $tld;
+my $lang = $country_to_language{$tld};
+if (not defined($lang)) {
+    local $LIST_SEPARATOR = ', ';
+    my $known_countries = "{@known_countries}";
+    config_error($cfg, "unknown country $tld, not in $known_countries");
+}
+
+$mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
+$base_url = $ENV{MBANK_CLI_BASE_URL} // "https://$mbank_host/$lang";
 
 $ua = http_init(
     host => $mbank_host,
