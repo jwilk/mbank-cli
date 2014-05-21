@@ -141,12 +141,25 @@ sub os_error
 
 sub internal_error
 {
-    my ($message) = @_;
+    my ($message, $level) = @_;
     $message = "Internal error: $message";
     write_log($message);
-    local $Carp::CarpLevel = 1;
+    local $Carp::CarpLevel = $level + 1;
     Carp::cluck($message);
     exit(255);
+}
+
+sub check_for_unexpected_options
+{
+    my %options = @_;
+    return if not %options;
+    my $message;
+    {
+        local $LIST_SEPARATOR = ', ';
+        my @option_keys = sort keys %options;
+        $message = "unexpected options: @option_keys";
+    }
+    return internal_error($message, 1);
 }
 
 # ====================
@@ -233,11 +246,7 @@ sub http_init
         or internal_error('missing cookie_jar');
     my $ca_path = delete $options{ca}
         or internal_error('missing ca');
-    if (%options) {
-        local $LIST_SEPARATOR = ', ';
-        my @option_keys = sort keys %options;
-        internal_error("unexpected options: @option_keys");
-    }
+    check_for_unexpected_options(%options);
     if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
         # should not happen, but better safe than sorry
         internal_error("\$Net::HTTPS::SSL_SOCKET_CLASS == $Net::HTTPS::SSL_SOCKET_CLASS")
@@ -468,9 +477,6 @@ sub find_html_class
 my $mbank_host = undef;
 my $base_url = undef;
 
-my $opt_multi = undef;
-my $opt_all = undef;
-
 my @json_headers = (
     'Accept' => 'application/json, text/javascript, */*; q=0.01',
     'Content-Type' => 'application/json; charset=UTF-8',
@@ -485,7 +491,9 @@ my @ajax_html_headers = (
 
 sub do_login
 {
-    my ($cfg) = @_;
+    my %options = @_;
+    my $cfg = delete($options{config});
+    check_for_unexpected_options(%options);
     my $request = GET("$base_url");
     my $doc = download($request);
     if ($doc->{url} =~ m{/Login$}) {
@@ -544,13 +552,11 @@ sub do_login
 
 sub do_list
 {
-    my ($login_info, %options) = @_;
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
     my $quiet = delete($options{quiet}) // 0;
-    if (%options) {
-        local $LIST_SEPARATOR = ', ';
-        my @option_keys = sort keys %options;
-        internal_error("unexpected options: @option_keys");
-    }
+    check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/MyDesktop/Desktop/GetAccountsList",
         'X-Tab-Id' => $login_info->{tabid},
@@ -596,10 +602,22 @@ sub do_list
 
 sub do_future
 {
-    my ($login_info, $account_info, @args) = @_;
-    if ($opt_all) {
-        @args = '*';
-    } elsif (scalar(@args) < 1) {
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    my $account_info = delete($options{accounts})
+        // internal_error('missing account info');
+    my $selection = delete($options{selection})
+        // internal_error('missing selection');
+    my @selection = @{$selection};
+    my $select_all = delete($options{select_all})
+        // internal_error('missing select_all');
+    my $select_multi = delete($options{select_multi})
+        // internal_error('missing select_multi');
+    check_for_unexpected_options(%options);
+    if ($select_all) {
+        @selection = '*';
+    } elsif (scalar(@selection) < 1) {
         user_error('No account selected.');
     }
     my $request = POST(
@@ -613,7 +631,7 @@ sub do_future
     my $doc = download($request);
     my $json = decode_json($doc->{content});
     my $selected_re = wildcards_to_regexp(
-        map { bytes_to_unicode $_ } @args
+        map { bytes_to_unicode $_ } @selection
     );
     my %selected_accounts = ();
     foreach my $account (@{$account_info}) {
@@ -630,8 +648,8 @@ sub do_future
         user_error('No matching accounts.')
     }
     my $use_multi =
-        $opt_multi ||
-        $opt_all ||
+        $select_multi ||
+        $select_all ||
         (scalar(keys %selected_accounts) > 1);
     my $transfer_info = $json->{transferInfos}
         // scraping_error('future.transfer');
@@ -675,7 +693,10 @@ sub do_future
 
 sub do_logout
 {
-    my ($login_info) = @_;
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    check_for_unexpected_options(%options);
     debug('logging out...');
     my $request = POST(
         "$base_url/LoginMain/Account/LazyLogout",
@@ -703,7 +724,10 @@ sub do_logout
 
 sub do_cards
 {
-    my ($login_info) = @_;
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/Cards/Cards/IndexData",
         'X-Tab-Id' => $login_info->{tabid},
@@ -749,6 +773,8 @@ my $opt_config = './mbank-cli.conf';
 my $opt_from = undef;
 my $opt_to = undef;
 my $opt_range = undef;
+my $opt_all = 0;
+my $opt_multi = 0;
 
 sub show_help
 {
@@ -835,21 +861,42 @@ debug("selected command: $command");
 if ($command eq 'void') {
     # Nothing to do!
 } elsif ($command eq 'list') {
-    my $login_info = do_login($cfg);
-    do_list($login_info);
+    my $login_info = do_login(
+        config => $cfg,
+    );
+    do_list(
+        login => $login_info,
+    );
 } elsif ($command eq 'future') {
-    my $login_info = do_login($cfg);
-    my $account_info = do_list($login_info, quiet => 1);
-    do_future($login_info, $account_info, @args);
+    my $login_info = do_login(
+        config => $cfg,
+    );
+    my $account_info = do_list(
+        login => $login_info,
+        quiet => 1,
+    );
+    do_future(
+        login => $login_info,
+        accounts => $account_info,
+        selection => [@args],
+        select_all => $opt_all,
+        select_multi => $opt_multi,
+    );
 } elsif ($command eq 'cards') {
-    my $login_info = do_login($cfg);
-    do_cards($login_info, @args);
+    my $login_info = do_login(
+        config => $cfg,
+    );
+    do_cards(
+        login => $login_info,
+    );
 } elsif ($command eq 'logout') {
     my $login_info = do_login();
     if (not defined $login_info) {
         user_error('The user is not logged in.')
     }
-    do_logout($login_info);
+    do_logout(
+        login => $login_info,
+    );
 } elsif (grep { $command eq $_ } qw(history blocked deposits funds notices rename)) {
     user_error("Command not implemented: $command");
 } else {
