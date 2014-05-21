@@ -557,17 +557,21 @@ sub do_list
     my $json = decode_json($doc->{content});
     my @accounts = @{$json->{accountDetailsList}};
     for my $account (@accounts) {
-        my $name = $account->{ProductName} // scraping_error('list.product-name');
+        my $name = $account->{ProductName}
+            // scraping_error('list.product-name');
         my $subtitle = $account->{SubTitle} // '';
         if ($subtitle ne '') {
             $name .= " - $subtitle";
         }
         $name = unicode_to_bytes($name);
-        my $number = $account->{AccountNumber} // scraping_error('list.account-number');
+        my $number = $account->{AccountNumber}
+            // scraping_error('list.account-number');
         my $balance = $account->{Balance};
         my $available = $account->{AvailableBalance};
-        $balance = parse_amount($balance) // scraping_error("list.balance: $balance");
-        $available = parse_amount($available) // scraping_error("list.available: $available");
+        $balance = parse_amount($balance)
+            // scraping_error("list.balance: $balance");
+        $available = parse_amount($available)
+            // scraping_error("list.available: $available");
         my $currency = $account->{Currency};
         printf("%s\t%32s\t%8.2f %s\t%8.2f %s\n", $name, $number, $balance, $currency, $available, $currency);
     }
