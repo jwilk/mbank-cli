@@ -562,6 +562,7 @@ sub do_list
         if ($subtitle ne '') {
             $name .= " - $subtitle";
         }
+        $name = unicode_to_bytes($name);
         my $number = $account->{AccountNumber} // scraping_error('list.account-number');
         my $balance = $account->{Balance};
         my $available = $account->{AvailableBalance};
