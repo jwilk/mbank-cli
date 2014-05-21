@@ -736,26 +736,28 @@ sub do_logout
     my $login_info = delete($options{login})
         // internal_error('missing login info');
     check_for_unexpected_options(%options);
-    debug('logging out...');
-    my $request = POST(
-        "$base_url/LoginMain/Account/LazyLogout",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @json_headers,
-        'Referer' => $login_info->{url},
-    );
-    my $doc = download($request);
-    my $json = decode_json($doc->{content});
-    $json->{lazy}
-        or scraping_error('logout.lazy');
-    $request = GET(
-        "$base_url/LoginMain/Account/Logout",
-        'Referer' => $login_info->{url},
-    );
-    my $response = simple_download($request);
-    $response->is_redirect
-        or scraping_error('logout.redirect');
-    debug('successful logout');
+    if (defined($login_info)) {
+        debug('logging out...');
+        my $request = POST(
+            "$base_url/LoginMain/Account/LazyLogout",
+            'X-Tab-Id' => $login_info->{tabid},
+            'X-Request-Verification-Token' => $login_info->{arvt},
+            @json_headers,
+            'Referer' => $login_info->{url},
+        );
+        my $doc = download($request);
+        my $json = decode_json($doc->{content});
+        $json->{lazy}
+            or scraping_error('logout.lazy');
+        $request = GET(
+            "$base_url/LoginMain/Account/Logout",
+            'Referer' => $login_info->{url},
+        );
+        my $response = simple_download($request);
+        $response->is_redirect
+            or scraping_error('logout.redirect');
+        debug('successful logout');
+    }
     $ua->cookie_jar->clear();
     debug('cookies have been wiped out');
     return;
@@ -891,12 +893,12 @@ if ($command eq 'void') {
     );
 } elsif ($command eq 'logout') {
     my $login_info = do_login();
-    if (not defined $login_info) {
-        user_error('The user is not logged in.')
-    }
     do_logout(
         login => $login_info,
     );
+    if (not defined($login_info)) {
+        user_error('The user was not logged in.')
+    }
 } elsif (grep { $command eq $_ } qw(history blocked deposits funds notices rename)) {
     user_error("Command not implemented: $command");
 } else {
