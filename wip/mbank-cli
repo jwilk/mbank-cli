@@ -156,7 +156,7 @@ sub check_for_unexpected_options
     my $message;
     {
         local $LIST_SEPARATOR = ', ';
-        my @option_keys = sort keys %options;
+        my @option_keys = sort(keys(%options));
         $message = "unexpected options: @option_keys";
     }
     return internal_error($message, 1);
@@ -309,7 +309,7 @@ sub download
     my $response = $ua->request($request, undef, $http_read_size_hint);
     my $content = $response->content;
     $content =~ s/\r//g;
-    if (defined $opt_debug_dir) {
+    if (defined($opt_debug_dir)) {
         my $is_json = $response->header('Content-Type') =~ m{\Aapplication/json(;|\Z)};
         my $default_ext = $is_json ? 'json' : 'html';
         my $path = $request->uri;
@@ -379,7 +379,7 @@ sub _read_config
     };
     while (<$fh>) {
         chomp;
-        if (defined $pgp) {
+        if (defined($pgp)) {
             $pgp .= "$_\n";
             if ($_ eq '-----END PGP MESSAGE-----') {
                 push(@{$config->{__pgp__}}, $pgp);
@@ -497,7 +497,8 @@ sub do_login
     my $request = GET("$base_url");
     my $doc = download($request);
     if ($doc->{url} =~ m{/Login$}) {
-        if (not defined $cfg) {
+        if (not defined($cfg)) {
+            debug('not logged in');
             return;
         }
         debug('logging in...');
@@ -650,14 +651,14 @@ sub do_future
     my $use_multi =
         $select_multi ||
         $select_all ||
-        (scalar(keys %selected_accounts) > 1);
+        (scalar(keys(%selected_accounts)) > 1);
     my $transfer_info = $json->{transferInfos}
         // scraping_error('future.transfer');
     for my $transfer (@{$transfer_info}) {
         my $number = $transfer->{accountNumber}
             // scraping_error('future.transfer.account-number');
         my $name = $selected_accounts{$number};
-        defined $name or next;
+        defined($name) or next;
         if ($use_multi) {
             print("$name\t");
         }
@@ -733,8 +734,7 @@ sub do_cards
 sub do_logout
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
+    my $login_info = delete($options{login});
     check_for_unexpected_options(%options);
     if (defined($login_info)) {
         debug('logging out...');
