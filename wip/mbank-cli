@@ -544,7 +544,13 @@ sub do_login
 
 sub do_list
 {
-    my ($login_info) = @_;
+    my ($login_info, %options) = @_;
+    my $quiet = delete($options{quiet}) // 0;
+    if (%options) {
+        local $LIST_SEPARATOR = ', ';
+        my @option_keys = sort keys %options;
+        internal_error("unexpected options: @option_keys");
+    }
     my $request = POST(
         "$base_url/MyDesktop/Desktop/GetAccountsList",
         'X-Tab-Id' => $login_info->{tabid},
@@ -556,6 +562,7 @@ sub do_list
     my $doc = download($request);
     my $json = decode_json($doc->{content});
     my @accounts = @{$json->{accountDetailsList}};
+    my @result;
     for my $account (@accounts) {
         my $name = $account->{ProductName}
             // scraping_error('list.product-name');
@@ -563,9 +570,13 @@ sub do_list
         if ($subtitle ne '') {
             $name .= " - $subtitle";
         }
-        $name = unicode_to_bytes($name);
         my $number = $account->{AccountNumber}
             // scraping_error('list.account-number');
+        push(@result, {
+            name => $name,
+            number => $number }
+        );
+        next if $quiet;
         my $balance = $account->{Balance};
         my $available = $account->{AvailableBalance};
         $balance = parse_amount($balance)
@@ -573,14 +584,19 @@ sub do_list
         $available = parse_amount($available)
             // scraping_error("list.available: $available");
         my $currency = $account->{Currency};
-        printf("%s\t%32s\t%8.2f %s\t%8.2f %s\n", $name, $number, $balance, $currency, $available, $currency);
+        printf("%s\t%32s\t%8.2f %s\t%8.2f %s\n",
+            unicode_to_bytes($name),
+            $number,
+            $balance, $currency,
+            $available, $currency
+        );
     }
-    return;
+    return [@result];
 }
 
 sub do_future
 {
-    my ($login_info, @args) = @_;
+    my ($login_info, $account_info, @args) = @_;
     if ($opt_all) {
         @args = '*';
     } elsif (scalar(@args) < 1) {
@@ -596,15 +612,13 @@ sub do_future
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content});
-    my $selected_re = wildcards_to_regexp(@args);
-    my $account_info = $json->{filter}->{filterAccounts}
-        // scraping_error('future.filter');
+    my $selected_re = wildcards_to_regexp(
+        map { bytes_to_unicode $_ } @args
+    );
     my %selected_accounts = ();
     foreach my $account (@{$account_info}) {
-        my $name = $account->{accountName}
-            // scraping_error('future.filter.account-name');
-        my $number = $account->{accountNumber}
-            // scraping_error('future.filter.account-number');
+        my $name = $account->{name};
+        my $number = $account->{number};
         if ($name =~ $selected_re) {
             debug("selected account: $number");
             $selected_accounts{$number} = $name;
@@ -825,7 +839,8 @@ if ($command eq 'void') {
     do_list($login_info);
 } elsif ($command eq 'future') {
     my $login_info = do_login($cfg);
-    do_future($login_info, @args);
+    my $account_info = do_list($login_info, quiet => 1);
+    do_future($login_info, $account_info, @args);
 } elsif ($command eq 'cards') {
     my $login_info = do_login($cfg);
     do_cards($login_info, @args);
