@@ -691,37 +691,6 @@ sub do_future
     return;
 }
 
-sub do_logout
-{
-    my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    check_for_unexpected_options(%options);
-    debug('logging out...');
-    my $request = POST(
-        "$base_url/LoginMain/Account/LazyLogout",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @json_headers,
-        'Referer' => $login_info->{url},
-    );
-    my $doc = download($request);
-    my $json = decode_json($doc->{content});
-    $json->{lazy}
-        or scraping_error('logout.lazy');
-    $request = GET(
-        "$base_url/LoginMain/Account/Logout",
-        'Referer' => $login_info->{url},
-    );
-    my $response = simple_download($request);
-    $response->is_redirect
-        or scraping_error('logout.redirect');
-    debug('successful logout');
-    $ua->cookie_jar->clear();
-    debug('cookies have been wiped out');
-    return;
-}
-
 sub do_cards
 {
     my %options = @_;
@@ -758,6 +727,37 @@ sub do_cards
             // scraping_error('cards.amount.3');
         printf("%s\t%s\t\%s\t%8.2f %s\n", $name, $number, $owner, $amount, $currency);
     }
+    return;
+}
+
+sub do_logout
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    check_for_unexpected_options(%options);
+    debug('logging out...');
+    my $request = POST(
+        "$base_url/LoginMain/Account/LazyLogout",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @json_headers,
+        'Referer' => $login_info->{url},
+    );
+    my $doc = download($request);
+    my $json = decode_json($doc->{content});
+    $json->{lazy}
+        or scraping_error('logout.lazy');
+    $request = GET(
+        "$base_url/LoginMain/Account/Logout",
+        'Referer' => $login_info->{url},
+    );
+    my $response = simple_download($request);
+    $response->is_redirect
+        or scraping_error('logout.redirect');
+    debug('successful logout');
+    $ua->cookie_jar->clear();
+    debug('cookies have been wiped out');
     return;
 }
 
