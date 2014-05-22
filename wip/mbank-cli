@@ -452,6 +452,20 @@ sub parse_amount
     return $s;
 }
 
+sub format_timestamp
+{
+    my ($timestamp) = @_;
+    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\Z/)
+        or return;
+    $time =~ s/[.]0+\Z//;
+    $time =~ s/[:]0+\Z//;
+    if ($time =~ m/\A[0:]+\Z/) {
+        # boring
+        return $date;
+    }
+    return "${date}T${time}";
+}
+
 sub wildcards_to_regexp
 {
     my (@wildcards) = @_;
@@ -663,12 +677,8 @@ sub do_future
             print("$name\t");
         }
         my $timestamp = $transfer->{date};
-        my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\Z/)
-            or scraping_error('future.transfer.date');
-        if ($time =~ m/\A[0:.]+\Z/) {
-            # boring
-            $timestamp = $date;
-        }
+        $timestamp = format_timestamp($timestamp)
+            // scraping_error('future.transfer.date');
         my $recipient = $transfer->{benef}
             // scraping_error('future.transfer.recipient');
         for my $key (qw(benefAddress benefCity)) {
@@ -727,6 +737,50 @@ sub do_cards
         $amount = parse_amount($amount)
             // scraping_error('cards.amount.3');
         printf("%s\t%s\t\%s\t%8.2f %s\n", $name, $number, $owner, $amount, $currency);
+    }
+    return;
+}
+
+sub do_notices
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    check_for_unexpected_options(%options);
+    my $request = POST(
+        "$base_url/WhirlWind/AdvPlaceholder/GetUpdates",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @json_headers,
+        'Referer' => $login_info->{url},
+        Content => '{"placeholderIdList":null,"timestamp":-1}',
+    );
+    my $doc = download($request);
+    my $json = decode_json($doc->{content});
+    my $elements = $json->{Elements}
+        // scraping_error('notices.elements');
+    foreach my $element (@{$elements}) {
+        my $template_path = $element->{TemplatePath}
+            // scraping_error('notices.template-path');
+        my $message = $element->{Message}
+            // scraping_error('notices.message');
+        my $is_hidden = $message->{IsHidden}
+            // scraping_error('notices.is-hidden');
+        my $is_visible = (
+            $template_path =~ m{/MessageBox/|/TopAdmin/}
+            and not $is_hidden
+        );
+        $is_visible or next;
+        my $is_read = $message->{IsRead}
+            // scraping_error('notices.is-read');
+        my $new_flag = $is_read ? '' : 'N';
+        my $timestamp = $message->{StartDate};
+        $timestamp = format_timestamp($timestamp)
+            // scraping_error('notices.date');
+        my $title = $message->{Title}
+            // scraping_error('notices.title');
+        $title = unicode_to_bytes($title);
+        print "$new_flag\t$timestamp\t$title\n";
     }
     return;
 }
@@ -889,6 +943,13 @@ if ($command eq 'void') {
         config => $cfg,
     );
     do_cards(
+        login => $login_info,
+    );
+} elsif ($command eq 'notices') {
+    my $login_info = do_login(
+        config => $cfg,
+    );
+    do_notices(
         login => $login_info,
     );
 } elsif ($command eq 'logout') {
