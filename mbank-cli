@@ -611,6 +611,7 @@ sub http_init
         # https://bugs.debian.org/788698
         delete $ENV{$key};
     }
+    my $ocsp_cache = IO::Socket::SSL::OCSP_Cache->new();
     my @ssl_options = (
         SSL_version => 'SSLv23:!SSLv2:!SSLv3',
         SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
@@ -621,6 +622,8 @@ sub http_init
             wildcards_in_cn => 0,
             ip_in_cn => 0,
         },
+        SSL_ocsp_mode => IO::Socket::SSL::SSL_OCSP_FULL_CHAIN | IO::Socket::SSL::SSL_OCSP_FAIL_HARD | IO::Socket::SSL::SSL_OCSP_MUST_STAPLE,
+        SSL_ocsp_cache => $ocsp_cache,
     );
     if (defined($ca_path)) {
         push(@ssl_options,
