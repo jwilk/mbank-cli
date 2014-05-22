@@ -120,6 +120,20 @@ sub http_error
     exit(2);
 }
 
+sub http_decoding_error
+{
+    my ($request) = @_;
+    my $message = sprintf(
+        'HTTP decoding error while processing request <%s %s>',
+        $request->method,
+        $request->uri,
+    );
+    write_log($message);
+    local $Carp::CarpLevel = 1;
+    Carp::cluck($message);
+    exit(2);
+}
+
 sub scraping_error
 {
     my ($message) = @_;
@@ -294,6 +308,9 @@ sub http_init
             @ssl_options,
         )
     };
+    $ua->default_header(
+        'Accept-Encoding' => 'gzip, deflate',
+    );
     return $ua;
 }
 
@@ -307,6 +324,8 @@ sub download
     );
     debug($message);
     my $response = $ua->request($request, undef, $http_read_size_hint);
+    $response->decode()
+        // http_decoding_error($request);
     my $content = $response->content;
     $content =~ s/\r//g;
     if (defined($opt_debug_dir)) {
@@ -351,6 +370,8 @@ sub simple_download
     if ($response->is_error) {
         http_error($request, $response);
     }
+    $response->decode()
+        // http_decoding_error($request);
     return $response;
 }
 
