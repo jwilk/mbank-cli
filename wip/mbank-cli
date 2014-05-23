@@ -910,7 +910,8 @@ GetOptions(
 ) or user_error();
 
 my $cfg = read_config($opt_config);
-my $cookie_jar_path = get_config_var($cfg, 'cookiejar', './cookie-jar.txt');
+my $cookie_jar_path = get_config_var($cfg, 'cookiejar')
+    // config_error($cfg, 'missing cookiejar');
 my $ca_path = get_config_var($cfg, 'cafile', './ca.crt');
 my $tld = get_config_var($cfg, 'country')
     // config_error($cfg, 'missing country');
