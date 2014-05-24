@@ -241,9 +241,9 @@ my %country_to_language = (
 
 my @known_countries = keys(%country_to_language);
 
-# ====
-# HTTP
-# ====
+# =============
+# HTTP, SSL/TLS
+# =============
 
 my $ua = undef;
 
@@ -375,6 +375,21 @@ sub simple_download
     return $response;
 }
 
+sub get_default_ca_path
+{
+    my ($name, @hashes) = @_;
+    my $filename = "$name.crt";
+    $filename =~ y/ /_/;
+    my $candidate = "/usr/share/ca-certificates/mozilla/$filename";
+    if (-r $candidate) {
+        return $candidate;
+    }
+    # TODO: take into account @hashes
+    my $here = dirname($PROGRAM_NAME);
+    $candidate = File::Spec->catfile($here, 'ca.crt');
+    return $candidate;
+}
+
 # ===========================
 # configuration file handling
 # ===========================
@@ -455,6 +470,9 @@ sub get_config_var
 {
     my ($config, $var, $default) = @_;
     if (exists($config->{$var}) or defined($default)) {
+        if (ref($default)) {
+            $default = ${$default};
+        }
         return $config->{$var} // $default;
     }
     _decrypt_config($config);
@@ -842,10 +860,6 @@ sub do_logout
 # main program
 # ============
 
-my $here = dirname($PROGRAM_NAME);
-chdir($here)
-    or os_error("$here: $ERRNO");
-
 my $opt_config = './mbank-cli.conf';
 my $opt_from = undef;
 my $opt_to = undef;
@@ -912,7 +926,15 @@ GetOptions(
 my $cfg = read_config($opt_config);
 my $cookie_jar_path = get_config_var($cfg, 'cookiejar')
     // config_error($cfg, 'missing cookiejar');
-my $ca_path = get_config_var($cfg, 'cafile', './ca.crt');
+my $ca_path = get_config_var($cfg, 'cafile', \undef)
+    // get_default_ca_path(
+        'Verisign Class 3 Public Primary Certification Authority',
+        # openssl x509 -subject_hash -noout
+        '415660c1',
+        # openssl x509 -subject_hash_old -noout
+        '7651b327',
+    );
+debug("cafile = $ca_path");
 my $tld = get_config_var($cfg, 'country')
     // config_error($cfg, 'missing country');
 $tld = lc $tld;
