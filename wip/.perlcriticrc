@@ -21,4 +21,7 @@ exclude_functions = print
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 # no, thanks
 
+[Variables::ProhibitPackageVars]
+add_packages = Carp
+
 # vim:ft=dosini
