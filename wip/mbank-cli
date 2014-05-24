@@ -997,6 +997,7 @@ if ($command eq 'void') {
         login => $login_info,
     );
 } elsif ($command eq 'logout') {
+    # TODO: allow logging out from the old web interface
     my $login_info = do_login();
     do_logout(
         login => $login_info,
