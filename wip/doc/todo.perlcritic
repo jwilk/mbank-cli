@@ -1,23 +1,2 @@
-  1 files.
- 33 subroutines/methods.
-926 statements.
-
-1,024 lines, consisting of:
-     61 blank lines.
-     54 comment lines.
-      0 data lines.
-    909 lines of Perl code.
-      0 lines of POD.
-
-Average McCabe score of subroutines was 3.55.
-
-2 violations.
-Violations per file was 2.000.
-Violations per statement was 0.002.
-Violations per line of code was 0.002.
-
-1 severity 2 violations.
-1 severity 1 violations.
-
-1 violations of BuiltinFunctions::ProhibitBooleanGrep.
-1 violations of CodeLayout::RequireTidyCode.
+      1 BuiltinFunctions::ProhibitBooleanGrep
+      1 CodeLayout::RequireTidyCode

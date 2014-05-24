@@ -3,7 +3,7 @@ set -e -u
 here=$(basename "$0")
 cd "$here/.."
 target=doc/todo.perlcritic
-if perlcritic --statistics-only mbank-cli > "${target}.new"
+if perlcritic --verbose '%p\n' mbank-cli | sort | uniq -c > "${target}.new"
 then
     :
 else
