@@ -293,7 +293,7 @@ sub http_init
             ignore_discard => 1
         );
     };
-    my $ua = LWP::UserAgent->new(
+    my $ua = LWP::UserAgent->new(  ## no critic (ReusedNames)
         agent => $http_product_name,
         cookie_jar => $cookie_jar,
         requests_redirectable => ['GET', 'POST'],
