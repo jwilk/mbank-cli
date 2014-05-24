@@ -415,7 +415,7 @@ sub _read_config
     };
     while (<$fh>) {
         chomp;
-        if (defined($pgp)) {
+        if (defined($pgp)) {  ## no critic (CascadingIfElse)
             $pgp .= "$_\n";
             if ($_ eq '-----END PGP MESSAGE-----') {
                 push(@{$config->{__pgp__}}, $pgp);
@@ -958,7 +958,7 @@ my ($command, @args) = @ARGV;
 $command //= 'list';
 debug("selected command: $command");
 
-if ($command eq 'void') {
+if ($command eq 'void') {  ## no critic (CascadingIfElse)
     # Nothing to do!
 } elsif ($command eq 'list') {
     my $login_info = do_login(
