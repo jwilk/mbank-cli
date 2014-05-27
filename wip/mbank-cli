@@ -484,28 +484,32 @@ sub get_config_var
 # misc parsing
 # ============
 
-sub parse_amount
+sub format_amount
 {
-    my ($s) = @_;
-    $s =~ m/\A-?\d+,\d{2}\Z/ or return;
-    $s =~ y/,/./;
-    return $s;
-}
-
-sub parse_amount_and_currency
-{
-    my ($s, $flags) = @_;
-    $flags //= '';
+    my ($s, %options) = @_;
+    my $use_plus = delete($options{plus});
+    my $currency = delete($options{currency});
+    check_for_unexpected_options(%options);
     my $sign_re;
-    if ($flags =~ m/[+]/) {
-        $sign_re = qr/[+-]/;
+    if ($use_plus) {
+        $sign_re = qr/[+-]?/;
     } else {
         $sign_re = qr/-?/;
     }
-    my ($amount, $currency) = ($s =~ m/\A($sign_re\d+,\d{2})\s+([A-Z]{3})\Z/)
+    my $amount_re = qr/($sign_re\d+,\d{2})/;
+    my $currency_re;
+    if (defined $currency) {
+        $currency =~ m/\A[A-Z]{3}\Z/
+            or return;
+        $currency_re = qr//;
+    } else {
+        $currency_re = qr/\s+([A-Z]{3})/;
+    }
+    my ($amount, $parsed_currency) = ($s =~ m/\A$amount_re$currency_re\Z/)
         or return;
     $amount =~ y/,/./;
-    return ($amount, $currency);
+    $currency //= $parsed_currency;
+    return sprintf('%10s %s', $amount, $currency);
 }
 
 sub format_timestamp
@@ -664,17 +668,13 @@ sub do_list
         next if $quiet;
         my $balance = $account->{Balance};
         my $available = $account->{AvailableBalance};
-        $balance = parse_amount($balance)
-            // scraping_error("list.balance: $balance");
-        $available = parse_amount($available)
-            // scraping_error("list.available: $available");
         my $currency = $account->{Currency};
-        printf("%s\t%32s\t%8.2f %s\t%8.2f %s\n",
-            unicode_to_bytes($name),
-            $number,
-            $balance, $currency,
-            $available, $currency
-        );
+        $balance = format_amount($balance, currency => $currency)
+            // scraping_error("list.balance: $balance $currency");
+        $available = format_amount($available, currency => $currency)
+            // scraping_error("list.available: $available $currency");
+        $name = unicode_to_bytes($name);
+        print("$name\t$number\t$balance\t$available\n");
     }
     return [@result];
 }
@@ -758,10 +758,11 @@ sub do_future
             // scraping_error('future.transfer.amount');
         my $currency = $transfer->{currency}
             // scraping_error('future.transfer.currency');
-        my $fmt_amount = sprintf('%8.2f %s', $amount, $currency);
+        $amount = format_amount($amount, currency => $currency)
+            // scraping_error("future.transfer.amount: $amount $currency");
         my $status = $transfer->{transferType}
             // scraping_error('future.transfer.type');
-        print("$timestamp\t$recipient\t$description\t$fmt_amount\t$status\n");
+        print("$timestamp\t$recipient\t$description\t$amount\t$status\n");
     }
     return;
 }
@@ -794,11 +795,11 @@ sub do_cards
             // scraping_error('cards.owner');
         my $owner = $e_owner->as_trimmed_text();
         my $e_amount = find_html_class($e_card, 'card-amount')
-            // scraping_error('cards.amount.1');
+            // scraping_error('cards.amount');
         my $amount = $e_amount->as_trimmed_text();
-        ($amount, my $currency) = parse_amount_and_currency($amount)
-            or scraping_error('cards.amount.2');
-        printf("%s\t%s\t\%s\t%8.2f %s\n", $name, $number, $owner, $amount, $currency);
+        $amount = format_amount($amount)
+            or scraping_error("cards.amount: $amount");
+        print("$name\t$number\t$owner\t$amount\n");
     }
     return;
 }
