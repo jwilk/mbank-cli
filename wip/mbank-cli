@@ -499,11 +499,11 @@ sub format_amount
     my $amount_re = qr/($sign_re\d+,\d{2})/;
     my $currency_re;
     if (defined $currency) {
-        $currency =~ m/\A[A-Z]{3}\Z/
+        $currency =~ m/\A[A-Z]{3}\Z/  ## no critic (EnumeratedClasses)
             or return;
         $currency_re = qr//;
     } else {
-        $currency_re = qr/\s+([A-Z]{3})/;
+        $currency_re = qr/\s+([A-Z]{3})/;  ## no critic (EnumeratedClasses)
     }
     my ($amount, $parsed_currency) = ($s =~ m/\A$amount_re$currency_re\Z/)
         or return;
