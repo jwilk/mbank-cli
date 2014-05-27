@@ -24,6 +24,8 @@ use strict;
 use warnings FATAL => qw(numeric);
 no encoding;
 
+use Date::Parse qw(str2time);
+use Date::Format qw(time2str);
 use Encode qw();
 use Encode::Locale qw();
 use English qw(-no_match_vars);
@@ -514,20 +516,47 @@ sub format_amount
     return sprintf('%10s %s', $amount, $currency);
 }
 
+sub format_number
+{
+    my ($format, $n) = @_;
+    eval {
+        $n = 0 + $n;
+    } or return;
+    return sprintf($format, $n);
+}
+
+sub parse_timestamp
+{
+    my ($timestamp) = @_;
+    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\Z/)
+        or return;
+    return str2time($timestamp);
+}
+
 sub format_timestamp
 {
     my ($timestamp, %options) = @_;
     my $use_time = delete($options{time}) // 1;
+    my $use_unix = delete($options{unix});
     check_for_unexpected_options(%options);
-    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\Z/)
-        or return;
+    my $unix_timestamp;
+    if ($use_unix) {
+        $unix_timestamp = $timestamp;
+    } else {
+        $unix_timestamp = parse_timestamp($timestamp)
+            // return;
+    }
+    my $date = time2str('%Y-%m-%d', $unix_timestamp)
+        // return;
     if (not $use_time) {
         return $date;
     }
-    $time =~ s/[.]0+\Z//;
-    $time =~ s/[:]0+\Z//;
-    if ($time =~ m/\A[0:]+\Z/) {
-        # boring
+    my $time = time2str('%H:%M:%S', $unix_timestamp)
+        // return;
+    if (my ($frac_seconds) = ($unix_timestamp =~ /[.](\d+)\Z/)) {
+        # fractional seconds are boring
+    } elsif ($time =~ /\A[\d:]+\Z/) {
+        # exactly-midnight times are boring
         return $date;
     }
     return "${date}T${time}";
@@ -773,6 +802,63 @@ sub do_future
         my $status = $transfer->{transferType}
             // scraping_error('future.transfer.type');
         print("$timestamp\t$recipient\t$description\t$amount\t$status\n");
+    }
+    return;
+}
+
+sub do_deposits
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    check_for_unexpected_options(%options);
+    my $request = POST(
+        "$base_url/Savings/Deposits/getDepositsList",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @json_headers,
+        'Referer' => $login_info->{url},
+        Content => '',
+    );
+    my $doc = download($request);
+    my $json = decode_json($doc->{content});
+    $json = $json->{properties}
+        // scraping_error('deposits.properties');
+    $json->{footer}->{isListComplete}
+        or scraping_error('deposits.incomplete');
+    my $deposits = $json->{deposits};
+    my $seconds_in_day = 60 * 60 * 24;
+    for my $deposit (@{$deposits}) {
+        my $title = $deposit->{title}
+            // scraping_error('deposits.title');
+        $title = unicode_to_bytes($title);
+        my $type = $deposit->{type}
+            // scraping_error('deposits.type');
+        $type = unicode_to_bytes($type);
+        my $end_date = $deposit->{endDate} // '';
+        $end_date = parse_timestamp($end_date)
+            // scraping_error("deposits.end-date: $end_date");
+        my $duration_in_days = $deposit->{durationInDays} // '';
+        $duration_in_days =~ m/\A\d+\Z/
+            or scraping_error('deposits.duration-in-days');
+        my $start_date = $end_date - $duration_in_days * $seconds_in_day;
+        $start_date = format_timestamp($start_date, unix => 1)
+            // scraping_error("deposits.start-date.unix: $start_date");
+        $end_date = format_timestamp($end_date, unix => 1)
+            // scraping_error("deposits.end-date.unix: $end_date");
+        my $duration = $deposit->{period}
+            // scraping_error('deposits.duration');
+        $duration = unicode_to_bytes($duration);
+        my $interest = $deposit->{interestRate} // '';
+        $interest = format_number('%.2f', $interest)
+            // scraping_error("deposits.interest: $interest");
+        my $amount = $deposit->{startValue} // '';
+        my $currency = $deposit->{currency} // '';
+        $amount = format_number('%.2f', $amount)
+            // scraping_error("deposits.amount: $amount");
+        $amount = format_amount($amount, currency => $currency)
+            // scraping_error("deposits.amount: $amount $currency");
+        print("$title\t$type\t$start_date\t$end_date\t$duration\t$interest%\t$amount\n");
     }
     return;
 }
@@ -1062,6 +1148,9 @@ if ($command eq 'void') {  ## no critic (CascadingIfElse)
         select_all => $opt_all,
         select_multi => $opt_multi,
     );
+} elsif ($command eq 'deposits') {
+    my $login_info = do_login(config => $cfg);
+    do_deposits(login => $login_info);
 } elsif ($command eq 'cards') {
     my $login_info = do_login(config => $cfg);
     do_cards(login => $login_info);
