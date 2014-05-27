@@ -1053,7 +1053,6 @@ Usage:
   mbank-cli cards
   mbank-cli notices
   mbank-cli logout
-  mbank-cli void
 
 Common options:
   --verbose
@@ -1130,7 +1129,7 @@ my ($command, @args) = @ARGV;
 $command //= 'list';
 debug("selected command: $command");
 
-if ($command eq 'void') {  ## no critic (CascadingIfElse)
+if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
     # Nothing to do!
 } elsif ($command eq 'list') {
     my $login_info = do_login(config => $cfg);
