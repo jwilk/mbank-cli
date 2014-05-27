@@ -804,6 +804,59 @@ sub do_cards
     return;
 }
 
+sub do_funds
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    check_for_unexpected_options(%options);
+    my $request = POST(
+        "$base_url/InvestmentFunds/Dashboard/Dashboard",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @ajax_html_headers,
+        'Referer' => $login_info->{url},
+        Content => '',
+    );
+    my $doc = download($request);
+    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_funds = find_html_class($e_root, 'investment-properties');
+    for my $e_fund (@e_funds) {
+        my $class = $e_fund->attr('class');
+        if ($class =~ html_class_regexp('wallet-properties')) {
+            next;
+        }
+        my $e_name = find_html_class($e_fund, 'investment-name-group')
+            // scraping_error('funds.name');
+        my $name = $e_name->as_trimmed_text();
+        $name = unicode_to_bytes($name);
+        my $e_amounts = find_html_class($e_fund, 'investment-actual')
+            // scraping_error('funds.amount');
+        my @e_amounts = $e_amounts->look_down(_tag => 'span');
+        my $n_amounts = scalar(@e_amounts);
+        ($n_amounts == 1) or ($n_amounts == 2)
+            or scraping_error('funds.amount.n');
+        my ($e_current_amount, $e_planned_amount) = @e_amounts;
+        my $current_amount = $e_current_amount->as_trimmed_text();
+        $current_amount = format_amount($current_amount)
+            or scraping_error("funds.amount.current: $current_amount");
+        my $planned_amount = undef;
+        if (defined($e_planned_amount)) {
+            $e_planned_amount->attr('class') =~ html_class_regexp('gray')
+                or scraping_error('funds.amount.planned.gray');
+            $planned_amount = $e_planned_amount->as_trimmed_text();
+            $planned_amount = format_amount($planned_amount, plus => 1)
+                or scraping_error("cards.amount.planned: $planned_amount");
+        }
+        my $line = "$name\t$current_amount";
+        if (defined($planned_amount)) {
+            $line .= "\t$planned_amount";
+        }
+        print("$line\n");
+    }
+    return;
+}
+
 sub do_notices
 {
     my %options = @_;
@@ -1013,6 +1066,13 @@ if ($command eq 'void') {  ## no critic (CascadingIfElse)
     do_cards(
         login => $login_info,
     );
+} elsif ($command eq 'funds') {
+    my $login_info = do_login(
+        config => $cfg,
+    );
+    do_funds(
+        login => $login_info,
+    );
 } elsif ($command eq 'notices') {
     my $login_info = do_login(
         config => $cfg,
@@ -1029,7 +1089,7 @@ if ($command eq 'void') {  ## no critic (CascadingIfElse)
     if (not defined($login_info)) {
         user_error('The user was not logged in.')
     }
-} elsif (grep { $command eq $_ } qw(history blocked deposits funds)) {
+} elsif (grep { $command eq $_ } qw(history blocked deposits)) {
     user_error("Command not implemented: $command");
 } else {
     user_error("Invalid command: $command");
