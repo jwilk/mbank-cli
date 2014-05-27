@@ -668,9 +668,12 @@ sub do_list
             number => $number }
         );
         next if $quiet;
-        my $balance = $account->{Balance};
-        my $available = $account->{AvailableBalance};
-        my $currency = $account->{Currency};
+        my $balance = $account->{Balance}
+            // scraping_error('list.balance');
+        my $available = $account->{AvailableBalance}
+            // scraping_error('list.available');
+        my $currency = $account->{Currency}
+            // scraping_error('list.currency');
         $balance = format_amount($balance, currency => $currency)
             // scraping_error("list.balance: $balance $currency");
         $available = format_amount($available, currency => $currency)
