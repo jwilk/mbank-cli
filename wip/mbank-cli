@@ -498,7 +498,7 @@ sub format_amount
     } else {
         $sign_re = qr/-?/;
     }
-    my $amount_re = qr/($sign_re\d+,\d{2})/;
+    my $amount_re = qr/($sign_re\d+[.,]\d{2})/;
     my $currency_re;
     if (defined $currency) {
         $currency =~ m/\A[A-Z]{3}\Z/  ## no critic (EnumeratedClasses)
