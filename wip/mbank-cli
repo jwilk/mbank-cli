@@ -492,6 +492,22 @@ sub parse_amount
     return $s;
 }
 
+sub parse_amount_and_currency
+{
+    my ($s, $flags) = @_;
+    $flags //= '';
+    my $sign_re;
+    if ($flags =~ m/[+]/) {
+        $sign_re = qr/[+-]/;
+    } else {
+        $sign_re = qr/-?/;
+    }
+    my ($amount, $currency) = ($s =~ m/\A($sign_re\d+,\d{2})\s+([A-Z]{3})\Z/)
+        or return;
+    $amount =~ y/,/./;
+    return ($amount, $currency);
+}
+
 sub format_timestamp
 {
     my ($timestamp) = @_;
@@ -780,10 +796,8 @@ sub do_cards
         my $e_amount = find_html_class($e_card, 'card-amount')
             // scraping_error('cards.amount.1');
         my $amount = $e_amount->as_trimmed_text();
-        ($amount, my $currency) = ($amount =~ m/\A(\S+)\s+(\S+)\Z/)
+        ($amount, my $currency) = parse_amount_and_currency($amount)
             or scraping_error('cards.amount.2');
-        $amount = parse_amount($amount)
-            // scraping_error('cards.amount.3');
         printf("%s\t%s\t\%s\t%8.2f %s\n", $name, $number, $owner, $amount, $currency);
     }
     return;
