@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 use strict;
-use warnings;
+use warnings FATAL => qw(numeric);
 no encoding;
 
 use Encode qw();
