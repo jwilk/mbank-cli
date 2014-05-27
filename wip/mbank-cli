@@ -1047,16 +1047,10 @@ debug("selected command: $command");
 if ($command eq 'void') {  ## no critic (CascadingIfElse)
     # Nothing to do!
 } elsif ($command eq 'list') {
-    my $login_info = do_login(
-        config => $cfg,
-    );
-    do_list(
-        login => $login_info,
-    );
+    my $login_info = do_login(config => $cfg);
+    do_list(login => $login_info);
 } elsif ($command eq 'future') {
-    my $login_info = do_login(
-        config => $cfg,
-    );
+    my $login_info = do_login(config => $cfg);
     my $account_info = do_list(
         login => $login_info,
         quiet => 1,
@@ -1069,32 +1063,18 @@ if ($command eq 'void') {  ## no critic (CascadingIfElse)
         select_multi => $opt_multi,
     );
 } elsif ($command eq 'cards') {
-    my $login_info = do_login(
-        config => $cfg,
-    );
-    do_cards(
-        login => $login_info,
-    );
+    my $login_info = do_login(config => $cfg);
+    do_cards(login => $login_info);
 } elsif ($command eq 'funds') {
-    my $login_info = do_login(
-        config => $cfg,
-    );
-    do_funds(
-        login => $login_info,
-    );
+    my $login_info = do_login(config => $cfg);
+    do_funds(login => $login_info);
 } elsif ($command eq 'notices') {
-    my $login_info = do_login(
-        config => $cfg,
-    );
-    do_notices(
-        login => $login_info,
-    );
+    my $login_info = do_login(config => $cfg);
+    do_notices(login => $login_info);
 } elsif ($command eq 'logout') {
     # TODO: allow logging out from the old web interface
     my $login_info = do_login();
-    do_logout(
-        login => $login_info,
-    );
+    do_logout(login => $login_info);
     if (not defined($login_info)) {
         user_error('The user was not logged in.')
     }
