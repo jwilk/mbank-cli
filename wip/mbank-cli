@@ -961,7 +961,6 @@ Usage:
   mbank-cli funds
   mbank-cli cards
   mbank-cli notices
-  mbank-cli rename <account> <new-name>
   mbank-cli logout
   mbank-cli void
 
