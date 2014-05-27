@@ -350,6 +350,8 @@ sub download
     if (not $response->is_success) {
         http_error($request, $response);
     }
+    $content = $response->decoded_content()
+        // http_decoding_error($request);
     my $url = $response->request->uri;
     return {
         response => $response,
