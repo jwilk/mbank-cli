@@ -774,7 +774,7 @@ sub do_cards
         my $e_amount = find_html_class($e_card, 'card-amount')
             // scraping_error('cards.amount.1');
         my $amount = $e_amount->as_trimmed_text();
-        ($amount, my $currency) = ($amount =~ m/\s*(\S+)\s+(\S+)\Z/)
+        ($amount, my $currency) = ($amount =~ m/\A(\S+)\s+(\S+)\Z/)
             or scraping_error('cards.amount.2');
         $amount = parse_amount($amount)
             // scraping_error('cards.amount.3');
