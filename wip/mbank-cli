@@ -516,9 +516,14 @@ sub format_amount
 
 sub format_timestamp
 {
-    my ($timestamp) = @_;
+    my ($timestamp, %options) = @_;
+    my $use_time = delete($options{time}) // 1;
+    check_for_unexpected_options(%options);
     my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\Z/)
         or return;
+    if (not $use_time) {
+        return $date;
+    }
     $time =~ s/[.]0+\Z//;
     $time =~ s/[:]0+\Z//;
     if ($time =~ m/\A[0:]+\Z/) {
@@ -896,7 +901,7 @@ sub do_notices
             // scraping_error('notices.is-read');
         my $new_flag = $is_read ? '' : 'N';
         my $timestamp = $message->{StartDate};
-        $timestamp = format_timestamp($timestamp)
+        $timestamp = format_timestamp($timestamp, time => 0)
             // scraping_error('notices.date');
         my $title = $message->{Title}
             // scraping_error('notices.title');
