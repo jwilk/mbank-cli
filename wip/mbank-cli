@@ -752,15 +752,15 @@ sub do_future
             }
         }
         my $description = $transfer->{description}
-            // scraping_error('future.transfter.description');
+            // scraping_error('future.transfer.description');
         $description = unicode_to_bytes($description);
         my $amount = $transfer->{amount}
-            // scraping_error('future.transfter.amount');
+            // scraping_error('future.transfer.amount');
         my $currency = $transfer->{currency}
-            // scraping_error('future.transfter.currency');
+            // scraping_error('future.transfer.currency');
         my $fmt_amount = sprintf('%8.2f %s', $amount, $currency);
         my $status = $transfer->{transferType}
-            // scraping_error('future.transfter.type');
+            // scraping_error('future.transfer.type');
         print("$timestamp\t$recipient\t$description\t$fmt_amount\t$status\n");
     }
     return;
