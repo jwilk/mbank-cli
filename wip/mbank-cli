@@ -517,10 +517,16 @@ sub wildcards_to_regexp
     return $re;
 }
 
+sub html_class_regexp
+{
+    my ($class) = @_;
+    return qr/(?:\A|\s)\Q$class\E(?:\s|\Z)/;
+}
+
 sub find_html_class
 {
     my ($element, $class) = @_;
-    my $re = qr/(?:\A|\s)\Q$class\E(?:\s|\Z)/;
+    my $re = html_class_regexp($class);
     return $element->look_down('class', $re);
 }
 
