@@ -1167,7 +1167,7 @@ if ($command eq 'void') {  ## no critic (CascadingIfElse)
     if (not defined($login_info)) {
         user_error('The user was not logged in.')
     }
-} elsif (grep { $command eq $_ } qw(history blocked deposits)) {
+} elsif (grep { $command eq $_ } qw(history blocked)) {
     user_error("Command not implemented: $command");
 } else {
     user_error("Invalid command: $command");
