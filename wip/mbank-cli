@@ -789,8 +789,8 @@ sub do_history
     my $selection = delete($options{selection})
         // internal_error('missing selection');
     my @selection = @{$selection};
-    my $select_multi = delete($options{select_multi})
-        // internal_error('missing select_multi');
+    my $display_name = delete($options{display_name})
+        // internal_error('missing display_name');
     my $start_date = delete($options{start_date});
     my $end_date = delete($options{end_date});
     check_for_unexpected_options(%options);
@@ -817,8 +817,7 @@ sub do_history
     );
     $doc = download($request);
     my %selected_accounts = select_accounts($account_info, @selection);
-    my $display_name =
-        $select_multi ||
+    $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
     foreach my $number (sort keys %selected_accounts) {
         $doc = _do_history_account(
@@ -1045,8 +1044,8 @@ sub do_future
     my $selection = delete($options{selection})
         // internal_error('missing selection');
     my @selection = @{$selection};
-    my $select_multi = delete($options{select_multi})
-        // internal_error('missing select_multi');
+    my $display_name = delete($options{display_name})
+        // internal_error('missing display_name');
     check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/FutureOperations/Calendar/OPER_GetFutureTransfers",
@@ -1062,8 +1061,7 @@ sub do_future
     if (not %selected_accounts) {
         user_error('future: no matching accounts')
     }
-    my $display_name =
-        $select_multi ||
+    $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
     my $transfer_info = $json->{transferInfos}
         // scraping_error('future.transfer');
@@ -1450,7 +1448,7 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
         login => $login_info,
         accounts => $account_info,
         selection => [@selection],
-        select_multi => $opt_all || $opt_multi,
+        display_name => $opt_all || $opt_multi,
         start_date => $opt_start_date,
         end_date => $opt_end_date,
     );
@@ -1471,7 +1469,7 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
         login => $login_info,
         accounts => $account_info,
         selection => [@selection],
-        select_multi => $opt_all || $opt_multi,
+        display_name => $opt_all || $opt_multi,
     );
 } elsif ($command eq 'blocked') {
     user_error('blocked: command not implemented');
