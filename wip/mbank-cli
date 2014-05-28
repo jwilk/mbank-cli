@@ -811,6 +811,7 @@ sub do_history
             $form->value("daterange_${var}_month", $m);
             $form->value("daterange_${var}_year", $y);
             $form->value('rangepanel_group', 'daterange_radio');
+            return;
         }
         my $now = my $start_limit = get_limit('from')
             // scraping_error("history.limit.start");
