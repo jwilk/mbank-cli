@@ -151,7 +151,11 @@ sub scraping_error
 sub os_error
 {
     my ($message) = @_;
-    write_log($message);
+    if ((caller(1))[3] eq 'main::write_log') {
+        # avoid infinite recursion
+    } else {
+        write_log($message);
+    }
     local $Carp::CarpLevel = 1;
     Carp::cluck($message);
     exit(4);
