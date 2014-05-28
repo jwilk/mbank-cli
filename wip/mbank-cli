@@ -789,7 +789,6 @@ sub do_history
     my $selection = delete($options{selection})
         // internal_error('missing selection');
     my @selection = @{$selection};
-    # FIXME: actually take selection into account
     my $select_multi = delete($options{select_multi})
         // internal_error('missing select_multi');
     my $start_date = delete($options{start_date});
