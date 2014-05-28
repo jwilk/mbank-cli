@@ -781,6 +781,8 @@ sub do_history
     $doc = download($form->click());
     $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
     my @e_op_descs = find_html_class($e_root, 'OperationDescription');
+    scalar(@e_op_descs) > 0
+        or scraping_error('history.empty');
     for my $e_op_desc (@e_op_descs) {
         my $e_op = $e_op_desc->parent;
         $e_op->tag eq 'li'
