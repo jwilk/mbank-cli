@@ -814,9 +814,9 @@ sub do_history
             return;
         }
         my $now = my $start_limit = get_limit('from')
-            // scraping_error("history.limit.start");
+            // scraping_error('history.limit.start');
         my $end_limit = get_limit('to')
-            // scraping_error("history.limit.end");
+            // scraping_error('history.limit.end');
         # start date:
         $start_date //= $now;
         $min_date le $start_date
