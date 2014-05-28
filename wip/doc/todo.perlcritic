@@ -1,2 +1,4 @@
       1 BuiltinFunctions::ProhibitBooleanGrep
       1 CodeLayout::RequireTidyCode
+      2 RegularExpressions::ProhibitComplexRegexes
+      1 Subroutines::ProhibitExcessComplexity
