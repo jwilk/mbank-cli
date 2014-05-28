@@ -349,6 +349,12 @@ sub download
         print { $fh } $content;
         close($fh)
             or os_error("$path: $ERRNO");
+        my $rpath = "${path}.request";
+        open(my $fh, '>', $rpath)
+            or os_error("$rpath: $ERRNO");
+        print { $fh } $request->dump(maxlength => 1);
+        close($fh)
+            or os_error("$rpath: $ERRNO");
     }
     if (not $response->is_success) {
         http_error($request, $response);
