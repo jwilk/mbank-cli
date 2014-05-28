@@ -31,6 +31,7 @@ use Encode::Locale qw();
 use English qw(-no_match_vars);
 use File::Basename qw(dirname);
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
+use HTML::Form ();
 use HTML::HeadParser ();
 use HTML::TreeBuilder ();
 use HTTP::Cookies ();
@@ -542,19 +543,31 @@ sub parse_timestamp
     return str2time($timestamp);
 }
 
+sub parse_le_date
+{
+    my ($date) = @_;
+    my ($d, $m, $y) = ($date =~ m/\A(\d\d)-(\d\d)-(\d\d\d\d)\Z/)
+        or return;
+    return str2time("$y-$m-$d");
+}
+
 sub format_timestamp
 {
     my ($timestamp, %options) = @_;
     my $use_time = delete($options{time}) // 1;
+    my $use_le = delete($options{le});
     my $use_unix = delete($options{unix});
     check_for_unexpected_options(%options);
     my $unix_timestamp;
     if ($use_unix) {
         $unix_timestamp = $timestamp;
+    } elsif ($use_le) {
+        $unix_timestamp = parse_le_date($timestamp)
     } else {
         $unix_timestamp = parse_timestamp($timestamp)
-            // return;
     }
+    defined($unix_timestamp)
+        or return;
     my $date = time2str('%Y-%m-%d', $unix_timestamp)
         // return;
     if (not $use_time) {
@@ -601,6 +614,7 @@ sub find_html_class
 
 my $mbank_host = undef;
 my $base_url = undef;
+my $csite_url = undef;
 
 my @json_headers = (
     'Accept' => 'application/json, text/javascript, */*; q=0.01',
@@ -725,6 +739,101 @@ sub do_list
         print("$name\t$number\t$balance\t$available\n");
     }
     return [@result];
+}
+
+sub do_history
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    check_for_unexpected_options(%options);
+    my $request = GET(
+        "$csite_url/frames.aspx?module=account_oper_list",
+        'Referer' => $login_info->{url},
+    );
+    my $doc = download($request);
+    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_frames = $e_root->look_down(
+        _tag => 'frame',
+        name => qr/\AMainFrame\Z/,
+    );
+    scalar(@e_frames) == 1
+        or scraping_error('history.frame');
+    my ($e_frame) = @e_frames;
+    my $frame_url = $e_frame->attr('src') // '';
+    $frame_url =~ s/\A\s+|\s+\Z//g;
+    $frame_url =~ 'account_oper_list.aspx'
+        or scraping_error("history.frame.url: $frame_url");
+    $request = GET(
+        "$csite_url/$frame_url",
+        'Referer' => $doc->{url},
+    );
+    $doc = download($request);
+    my @forms = HTML::Form->parse($doc->{response});
+    scalar(@forms) == 1
+        or scraping_error('history.form.n: ' . scalar(@forms));
+    my ($form) = @forms;
+    foreach my $input ($form->inputs) {
+        if (($input->name // '') =~ m/\Alastdays_(days|period)\Z/) {
+            $input->disabled(1);
+        }
+    }
+    $doc = download($form->click());
+    $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_op_descs = find_html_class($e_root, 'OperationDescription');
+    for my $e_op_desc (@e_op_descs) {
+        my $e_op = $e_op_desc->parent;
+        $e_op->tag eq 'li'
+            or scraping_error('history.table');
+        my $class = $e_op->attr('class');
+        $class !~ html_class_regexp('header')
+            or next;
+        # dates:
+        my @e_dates = find_html_class($e_op, 'Date');
+        scalar(@e_dates) == 1
+            or scraping_error('history.date.1');
+        my ($e_dates) = @e_dates;
+        @e_dates = $e_dates->content_list();
+        scalar(@e_dates) == 2
+            or scraping_error('history.date.2');
+        my @dates = ();
+        for my $e_date (@e_dates) {
+            my $date = $e_date->as_trimmed_text();
+            $date = format_timestamp($date, le => 1)
+                // scraping_error("history.date: $date");
+            push(@dates, $date);
+        }
+        # amounts:
+        my @e_amounts = find_html_class($e_op, 'Amount');
+        scalar(@e_amounts) == 2
+            or scraping_error('history.amount.n');
+        my @amounts;
+        for my $e_amount (@e_amounts) {
+            my $amount = $e_amount->as_trimmed_text();
+            $amount = format_amount($amount)
+                // scraping_error("history.amount: $amount");
+            push(@amounts, $amount);
+        }
+        # details:
+        my @e_details = $e_op_desc->content_list();
+        scalar(@e_details) >= 3
+            or scraping_error('history.details.n');
+        my @details;
+        for my $e_detail (@e_details) {
+            $class = $e_detail->attr('class');
+            if ($class =~ html_class_regexp('FilterType')) {
+                next;
+            }
+            my $detail = $e_detail->as_trimmed_text();
+            push(@details, $detail);
+        }
+        # print:
+        {
+            local $LIST_SEPARATOR = "\t";
+            print "@dates\t@amounts\t@details\n";
+        }
+    }
+    return;
 }
 
 sub do_future
@@ -1122,6 +1231,7 @@ if (not defined($lang)) {
 
 $mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
 $base_url = $ENV{MBANK_CLI_BASE_URL} // "https://$mbank_host/$lang";
+$csite_url = $ENV{MBANK_CLI_BASE_URL} // "https://$mbank_host/csite";
 
 $ua = http_init(
     host => $mbank_host,
@@ -1138,6 +1248,9 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
 } elsif ($command eq 'list') {
     my $login_info = do_login(config => $cfg);
     do_list(login => $login_info);
+} elsif ($command eq 'history') {
+    my $login_info = do_login(config => $cfg);
+    do_history(login => $login_info);
 } elsif ($command eq 'future') {
     my @selection = @args;
     if ($opt_all) {
@@ -1177,7 +1290,7 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
     if (not defined($login_info)) {
         user_error('logout: the user was not logged in')
     }
-} elsif (grep { $command eq $_ } qw(history blocked)) {
+} elsif (grep { $command eq $_ } qw(blocked)) {
     user_error("$command: command not implemented");
 } else {
     user_error("$command: invalid command");
