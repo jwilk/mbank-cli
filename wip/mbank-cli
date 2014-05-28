@@ -1474,6 +1474,8 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
         selection => [@selection],
         select_multi => $opt_all || $opt_multi,
     );
+} elsif ($command eq 'blocked') {
+    user_error('blocked: command not implemented');
 } elsif ($command eq 'deposits') {
     my $login_info = do_login(config => $cfg);
     do_deposits(login => $login_info);
@@ -1493,8 +1495,6 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
     if (not defined($login_info)) {
         user_error('logout: the user was not logged in')
     }
-} elsif (grep { $command eq $_ } qw(blocked)) {
-    user_error("$command: command not implemented");
 } else {
     user_error("$command: invalid command");
 }
