@@ -78,7 +78,7 @@ sub user_error
     my ($message) = @_;
     if (defined($message)) {
         write_log($message);
-        print {*STDERR} "$message\n";
+        print {*STDERR} "mbank-cli: $message\n";
     }
     exit(1);
 }
@@ -643,7 +643,7 @@ sub do_login
             $doc = download($request);
         } else {
             my $message = $login_json->{errorMessageTitle} // 'unknown error';
-            user_error("Login failed: $message");
+            user_error("login failed: $message");
         }
     }
     my $tabid = undef;
@@ -758,7 +758,7 @@ sub do_future
         }
     }
     if (not %selected_accounts) {
-        user_error('No matching accounts.')
+        user_error('future: no matching accounts')
     }
     my $use_multi =
         $select_multi ||
@@ -1135,7 +1135,7 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
         @selection = '*';
     }
     if (scalar(@selection) < 1) {
-        user_error('No account selected.');
+        user_error('future: no account selected');
     }
     my $login_info = do_login(config => $cfg);
     my $account_info = do_list(
@@ -1166,12 +1166,12 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
     my $login_info = do_login();
     do_logout(login => $login_info);
     if (not defined($login_info)) {
-        user_error('The user was not logged in.')
+        user_error('logout: the user was not logged in')
     }
 } elsif (grep { $command eq $_ } qw(history blocked)) {
-    user_error("Command not implemented: $command");
+    user_error("$command: command not implemented");
 } else {
-    user_error("Invalid command: $command");
+    user_error("$command: invalid command");
 }
 
 END {
