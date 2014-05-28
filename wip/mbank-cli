@@ -765,6 +765,20 @@ sub select_accounts
     return %result;
 }
 
+sub _clean_history_form
+{
+    my ($form, $parameters) = @_;
+    foreach my $input ($form->inputs) {
+        if ($input->name =~ m/\Alastdays_\w+\Z/) {
+            $input->disabled(1);
+        }
+    }
+    if (defined($parameters)) {
+        $form->value('__PARAMETERS', $parameters);
+    }
+    return;
+}
+
 sub do_history
 {
     my %options = @_;
@@ -803,10 +817,71 @@ sub do_history
         'Referer' => $doc->{url},
     );
     $doc = download($request);
+    my %selected_accounts = select_accounts($account_info, @selection);
+    my $display_name =
+        $select_multi ||
+        (scalar(keys(%selected_accounts)) > 1);
+    foreach my $number (sort keys %selected_accounts) {
+        $doc = _do_history_account(
+            document => $doc,
+            number => $number,
+            name => $selected_accounts{$number},
+            display_name => $display_name,
+            start_date => $start_date,
+            end_date => $end_date,
+        );
+    }
+    return;
+}
+
+sub _do_history_account
+{
+    my %options = @_;
+    my $doc = delete($options{document})
+        // internal_error('missing document');
+    my $number = delete($options{'number'})
+        // internal_error('missing account number');
+    my $name = delete($options{'name'})
+        // internal_error('missing account name');
+    my $start_date = delete($options{start_date});
+    my $end_date = delete($options{end_date});
+    my $display_name = delete($options{display_name})
+        // internal_error('missing display_name');
+    check_for_unexpected_options(%options);
+    my $parameters = undef;
+    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_account_menu = $e_root->look_down(id => 'MenuAccountsCombo');
+    scalar(@e_account_menu) == 1
+        or scraping_error('history.account-menu');
+    my ($e_account_menu) = @e_account_menu;
+    my @e_accounts = $e_account_menu->content_list();
+    foreach my $e_account (@e_accounts) {
+        my $o_name = $e_account->as_trimmed_text();
+        my ($o_number) = ($o_name =~ m/- (\d{2}(?: \d{4}){6})\Z/)
+            or scraping_error("history.account.number: $o_name");
+        if ($number eq $o_number) {
+            if ($e_account->attr('selected')) {
+                $parameters = ''
+            } else {
+                $parameters = $e_account->attr('value');
+            }
+            last;
+        }
+    }
+    defined($parameters)
+        or scraping_error("history.account.phantom: $number");
     my @forms = HTML::Form->parse($doc->{response});
     scalar(@forms) == 1
         or scraping_error('history.form.n: ' . scalar(@forms));
     my ($form) = @forms;
+    if (length($parameters) > 0) {
+        _clean_history_form($form, $parameters);
+        $doc = download($form->click());
+        @forms = HTML::Form->parse($doc->{response});
+        scalar(@forms) == 1
+            or scraping_error('history.after-switch.form.n: ' . scalar(@forms));
+        ($form) = @forms;
+    }
     if (defined($start_date) or defined($end_date)) {
         my $min_date = '1901-01-01';
         my $get_limit = sub {
@@ -852,15 +927,15 @@ sub do_history
             or user_error('--to date before --from date');
         $set_date->('to', $end_date);
     }
-    foreach my $input ($form->inputs) {
-        if (($input->name // '') =~ m/\Alastdays_(days|period)\Z/) {
-            $input->disabled(1);
-        }
-    }
+    _clean_history_form($form);
     $doc = download($form->click());
     PAGE: while (1) {
         $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
-        _do_history_page($e_root);
+        _do_history_page(
+            html => $e_root,
+            name => $name,
+            display_name => $display_name,
+        );
         my @e_prevpage = $e_root->look_down(
             _tag => 'button',
             id => 'PrevPage',
@@ -870,29 +945,33 @@ sub do_history
         if (@e_prevpage) {
             my ($e_prevpage) = @e_prevpage;
             my $onclick = $e_prevpage->attr('onclick');
-            my ($parameters) = ($onclick =~ m{\AdoSubmit[(]'/csite/\Q$frame_url\E','','POST','([^']*)',true,false,true,null[)];})
+            my $url = $doc->{response}->base;
+            $url =~ s{\A.*?(?=/csite/)}{};
+            ($parameters) = ($onclick =~ m{\AdoSubmit[(]'\Q$url\E','','POST','([^']*)',true,false,true,null[)];})
                 or scraping_error('history.prev.onclick');
             @forms = HTML::Form->parse($doc->{response});
             scalar(@forms) == 1
                 or scraping_error('history.prev.form.n: ' . scalar(@forms));
             ($form) = @forms;
-            foreach my $input ($form->inputs) {
-                if ($input->name =~ m/\Alastdays_\w+\Z/) {
-                    $input->disabled(1);
-                }
-            }
-            $form->value('__PARAMETERS', $parameters);
+            _clean_history_form($form, $parameters);
             $doc = download($form->click());
             next PAGE;
         } else {
             last PAGE;
         }
     }
-    return;
+    return $doc;
 }
 
 sub _do_history_page {
-    my ($e_root) = @_;
+    my %options = @_;
+    my $e_root = delete($options{html})
+        // internal_error('missing html');
+    my $name = delete($options{name})
+        // internal_error('missing name');
+    my $display_name = delete($options{display_name})
+        // internal_error('missing display_name');
+    check_for_unexpected_options(%options);
     my @e_op_descs = find_html_class($e_root, 'OperationDescription');
     if (not @e_op_descs) {
         $e_root->look_down(id => 'account_operations_NoData')
@@ -948,6 +1027,9 @@ sub _do_history_page {
         # print:
         {
             local $LIST_SEPARATOR = "\t";
+            if ($display_name) {
+                print("$name\t");
+            }
             print "@dates\t@amounts\t@details\n";
         }
     }
