@@ -778,7 +778,7 @@ sub do_history
     my ($e_frame) = @e_frames;
     my $frame_url = $e_frame->attr('src') // '';
     $frame_url =~ s/\A\s+|\s+\Z//g;
-    $frame_url =~ 'account_oper_list.aspx'
+    $frame_url eq 'account_oper_list.aspx'
         or scraping_error("history.frame.url: $frame_url");
     $request = GET(
         "$csite_url/$frame_url",
