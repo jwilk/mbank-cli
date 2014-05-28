@@ -726,8 +726,8 @@ sub do_list
             // scraping_error('list.account-number');
         push(@result, {
             name => $name,
-            number => $number }
-        );
+            number => $number,
+        });
         next if $quiet;
         my $balance = $account->{Balance}
             // scraping_error('list.balance');
