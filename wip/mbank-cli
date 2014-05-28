@@ -981,7 +981,7 @@ sub do_future
     if (not %selected_accounts) {
         user_error('future: no matching accounts')
     }
-    my $use_multi =
+    my $display_name =
         $select_multi ||
         (scalar(keys(%selected_accounts)) > 1);
     my $transfer_info = $json->{transferInfos}
@@ -991,7 +991,7 @@ sub do_future
             // scraping_error('future.transfer.account-number');
         my $name = $selected_accounts{$number};
         defined($name) or next;
-        if ($use_multi) {
+        if ($display_name) {
             print("$name\t");
         }
         my $timestamp = $transfer->{date};
