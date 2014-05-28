@@ -804,7 +804,7 @@ sub do_history
             my ($var, $date) = @_;
             $date =~ m/\A\d\d\d\d-\d\d-\d\d\Z/
                 or internal_error("invalid date: $date");
-            my ($y, $m, $d) = split('-', $date);
+            my ($y, $m, $d) = split(m/-/, $date);
             $m =~ s/\A0//;
             $d =~ s/\A0//;
             $form->value("daterange_${var}_day", $d);
