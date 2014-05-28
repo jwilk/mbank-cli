@@ -502,6 +502,7 @@ sub format_amount
     my $currency = delete($options{currency});
     check_for_unexpected_options(%options);
     my $sign_re;
+    $s =~ s/\s+(?=\d)//g;
     if ($use_plus) {
         $sign_re = qr/[+-]?/;
     } else {
