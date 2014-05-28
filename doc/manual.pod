@@ -143,7 +143,7 @@ Show operations with the date not before I<start-date>.
 
 =item B<--range> I<start-date> I<end-date>, B<--from> I<start-date> B<--to> I<end-date>
 
-Show operations with the date neither between I<start-date> and I<end-date>, inclusive.
+Show operations with the date between I<start-date> and I<end-date>, inclusive.
 
 =back
 
