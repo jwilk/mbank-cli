@@ -519,10 +519,11 @@ sub format_amount
 sub format_number
 {
     my ($format, $n) = @_;
+    my $s;
     eval {
-        $n = 0 + $n;
+        $s = sprintf($format, $n);
     } or return;
-    return sprintf($format, $n);
+    return $s;
 }
 
 sub parse_timestamp
