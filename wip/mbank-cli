@@ -750,6 +750,18 @@ sub do_history
     my %options = @_;
     my $login_info = delete($options{login})
         // internal_error('missing login info');
+    my $account_info = delete($options{accounts})
+        // internal_error('missing account info');
+    my $selection = delete($options{selection})
+        // internal_error('missing selection');
+    my @selection = @{$selection};
+    # FIXME: actually take selection into account
+    my $select_all = delete($options{select_all})
+        // internal_error('missing select_all');
+    my $select_multi = delete($options{select_multi})
+        // internal_error('missing select_multi');
+    my $start_date = delete($options{start_date});
+    my $end_date = delete($options{end_date});
     check_for_unexpected_options(%options);
     my $request = GET(
         "$csite_url/frames.aspx?module=account_oper_list",
@@ -777,6 +789,50 @@ sub do_history
     scalar(@forms) == 1
         or scraping_error('history.form.n: ' . scalar(@forms));
     my ($form) = @forms;
+    if (defined($start_date) or defined($end_date)) {
+        my $min_date = '1901-01-01';
+        sub get_limit {
+            my ($var) = @_;
+            my $min_date_nh = $min_date;
+            $min_date_nh =~ s/-//g;
+            my $regexp = qr{\bDateValidator[(]theform[.]daterange_\Q$var\E_day, '\Q$min_date_nh\E', '(\d\d\d\d)(\d\d)(\d\d)', '', ''[)]};
+            my @limit = ($doc->{content} =~ $regexp)
+                or return;
+            return join('-', @limit);
+        }
+        sub set_date {
+            my ($var, $date) = @_;
+            $date =~ m/\A\d\d\d\d-\d\d-\d\d\Z/
+                or internal_error("invalid date: $date");
+            my ($y, $m, $d) = split('-', $date);
+            $m =~ s/\A0//;
+            $d =~ s/\A0//;
+            $form->value("daterange_${var}_day", $d);
+            $form->value("daterange_${var}_month", $m);
+            $form->value("daterange_${var}_year", $y);
+            $form->value('rangepanel_group', 'daterange_radio');
+        }
+        my $now = my $start_limit = get_limit('from')
+            // scraping_error("history.limit.start");
+        my $end_limit = get_limit('to')
+            // scraping_error("history.limit.end");
+        # start date:
+        $start_date //= $now;
+        $min_date le $start_date
+            or user_error('--from date too far in the past');
+        $start_date le $start_limit
+            or user_error('--from date in the future');
+        set_date('from', $start_date);
+        # end date:
+        $end_date //= $now;
+        $min_date le $end_date
+            or user_error('--to date too far in the past');
+        $end_date le $end_limit
+            or user_error('--to date too far in the future');
+        $start_date le $end_date
+            or user_error('--to date before --from date');
+        set_date('to', $end_date);
+    }
     foreach my $input ($form->inputs) {
         if (($input->name // '') =~ m/\Alastdays_(days|period)\Z/) {
             $input->disabled(1);
@@ -839,6 +895,7 @@ sub do_history
             print "@dates\t@amounts\t@details\n";
         }
     }
+    # FIXME: do paging
     return;
 }
 
@@ -1153,9 +1210,8 @@ sub do_logout
 # ============
 
 my $opt_config = './mbank-cli.conf';
-my $opt_from = undef;
-my $opt_to = undef;
-my $opt_range = undef;
+my $opt_start_date = undef;
+my $opt_end_date = undef;
 my $opt_all = 0;
 my $opt_multi = 0;
 
@@ -1164,7 +1220,7 @@ sub show_help
     print { *STDERR } <<'EOF' ;
 Usage:
   mbank-cli [list]
-  mbank-cli history [--range <start-date> <end-date> | --from <start-date> [--to <end-date>] ] {<account> | -M <account>... | -A}
+  mbank-cli history [--from <start-date> [--to <end-date>]] {<account> | -M <account>... | -A}
   mbank-cli future {<account> | -M <account>... | -A}
   mbank-cli blocked {<account> | -M <account>... | -A}
   mbank-cli deposits
@@ -1181,37 +1237,40 @@ EOF
     exit();
 }
 
-GetOptions(
-    'verbose' => \$opt_verbose,
-    'debug=s' => \$opt_debug_dir,
-    'config=s' => \$opt_config,
-    'from=s' => sub {
-        (undef, my $date) = @_;
-        $opt_from = fix_date($date);
-        $opt_range = 0;
-    },
-    'to=s' => sub {
-        (undef, my $date) = @_;
-        $opt_to = fix_date($date);
-        $opt_range = 0;
-    },
-    'range=s{2}' => sub {
-        (undef, my $date) = @_;
-        if ($opt_range) {
-          $opt_from = fix_date($date);
-          $opt_to = undef;
-          $opt_range = 1;
-        }
-        else
-        {
-          $opt_to = fix_date($date);
-          $opt_range = 0;
-        }
-    },
-    'M|multiple-accounts' => \$opt_multi,
-    'A|all-accounts' => \$opt_all,
-    'h|help' => \&show_help,
-) or user_error();
+sub check_user_date
+{
+    my ($option, $date) = @_;
+    $date =~ m/\A\d\d\d\d-\d\d-\d\d\Z/
+        or user_error("--$option date not in the YYYY-MM-DD format: $date");
+    str2time($date)
+        or user_error("invalid --$option date: $date");
+    return $date;
+}
+
+{
+    local $SIG{__WARN__} = sub {
+        my ($message) = @_;
+        $message =~ s/\A([[:upper:]])/lc($1)/e;
+        $message =~ s/\n+\Z//;
+        user_error($message);
+    };
+    GetOptions(
+        'verbose' => \$opt_verbose,
+        'debug=s' => \$opt_debug_dir,
+        'config=s' => \$opt_config,
+        'from=s' => sub {
+            my ($option, $date) = @_;
+            $opt_start_date = check_user_date($option, $date);
+        },
+        'to=s' => sub {
+            my ($option, $date) = @_;
+            $opt_end_date = check_user_date($option, $date);
+        },
+        'M|multiple-accounts' => \$opt_multi,
+        'A|all-accounts' => \$opt_all,
+        'h|help' => \&show_help,
+    ) or user_error();
+}
 
 my $cfg = read_config($opt_config);
 my $cookie_jar_path = get_config_var($cfg, 'cookiejar')
@@ -1255,8 +1314,27 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
     my $login_info = do_login(config => $cfg);
     do_list(login => $login_info);
 } elsif ($command eq 'history') {
+    my @selection = @args;
+    if ($opt_all) {
+        @selection = '*';
+    }
+    if (scalar(@selection) < 1) {
+        user_error('history: no account selected');
+    }
     my $login_info = do_login(config => $cfg);
-    do_history(login => $login_info);
+    my $account_info = do_list(
+        login => $login_info,
+        quiet => 1,
+    );
+    do_history(
+        login => $login_info,
+        accounts => $account_info,
+        selection => [@selection],
+        select_all => $opt_all,
+        select_multi => $opt_multi,
+        start_date => $opt_start_date,
+        end_date => $opt_end_date,
+    );
 } elsif ($command eq 'future') {
     my @selection = @args;
     if ($opt_all) {
