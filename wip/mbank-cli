@@ -57,7 +57,7 @@ sub write_log
     my $path = "$opt_debug_dir/log";
     open(my $log, '>>', $path)
         or os_error("$path: $ERRNO");
-    print { $log } "$message\n";
+    print {$log} "$message\n";
     close($log)
         or os_error("$path: $ERRNO");
     return;
@@ -351,13 +351,13 @@ sub download
         $path = "$opt_debug_dir/$path";
         open(my $fh, '>', "$path")
             or os_error("$path: $ERRNO");
-        print { $fh } $content;
+        print {$fh} $content;
         close($fh)
             or os_error("$path: $ERRNO");
         my $rpath = "${path}.request";
         open(my $fh, '>', $rpath)
             or os_error("$rpath: $ERRNO");
-        print { $fh } $request->dump(maxlength => 1);
+        print {$fh} $request->dump(maxlength => 1);
         close($fh)
             or os_error("$rpath: $ERRNO");
     }
@@ -1030,7 +1030,7 @@ sub _do_history_page {
             if ($display_name) {
                 print("$name\t");
             }
-            print "@dates\t@amounts\t@details\n";
+            print("@dates\t@amounts\t@details\n");
         }
     }
     return;
@@ -1289,7 +1289,7 @@ sub do_notices
         my $title = $message->{Title}
             // scraping_error('notices.title');
         $title = unicode_to_bytes($title);
-        print "$new_flag\t$timestamp\t$title\n";
+        print("$new_flag\t$timestamp\t$title\n");
     }
     return;
 }
@@ -1338,7 +1338,7 @@ my $opt_multi = 0;
 
 sub show_help
 {
-    print { *STDERR } <<'EOF' ;
+    print {*STDERR} <<'EOF' ;
 Usage:
   mbank-cli [list]
   mbank-cli history [--from <start-date> [--to <end-date>]] {<account> | -M <account>... | -A}
