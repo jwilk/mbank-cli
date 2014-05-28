@@ -745,6 +745,26 @@ sub do_list
     return [@result];
 }
 
+sub select_accounts
+{
+    my ($account_info, @selection) = @_;
+    my $regexp = wildcards_to_regexp(
+        map { bytes_to_unicode $_ } @selection
+    );
+    my %result = ();
+    foreach my $account (@{$account_info}) {
+        my $name = $account->{name};
+        my $number = $account->{number};
+        if ($name =~ $regexp) {
+            debug("selected account: $number");
+            $result{$number} = $name;
+        } else {
+            debug("deselected account: $number");
+        }
+    }
+    return %result;
+}
+
 sub do_history
 {
     my %options = @_;
@@ -756,8 +776,6 @@ sub do_history
         // internal_error('missing selection');
     my @selection = @{$selection};
     # FIXME: actually take selection into account
-    my $select_all = delete($options{select_all})
-        // internal_error('missing select_all');
     my $select_multi = delete($options{select_multi})
         // internal_error('missing select_multi');
     my $start_date = delete($options{start_date});
@@ -946,8 +964,6 @@ sub do_future
     my $selection = delete($options{selection})
         // internal_error('missing selection');
     my @selection = @{$selection};
-    my $select_all = delete($options{select_all})
-        // internal_error('missing select_all');
     my $select_multi = delete($options{select_multi})
         // internal_error('missing select_multi');
     check_for_unexpected_options(%options);
@@ -961,26 +977,12 @@ sub do_future
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content});
-    my $selected_re = wildcards_to_regexp(
-        map { bytes_to_unicode $_ } @selection
-    );
-    my %selected_accounts = ();
-    foreach my $account (@{$account_info}) {
-        my $name = $account->{name};
-        my $number = $account->{number};
-        if ($name =~ $selected_re) {
-            debug("selected account: $number");
-            $selected_accounts{$number} = $name;
-        } else {
-            debug("deselected account: $number");
-        }
-    }
+    my %selected_accounts = select_accounts($account_info, @selection);
     if (not %selected_accounts) {
         user_error('future: no matching accounts')
     }
     my $use_multi =
         $select_multi ||
-        $select_all ||
         (scalar(keys(%selected_accounts)) > 1);
     my $transfer_info = $json->{transferInfos}
         // scraping_error('future.transfer');
@@ -1367,8 +1369,7 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
         login => $login_info,
         accounts => $account_info,
         selection => [@selection],
-        select_all => $opt_all,
-        select_multi => $opt_multi,
+        select_multi => $opt_all || $opt_multi,
         start_date => $opt_start_date,
         end_date => $opt_end_date,
     );
@@ -1389,8 +1390,7 @@ if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
         login => $login_info,
         accounts => $account_info,
         selection => [@selection],
-        select_all => $opt_all,
-        select_multi => $opt_multi,
+        select_multi => $opt_all || $opt_multi,
     );
 } elsif ($command eq 'deposits') {
     my $login_info = do_login(config => $cfg);
