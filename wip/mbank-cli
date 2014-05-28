@@ -791,7 +791,7 @@ sub do_history
     my ($form) = @forms;
     if (defined($start_date) or defined($end_date)) {
         my $min_date = '1901-01-01';
-        sub get_limit {
+        my $get_limit = sub {
             my ($var) = @_;
             my $min_date_nh = $min_date;
             $min_date_nh =~ s/-//g;
@@ -799,8 +799,8 @@ sub do_history
             my @limit = ($doc->{content} =~ $regexp)
                 or return;
             return join('-', @limit);
-        }
-        sub set_date {
+        };
+        my $set_date = sub {
             my ($var, $date) = @_;
             $date =~ m/\A\d\d\d\d-\d\d-\d\d\Z/
                 or internal_error("invalid date: $date");
@@ -812,10 +812,10 @@ sub do_history
             $form->value("daterange_${var}_year", $y);
             $form->value('rangepanel_group', 'daterange_radio');
             return;
-        }
-        my $now = my $start_limit = get_limit('from')
+        };
+        my $now = my $start_limit = $get_limit->('from')
             // scraping_error('history.limit.start');
-        my $end_limit = get_limit('to')
+        my $end_limit = $get_limit->('to')
             // scraping_error('history.limit.end');
         # start date:
         $start_date //= $now;
@@ -823,7 +823,7 @@ sub do_history
             or user_error('--from date too far in the past');
         $start_date le $start_limit
             or user_error('--from date in the future');
-        set_date('from', $start_date);
+        $set_date->('from', $start_date);
         # end date:
         $end_date //= $now;
         $min_date le $end_date
@@ -832,7 +832,7 @@ sub do_history
             or user_error('--to date too far in the future');
         $start_date le $end_date
             or user_error('--to date before --from date');
-        set_date('to', $end_date);
+        $set_date->('to', $end_date);
     }
     foreach my $input ($form->inputs) {
         if (($input->name // '') =~ m/\Alastdays_(days|period)\Z/) {
