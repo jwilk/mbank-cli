@@ -840,10 +840,44 @@ sub do_history
         }
     }
     $doc = download($form->click());
-    $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+    PAGE: while (1) {
+        $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+        _do_history_page($e_root);
+        my @e_prevpage = $e_root->look_down(
+            _tag => 'button',
+            id => 'PrevPage',
+        );
+        scalar(@e_prevpage) <= 1
+            or scraping_error('history.prev.n: ' . scalar(@e_prevpage));
+        if (@e_prevpage) {
+            my ($e_prevpage) = @e_prevpage;
+            my $onclick = $e_prevpage->attr('onclick');
+            my ($parameters) = ($onclick =~ m{\AdoSubmit[(]'/csite/\Q$frame_url\E','','POST','([^']*)',true,false,true,null[)];})
+                or scraping_error('history.prev.onclick');
+            @forms = HTML::Form->parse($doc->{response});
+            scalar(@forms) == 1
+                or scraping_error('history.prev.form.n: ' . scalar(@forms));
+            ($form) = @forms;
+            foreach my $input ($form->inputs) {
+                if ($input->name =~ m/\Alastdays_\w+\Z/) {
+                    $input->disabled(1);
+                }
+            }
+            $form->value('__PARAMETERS', $parameters);
+            $doc = download($form->click());
+            next PAGE;
+        } else {
+            last PAGE;
+        }
+    }
+    return;
+}
+
+sub _do_history_page {
+    my ($e_root) = @_;
     my @e_op_descs = find_html_class($e_root, 'OperationDescription');
     scalar(@e_op_descs) > 0
-        or scraping_error('history.empty');
+        or scraping_error('history.empty');  # FIXME
     for my $e_op_desc (@e_op_descs) {
         my $e_op = $e_op_desc->parent;
         $e_op->tag eq 'li'
@@ -896,7 +930,6 @@ sub do_history
             print "@dates\t@amounts\t@details\n";
         }
     }
-    # FIXME: do paging
     return;
 }
 
