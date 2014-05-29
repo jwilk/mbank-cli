@@ -338,7 +338,7 @@ sub download
     my $content = $response->content;
     $content =~ s/\r//g;
     if (defined($opt_debug_dir)) {
-        my $is_json = $response->header('Content-Type') =~ m{\Aapplication/json(;|\Z)};
+        my $is_json = $response->header('Content-Type') =~ m{\Aapplication/json(;|\z)};
         my $default_ext = $is_json ? 'json' : 'html';
         my $path = $request->uri;
         $path =~ s{^\w+://.*?/}{};
@@ -516,13 +516,13 @@ sub format_amount
     my $amount_re = qr/($sign_re\d+[.,]\d{2})/;
     my $currency_re;
     if (defined $currency) {
-        $currency =~ m/\A[A-Z]{3}\Z/  ## no critic (EnumeratedClasses)
+        $currency =~ m/\A[A-Z]{3}\z/  ## no critic (EnumeratedClasses)
             or return;
         $currency_re = qr//;
     } else {
         $currency_re = qr/\s+([A-Z]{3})/;  ## no critic (EnumeratedClasses)
     }
-    my ($amount, $parsed_currency) = ($s =~ m/\A$amount_re$currency_re\Z/)
+    my ($amount, $parsed_currency) = ($s =~ m/\A$amount_re$currency_re\z/)
         or return;
     $amount =~ y/,/./;
     $currency //= $parsed_currency;
@@ -542,7 +542,7 @@ sub format_number
 sub parse_timestamp
 {
     my ($timestamp) = @_;
-    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\Z/)
+    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\z/)
         or return;
     return str2time($timestamp);
 }
@@ -550,7 +550,7 @@ sub parse_timestamp
 sub parse_le_date
 {
     my ($date) = @_;
-    my ($d, $m, $y) = ($date =~ m/\A(\d\d)-(\d\d)-(\d\d\d\d)\Z/)
+    my ($d, $m, $y) = ($date =~ m/\A(\d\d)-(\d\d)-(\d\d\d\d)\z/)
         or return;
     return str2time("$y-$m-$d");
 }
@@ -579,9 +579,9 @@ sub format_timestamp
     }
     my $time = time2str('%H:%M:%S', $unix_timestamp)
         // return;
-    if (my ($frac_seconds) = ($unix_timestamp =~ /[.](\d+)\Z/)) {
+    if (my ($frac_seconds) = ($unix_timestamp =~ /[.](\d+)\z/)) {
         # fractional seconds are boring
-    } elsif ($time =~ /\A[\d:]+\Z/) {
+    } elsif ($time =~ /\A[\d:]+\z/) {
         # exactly-midnight times are boring
         return $date;
     }
@@ -602,7 +602,7 @@ sub wildcards_to_regexp
 sub html_class_regexp
 {
     my ($class) = @_;
-    return qr/(?:\A|\s)\Q$class\E(?:\s|\Z)/;
+    return qr/(?:\A|\s)\Q$class\E(?:\s|\z)/;
 }
 
 sub find_html_class
@@ -769,7 +769,7 @@ sub _clean_history_form
 {
     my ($form, $parameters) = @_;
     foreach my $input ($form->inputs) {
-        if ($input->name =~ m/\Alastdays_\w+\Z/) {
+        if ($input->name =~ m/\Alastdays_\w+\z/) {
             $input->disabled(1);
         }
     }
@@ -802,13 +802,13 @@ sub do_history
     my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
     my @e_frames = $e_root->look_down(
         _tag => 'frame',
-        name => qr/\AMainFrame\Z/,
+        name => 'MainFrame',
     );
     scalar(@e_frames) == 1
         or scraping_error('history.frame');
     my ($e_frame) = @e_frames;
     my $frame_url = $e_frame->attr('src') // '';
-    $frame_url =~ s/\A\s+|\s+\Z//g;
+    $frame_url =~ s/\A\s+|\s+\z//g;
     $frame_url eq 'account_oper_list.aspx'
         or scraping_error("history.frame.url: $frame_url");
     $request = GET(
@@ -855,7 +855,7 @@ sub _do_history_account
     my @e_accounts = $e_account_menu->content_list();
     foreach my $e_account (@e_accounts) {
         my $o_name = $e_account->as_trimmed_text();
-        my ($o_number) = ($o_name =~ m/- (\d{2}(?: \d{4}){6})\Z/)
+        my ($o_number) = ($o_name =~ m/- (\d{2}(?: \d{4}){6})\z/)
             or scraping_error("history.account.number: $o_name");
         if ($number eq $o_number) {
             if ($e_account->attr('selected')) {
@@ -893,7 +893,7 @@ sub _do_history_account
         };
         my $set_date = sub {
             my ($var, $date) = @_;
-            $date =~ m/\A\d\d\d\d-\d\d-\d\d\Z/
+            $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
                 or internal_error("invalid date: $date");
             my ($y, $m, $d) = split(m/-/, $date);
             $m =~ s/\A0//;
@@ -1133,7 +1133,7 @@ sub do_deposits
         $end_date = parse_timestamp($end_date)
             // scraping_error("deposits.end-date: $end_date");
         my $duration_in_days = $deposit->{durationInDays} // '';
-        $duration_in_days =~ m/\A\d+\Z/
+        $duration_in_days =~ m/\A\d+\z/
             or scraping_error('deposits.duration-in-days');
         my $start_date = $end_date - $duration_in_days * $seconds_in_day;
         $start_date = format_timestamp($start_date, unix => 1)
@@ -1358,7 +1358,7 @@ EOF
 sub check_user_date
 {
     my ($option, $date) = @_;
-    $date =~ m/\A\d\d\d\d-\d\d-\d\d\Z/
+    $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
         or user_error("--$option date not in the YYYY-MM-DD format: $date");
     str2time($date)
         or user_error("invalid --$option date: $date");
@@ -1369,7 +1369,7 @@ sub check_user_date
     local $SIG{__WARN__} = sub {
         my ($message) = @_;
         $message =~ s/\A([[:upper:]])/lc($1)/e;
-        $message =~ s/\n+\Z//;
+        $message =~ s/\n+\z//;
         user_error($message);
     };
     GetOptions(
