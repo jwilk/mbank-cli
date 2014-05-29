@@ -307,7 +307,6 @@ sub http_init
     my $ua = LWP::UserAgent->new(  ## no critic (ReusedNames)
         agent => $http_product_name,
         cookie_jar => $cookie_jar,
-        requests_redirectable => ['GET', 'POST'],
         protocols_allowed => ['https'],
         timeout => $http_timeout,
     );
