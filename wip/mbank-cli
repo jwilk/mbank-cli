@@ -1020,6 +1020,7 @@ sub _do_history_page {
                 next;
             }
             my $detail = $e_detail->as_trimmed_text();
+            $detail =~ s/\N{SOFT HYPHEN}//g;
             push(@details, $detail);
         }
         # print:
