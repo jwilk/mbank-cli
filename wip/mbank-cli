@@ -338,7 +338,7 @@ sub download
     my $content = $response->content;
     $content =~ s/\r//g;
     if (defined($opt_debug_dir)) {
-        my $is_json = $response->header('Content-Type') =~ m{\Aapplication/json(;|\z)};
+        my $is_json = $response->headers->content_type() eq 'application/json';
         my $default_ext = $is_json ? 'json' : 'html';
         my $path = $request->uri;
         $path =~ s{^\w+://.*?/}{};
