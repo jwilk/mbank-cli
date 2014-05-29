@@ -293,14 +293,17 @@ sub http_init
         },
     );
     IO::Socket::SSL::set_ctx_defaults(@ssl_options);
-    my $cookie_jar = {};
+    my @cookie_jar_options = (
+        ignore_discard => 1,
+        hide_cookie2 => 1,
+    );
     if ($cookie_jar_path ne '/dev/null') {
-        $cookie_jar = HTTP::Cookies->new(
+        push(@cookie_jar_options,
             file => $cookie_jar_path,
             autosave => 1,
-            ignore_discard => 1
         );
     };
+    my $cookie_jar = HTTP::Cookies->new(@cookie_jar_options);
     my $ua = LWP::UserAgent->new(  ## no critic (ReusedNames)
         agent => $http_product_name,
         cookie_jar => $cookie_jar,
