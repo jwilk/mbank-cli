@@ -1323,11 +1323,29 @@ sub do_logout
     return;
 }
 
+# ================================
+# XDG Base Directory Specification
+# ================================
+
+sub xdg_config_home
+{
+    my $home = $ENV{XDG_CONFIG_HOME};
+    if ($home !~ m{\A/}) {
+        # “All paths […] must be absolute.
+        # If an implementation encounters a relative path […]
+        # it should consider the path invalid and ignore it.
+        $home = "$ENV{HOME}/.config";
+    }
+    $home =~ s{[^/]\K/+\z}{};  # strip trailing slashes
+    return $home;
+}
+
 # ============
 # main program
 # ============
 
-my $opt_config = './mbank-cli.conf';
+my $xdg_config_home = xdg_config_home();
+my $opt_config = "$xdg_config_home/mbank-cli/config";
 my $opt_start_date = undef;
 my $opt_end_date = undef;
 my $opt_all = 0;
@@ -1390,6 +1408,9 @@ sub check_user_date
     ) or user_error();
 }
 
+if (not -e $opt_config) {
+    user_error("missing configuration file: $opt_config");
+}
 my $cfg = read_config($opt_config);
 my $cookie_jar_path = get_config_var($cfg, 'cookiejar')
     // config_error($cfg, 'missing cookiejar');
