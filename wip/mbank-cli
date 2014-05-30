@@ -708,10 +708,37 @@ sub do_login
     my $arvt = $e_meta->attr('content');
     $arvt =~ m{\A[\w/+]{100,}\z}
         or scraping_error("login.arvt: $arvt");
+    my %menu = ();
+    for my $e_script ($e_root->look_down(_tag => 'script')) {
+        my @content = $e_script->content_list;
+        scalar(@content) == 1
+            or next;
+        my ($content) = @content;
+        if (ref $content) {
+            next;
+        }
+        my ($js) = ($content =~ m/\A\s*nmbMenu\s*=\s*({.+})\s*\z/s)
+            or next;
+        $js =~ s/'/"/g;
+        $js =~ s/(\w+):/"$1":/g;
+        $js =~ s/,\s*}/}/g;
+        my $json = decode_json($js)
+            or scraping_error("login.menu.json: $EVAL_ERROR");
+        while (my ($key, $value) = each %{$json}) {
+            $key =~ m/\A\w+\z/
+                or scraping_error("login.menu.key: $key");
+            my $url = $value->{url} // '';
+            $url =~ m{\A/\S+\z}
+                or scraping_error("login.menu.url: $url");
+            $menu{$key} = $url;
+        }
+        last;
+    }
     debug('logged in');
     return {
         tabid => $tabid,
         arvt => $arvt,
+        menu => \%menu,
         url => $doc->{url},
     };
 }
@@ -815,8 +842,13 @@ sub do_history
     my $start_date = delete($options{start_date});
     my $end_date = delete($options{end_date});
     check_for_unexpected_options(%options);
+    my $module = 'account_oper_list';
+    my $frameset_url = "frames.aspx?module=$module";
+    my $menu_url = $login_info->{menu}->{hosthistory} // '';
+    $menu_url eq "/csite/$frameset_url"  # sanity check
+        or scraping_error('history.menu: ' . $menu_url);
     my $request = GET(
-        "$csite_url/frames.aspx?module=account_oper_list",
+        "$csite_url/$frameset_url",
         'Referer' => $login_info->{url},
     );
     my $doc = download($request);
@@ -830,7 +862,7 @@ sub do_history
     my ($e_frame) = @e_frames;
     my $frame_url = $e_frame->attr('src') // '';
     $frame_url =~ s/\A\s+|\s+\z//g;
-    $frame_url eq 'account_oper_list.aspx'
+    $frame_url eq "$module.aspx"  # sanity check
         or scraping_error("history.frame.url: $frame_url");
     $request = GET(
         "$csite_url/$frame_url",
