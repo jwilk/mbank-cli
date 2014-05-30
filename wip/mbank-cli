@@ -37,7 +37,7 @@ use HTML::TreeBuilder ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL ();
-use JSON qw(encode_json decode_json);
+use JSON qw(encode_json);
 use IPC::Run;
 use LWP::UserAgent;
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
@@ -141,6 +141,7 @@ sub http_decoding_error
 sub scraping_error
 {
     my ($message) = @_;
+    $message =~ s/ at \Q$PROGRAM_NAME\E line \d+[.]\n+//;
     $message = "Scraping error: $message";
     write_log($message);
     local $Carp::CarpLevel = 1;
@@ -615,6 +616,14 @@ sub find_html_class
     return $element->look_down('class', $re);
 }
 
+sub decode_json
+{
+    my ($json) = @_;
+    return eval {
+        JSON::decode_json($json);
+    }
+}
+
 # =======================
 # command implementations
 # =======================
@@ -667,7 +676,8 @@ sub do_login
             }),
         );
         $doc = download($request);
-        my $login_json = decode_json($doc->{content});
+        my $login_json = decode_json($doc->{content})
+            // scraping_error("login.json: $EVAL_ERROR");
         if ($login_json->{successful}) {
             $request = GET("$base_url");
             $doc = download($request);
@@ -715,7 +725,8 @@ sub do_list
         Content => '{}',
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content});
+    my $json = decode_json($doc->{content})
+        // scraping_error("list.json: $EVAL_ERROR");
     my @accounts = @{$json->{accountDetailsList}};
     my @result;
     for my $account (@accounts) {
@@ -1060,7 +1071,8 @@ sub do_future
         Content => '{"getFilter":true}',
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content});
+    my $json = decode_json($doc->{content})
+        // scraping_error("future.json: $EVAL_ERROR");
     my %selected_accounts = select_accounts($account_info, @selection);
     if (not %selected_accounts) {
         user_error('future: no matching accounts')
@@ -1119,7 +1131,8 @@ sub do_deposits
         Content => '',
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content});
+    my $json = decode_json($doc->{content})
+        // scraping_error("deposits.json: $EVAL_ERROR");
     $json = $json->{properties}
         // scraping_error('deposits.properties');
     $json->{footer}->{isListComplete}
@@ -1266,7 +1279,8 @@ sub do_notices
         Content => '{"placeholderIdList":null,"timestamp":-1}',
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content});
+    my $json = decode_json($doc->{content})
+        // scraping_error("notices.json: $EVAL_ERROR");
     my $elements = $json->{Elements}
         // scraping_error('notices.elements');
     foreach my $element (@{$elements}) {
@@ -1310,7 +1324,8 @@ sub do_logout
             'Referer' => $login_info->{url},
         );
         my $doc = download($request);
-        my $json = decode_json($doc->{content});
+        my $json = decode_json($doc->{content})
+            // scraping_error("logout.json: $EVAL_ERROR");
         $json->{lazy}
             or scraping_error('logout.lazy');
         $request = GET(
