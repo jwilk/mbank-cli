@@ -296,6 +296,7 @@ sub http_init
     my @cookie_jar_options = (
         ignore_discard => 1,
         hide_cookie2 => 1,
+        parse_head => 0,
     );
     if ($cookie_jar_path ne '/dev/null') {
         push(@cookie_jar_options,
