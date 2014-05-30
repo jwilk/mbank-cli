@@ -264,11 +264,11 @@ sub http_init
 {
     my %options = @_;
     my $host = delete $options{host}
-        or internal_error('missing host');
+        // internal_error('missing host');
     my $cookie_jar_path = delete $options{cookie_jar}
-        or internal_error('missing cookie_jar');
+        // internal_error('missing cookie_jar');
     my $ca_path = delete $options{ca}
-        or internal_error('missing ca');
+        // internal_error('missing ca');
     check_for_unexpected_options(%options);
     if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
         # should not happen, but better safe than sorry
@@ -1398,7 +1398,7 @@ sub check_user_date
     $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
         or user_error("--$option date not in the YYYY-MM-DD format: $date");
     str2time($date)
-        or user_error("invalid --$option date: $date");
+        // user_error("invalid --$option date: $date");
     return $date;
 }
 
