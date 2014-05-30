@@ -539,7 +539,7 @@ sub format_number
     my $s;
     eval {
         $s = sprintf($format, $n);
-    } or return;
+    } // return;
     return $s;
 }
 
@@ -621,7 +621,7 @@ sub decode_json
     my ($json) = @_;
     return eval {
         JSON::decode_json($json);
-    }
+    } // return;
 }
 
 # =======================
