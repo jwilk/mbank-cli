@@ -649,7 +649,7 @@ sub do_login
     my %options = @_;
     my $cfg = delete($options{config});
     check_for_unexpected_options(%options);
-    my $request = GET("$base_url");
+    my $request = GET($base_url);
     my $doc = download($request);
     if ($doc->{url} =~ m{/Login$}) {
         if (not defined($cfg)) {
@@ -679,7 +679,7 @@ sub do_login
         my $login_json = decode_json($doc->{content})
             // scraping_error("login.json: $EVAL_ERROR");
         if ($login_json->{successful}) {
-            $request = GET("$base_url");
+            $request = GET($base_url);
             $doc = download($request);
         } else {
             my $message = $login_json->{errorMessageTitle} // 'unknown error';
