@@ -697,10 +697,17 @@ sub do_login
     );
     defined($tabid)
         or scraping_error('login.tabid');
-    my $hp = HTML::HeadParser->new();
-    $hp->parse($doc->{content});
-    my $arvt = $hp->header('X-Meta---AjaxRequestVerificationToken')
-        // scraping_error('login.arvt');
+    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_meta = $e_root->look_down(
+        _tag => 'meta',
+        name => '__AjaxRequestVerificationToken'
+    );
+    scalar(@e_meta) == 1
+        or scraping_error('login.arvt.n' . scalar(@e_meta));
+    my ($e_meta) = @e_meta;
+    my $arvt = $e_meta->attr('content');
+    $arvt =~ m{\A[\w/+]{100,}\z}
+        or scraping_error("login.arvt: $arvt");
     debug('logged in');
     return {
         tabid => $tabid,
