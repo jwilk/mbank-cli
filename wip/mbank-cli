@@ -406,7 +406,7 @@ sub get_default_ca_path
         return $candidate;
     }
     # TODO: take into account @hashes
-    my $here = dirname($PROGRAM_NAME);
+    my $here = dirname(__FILE__);
     $candidate = File::Spec->catfile($here, 'ca.crt');
     return $candidate;
 }
