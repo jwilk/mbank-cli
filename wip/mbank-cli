@@ -141,7 +141,8 @@ sub http_decoding_error
 sub scraping_error
 {
     my ($message) = @_;
-    $message =~ s/ at \Q$PROGRAM_NAME\E line \d+[.]\n+//;
+    my $file = __FILE__;
+    $message =~ s/ at \Q$file\E line \d+[.]\n+//;
     $message = "Scraping error: $message";
     write_log($message);
     local $Carp::CarpLevel = 1;
