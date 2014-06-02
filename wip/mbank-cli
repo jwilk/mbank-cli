@@ -1396,6 +1396,22 @@ sub do_debug_noop
     # Nothing to do!
 }
 
+sub do_debug_https_get
+{
+    my %options = @_;
+    my $urls = delete($options{args});
+    check_for_unexpected_options(%options);
+    my @urls = @{$urls};
+    if (not @urls) {
+        push(@urls, $base_url);
+    }
+    for my $url (@urls) {
+        my $request = GET($url);
+        my $doc = simple_download($request);
+        print($doc->content());
+    }
+}
+
 # ================================
 # XDG Base Directory Specification
 # ================================
@@ -1532,6 +1548,7 @@ debug("selected command: $command_name");
 
 my %commands = (
     'debug-noop' => {},
+    'debug-https-get' => {},
     'list' => {},
     'history' => { accounts => 1, dates => 1 },
     'future' => { accounts => 1 },
@@ -1555,10 +1572,13 @@ my $command;
     $command = *{$sub_name};
 }
 my $need_login = $command_info->{login} // 1;
+my @cmd_options;
 if ($command_name =~ m/^debug-/) {
     $need_login = 0;
+    push(@cmd_options,
+        args => [@args],
+    );
 }
-my @cmd_options;
 if ($command_info->{todo} ) {
     user_error("$command_name: command not implemented");
 }
