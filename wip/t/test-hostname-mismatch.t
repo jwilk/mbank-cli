@@ -63,6 +63,6 @@ cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
 cmp_ok($stdout, 'eq', '', 'empty stdout');
 like($stderr, qr(\bcertificate verify failed\b), 'certificate verification failed');
 
-chdir '/';
+chdir('/') or die $!;
 
 # vim:ts=4 sw=4 et

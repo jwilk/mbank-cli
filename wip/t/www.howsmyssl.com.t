@@ -71,6 +71,6 @@ if (not cmp_ok($result->{'rating'}, 'eq', 'Probably Okay', 'www.howsmyssl.com ra
     note(to_json($result, { ascii => 1, pretty => 1 }));
 }
 
-chdir '/';
+chdir('/') or die $!;
 
 # vim:ts=4 sw=4 et
