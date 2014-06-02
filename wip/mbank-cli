@@ -900,23 +900,17 @@ sub do_history
     return;
 }
 
-sub _do_history_account
+sub _switch_history_account
 {
     my %options = @_;
     my $doc = delete($options{document})
         // internal_error('missing document');
     my $number = delete($options{'number'})
         // internal_error('missing account number');
-    my $name = delete($options{'name'})
-        // internal_error('missing account name');
-    my $start_date = delete($options{start_date});
-    my $end_date = delete($options{end_date});
-    my $display_name = delete($options{display_name})
-        // internal_error('missing display_name');
     check_for_unexpected_options(%options);
     my $parameters = undef;
-    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_account_menu = $e_root->look_down(id => 'MenuAccountsCombo');
+    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_account_menu = $html->look_down(id => 'MenuAccountsCombo');
     scalar(@e_account_menu) == 1
         or scraping_error('history.account-menu');
     my ($e_account_menu) = @e_account_menu;
@@ -936,18 +930,39 @@ sub _do_history_account
     }
     defined($parameters)
         or scraping_error("history.account.phantom: $number");
+    if (length($parameters) > 0) {
+        my @forms = HTML::Form->parse($doc->{response});
+        scalar(@forms) == 1
+            or scraping_error('history.form.n: ' . scalar(@forms));
+        my ($form) = @forms;
+        _clean_history_form($form, params => $parameters);
+        $doc = download($form->click());
+    }
+    return $doc;
+}
+
+sub _do_history_account
+{
+    my %options = @_;
+    my $doc = delete($options{document})
+        // internal_error('missing document');
+    my $name = delete($options{'name'})
+        // internal_error('missing account name');
+    my $number = delete($options{'number'})
+        // internal_error('missing account number');
+    my $start_date = delete($options{start_date});
+    my $end_date = delete($options{end_date});
+    my $display_name = delete($options{display_name})
+        // internal_error('missing display_name');
+    check_for_unexpected_options(%options);
+    $doc = _switch_history_account(
+        document => $doc,
+        number => $number,
+    );
     my @forms = HTML::Form->parse($doc->{response});
     scalar(@forms) == 1
         or scraping_error('history.form.n: ' . scalar(@forms));
     my ($form) = @forms;
-    if (length($parameters) > 0) {
-        _clean_history_form($form, params => $parameters);
-        $doc = download($form->click());
-        @forms = HTML::Form->parse($doc->{response});
-        scalar(@forms) == 1
-            or scraping_error('history.after-switch.form.n: ' . scalar(@forms));
-        ($form) = @forms;
-    }
     if (defined($start_date) or defined($end_date)) {
         my $min_date = '1901-01-01';
         my $get_limit = sub {
@@ -996,7 +1011,7 @@ sub _do_history_account
     _clean_history_form($form);
     $doc = download($form->click());
     PAGE: while (1) {
-        $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+        my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
         _do_history_page(
             html => $e_root,
             name => $name,
@@ -1013,7 +1028,7 @@ sub _do_history_account
             my $onclick = $e_prevpage->attr('onclick');
             my $url = $doc->{response}->base;
             $url =~ s{\A.*?(?=/csite/)}{};
-            ($parameters) = ($onclick =~ m{\AdoSubmit[(]'\Q$url\E','','POST','([^']*)',true,false,true,null[)];})
+            my ($parameters) = ($onclick =~ m{\AdoSubmit[(]'\Q$url\E','','POST','([^']*)',true,false,true,null[)];})
                 or scraping_error('history.prev.onclick');
             @forms = HTML::Form->parse($doc->{response});
             scalar(@forms) == 1
