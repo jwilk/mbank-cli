@@ -829,21 +829,9 @@ sub _clean_history_form
     return;
 }
 
-sub do_history
+sub _prepare_history
 {
-    my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    my $account_info = delete($options{accounts})
-        // internal_error('missing account info');
-    my $selection = delete($options{selection})
-        // internal_error('missing selection');
-    my @selection = @{$selection};
-    my $display_name = delete($options{display_name})
-        // internal_error('missing display_name');
-    my $start_date = delete($options{start_date});
-    my $end_date = delete($options{end_date});
-    check_for_unexpected_options(%options);
+    my ($login_info) = @_;
     my $module = 'account_oper_list';
     my $frameset_url = "frames.aspx?module=$module";
     my $menu_url = $login_info->{menu}->{hosthistory} // '';
@@ -871,6 +859,25 @@ sub do_history
         'Referer' => $doc->{url},
     );
     $doc = download($request);
+    return $doc;
+}
+
+sub do_history
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    my $account_info = delete($options{accounts})
+        // internal_error('missing account info');
+    my $selection = delete($options{selection})
+        // internal_error('missing selection');
+    my @selection = @{$selection};
+    my $display_name = delete($options{display_name})
+        // internal_error('missing display_name');
+    my $start_date = delete($options{start_date});
+    my $end_date = delete($options{end_date});
+    check_for_unexpected_options(%options);
+    my $doc = _prepare_history($login_info);
     my %selected_accounts = select_accounts($account_info, @selection);
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
