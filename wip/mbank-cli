@@ -1118,6 +1118,86 @@ sub _do_history_page {
     return;
 }
 
+sub _prepare_blocked
+{
+    my ($login_info) = @_;
+    my $doc = _prepare_history($login_info);
+    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $module = 'witholdings_list';
+    my $url = "/csite/$module.aspx";
+    $html->look_down(
+        _tag => 'a',
+        onclick => qr/\A\QdoSubmit('$url','','POST','',false,true,false,null);\E/,
+    )
+        or scraping_error('blocked.module');
+    my @forms = HTML::Form->parse($doc->{response});
+    scalar(@forms) == 1
+        or scraping_error('blocked.form.n: ' . scalar(@forms));
+    my ($form) = @forms;
+    _clean_history_form($form,
+        params => '',
+        reset => 1
+    );
+    $form->action("$csite_url/$module.aspx");
+    $doc = download($form->click);
+    return $doc;
+}
+
+sub do_blocked
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    my $account_info = delete($options{accounts})
+        // internal_error('missing account info');
+    my $selection = delete($options{selection})
+        // internal_error('missing selection');
+    my @selection = @{$selection};
+    my $display_name = delete($options{display_name})
+        // internal_error('missing display_name');
+    my $doc = _prepare_blocked($login_info);
+    my %selected_accounts = select_accounts($account_info, @selection);
+    $display_name ||=
+        (scalar(keys(%selected_accounts)) > 1);
+    for my $number (sort keys %selected_accounts) {
+        $doc = _do_blocked_account(
+            document => $doc,
+            number => $number,
+            name => $selected_accounts{$number},
+            display_name => $display_name,
+        );
+    }
+    return;
+}
+
+sub _do_blocked_account
+{
+    my %options = @_;
+    my $doc = delete($options{document})
+        // internal_error('missing document');
+    my $name = delete($options{'name'})
+        // internal_error('missing account name');
+    my $number = delete($options{'number'})
+        // internal_error('missing account number');
+    my $display_name = delete($options{display_name})
+        // internal_error('missing display_name');
+    check_for_unexpected_options(%options);
+    $doc = _switch_history_account(
+        document => $doc,
+        number => $number,
+    );
+    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $nothing_blocked = $html->look_down(
+        _tag => 'div',
+        id => 'witholdingsListHoldings_NoData',
+    );
+    if ($nothing_blocked) {
+        return;
+    }
+    ...;
+    return;
+}
+
 sub do_future
 {
     my %options = @_;
