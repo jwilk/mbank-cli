@@ -41,7 +41,7 @@ my $tmpdir = tempdir(
 
 my $home = abs_path(dirname(__FILE__));
 
-my $config = <<EOF;
+my $config = <<"EOF";
 Country pl
 CookieJar cookies
 EOF
@@ -50,7 +50,7 @@ print {$fh} $config;
 close($fh) or die $ERRNO;
 
 local $ENV{MBANK_CLI_HOST} = 'mbank';
-local $ENV{LD_PRELOAD} = "libsocket_wrapper.so:libnss_wrapper.so";
+local $ENV{LD_PRELOAD} = 'libsocket_wrapper.so:libnss_wrapper.so';
 local $ENV{SOCKET_WRAPPER_DIR} = "$tmpdir";
 local $ENV{NSS_WRAPPER_HOSTS} = "$home/hosts.local";
 

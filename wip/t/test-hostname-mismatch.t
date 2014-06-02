@@ -41,7 +41,7 @@ my $tmpdir = tempdir(
 
 my $home = abs_path(dirname(__FILE__));
 
-my $config = <<EOF;
+my $config = <<"EOF";
 Country pl
 CookieJar $tmpdir/cookies
 EOF

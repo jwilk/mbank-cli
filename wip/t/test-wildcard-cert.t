@@ -45,7 +45,7 @@ my $tmpdir = tempdir(
 my $home = abs_path(dirname(__FILE__));
 chdir($tmpdir) or die $ERRNO;
 
-my $config = <<EOF;
+my $config = <<"EOF";
 Country pl
 CookieJar $tmpdir/cookies
 CAfile $home/ca.crt
