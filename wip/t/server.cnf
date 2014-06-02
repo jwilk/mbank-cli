@@ -1,0 +1,42 @@
+RANDFILE = /dev/null
+oid_section = new_oids
+
+[new_oids]
+jurisdictionOfIncorporationCountryName = 1.3.6.1.4.1.311.60.2.1.3
+
+[req]
+oid_section = new_oids
+distinguished_name = req_dn
+prompt = no
+x509_extensions = req_ext
+
+[req_dn]
+jurisdictionOfIncorporationCountryName = PL
+businessCategory = Private Organization
+serialNumber = 0000025237
+C = PL
+postalCode = 00-950
+ST = mazowieckie
+L = Warszawa
+street = Senatorska 18
+O = mBank S.A.
+OU = DIN
+CN = mbank
+
+[req_ext]
+subjectAltName = DNS:mbank
+basicConstraints = CA:false
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+certificatePolicies = @cert_policies
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid
+crlDistributionPoints = crl_distribution_points
+authorityInfoAccess = OCSP;URI:http://EVSecure-ocsp.verisign.com,caIssuers;URI:http://EVSecure-aia.verisign.com/EVSecure2006.cer
+
+[cert_policies]
+policyIdentifier = 2.16.840.1.113733.1.7.23.6
+CPS = https://www.verisign.com/cps
+
+[crl_distribution_points]
+fullname = URI:http://EVSecure-crl.verisign.com/EVSecure2006.crl
