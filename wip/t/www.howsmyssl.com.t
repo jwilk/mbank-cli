@@ -27,11 +27,11 @@ use v5.10;
 
 use Test::More tests => 3;
 
-use IPC::Run qw();
-use File::Temp qw(tempdir);
-use English qw(-no_match_vars);
 use Cwd qw(abs_path);
+use English qw(-no_match_vars);
 use File::Basename qw(dirname);
+use File::Temp qw(tempdir);
+use IPC::Run qw();
 
 use JSON qw(decode_json to_json);
 
