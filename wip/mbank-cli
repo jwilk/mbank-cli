@@ -1360,9 +1360,10 @@ sub do_notices
 sub do_logout
 {
     my %options = @_;
-    my $login_info = delete($options{login});
-    check_for_unexpected_options(%options);
-    if (defined($login_info)) {
+    my $login_info = do_login();
+    if (not defined($login_info)) {
+        user_error('logout: the user was not logged in')
+    } else {
         debug('logging out...');
         my $request = POST(
             "$base_url/LoginMain/Account/LazyLogout",
@@ -1388,6 +1389,11 @@ sub do_logout
     $ua->cookie_jar->clear();
     debug('cookies have been wiped out');
     return;
+}
+
+sub do_debug_noop
+{
+    # Nothing to do!
 }
 
 # ================================
@@ -1520,79 +1526,73 @@ $ua->cookie_jar->scan(
     }
 );
 
-my ($command, @args) = @ARGV;
-$command //= 'list';
-debug("selected command: $command");
+my ($command_name, @args) = @ARGV;
+$command_name //= 'list';
+debug("selected command: $command_name");
 
-if ($command eq 'debug-noop') {  ## no critic (CascadingIfElse)
-    # Nothing to do!
-} elsif ($command eq 'list') {
-    my $login_info = do_login(config => $cfg);
-    do_list(login => $login_info);
-} elsif ($command eq 'history') {
+my %commands = (
+    'debug-noop' => {},
+    'list' => {},
+    'history' => { accounts => 1, dates => 1 },
+    'future' => { accounts => 1 },
+    'blocked' => { todo => 1 },
+    'deposits' => {},
+    'cards' => {},
+    'funds' => {},
+    'notices' => {},
+    'logout' => { login => 0 },
+);
+
+my $command_info = $commands{$command_name};
+if (not defined $command_info) {
+    user_error("$command_name: invalid command");
+}
+my $command;
+{
+    no strict 'refs';  ## no critic (NoStrict)
+    my $sub_name = "do_$command_name";
+    $sub_name =~ y/-/_/;
+    $command = *{$sub_name};
+}
+my $need_login = $command_info->{login} // 1;
+if ($command_name =~ m/^debug-/) {
+    $need_login = 0;
+}
+my @cmd_options;
+if ($command_info->{todo} ) {
+    user_error("$command_name: command not implemented");
+}
+if ($command_info->{accounts}) {
     my @selection = @args;
     if ($opt_all) {
         @selection = '*';
     }
     if (scalar(@selection) < 1) {
-        user_error('history: no account selected');
+        user_error("$command_name: no account selected");
     }
-    my $login_info = do_login(config => $cfg);
-    my $account_info = do_list(
-        login => $login_info,
-        quiet => 1,
-    );
-    do_history(
-        login => $login_info,
-        accounts => $account_info,
+    push(@cmd_options,
         selection => [@selection],
         display_name => $opt_all || $opt_multi,
+    );
+}
+if ($need_login) {
+    my $login_info = do_login(config => $cfg);
+    push(@cmd_options, login => $login_info);
+    if ($command_info->{accounts}) {
+        my $account_info = do_list(
+            login => $login_info,
+            quiet => 1,
+        );
+        push(@cmd_options, accounts => $account_info);
+    }
+}
+if ($command_info->{dates}) {
+    push(@cmd_options,
         start_date => $opt_start_date,
         end_date => $opt_end_date,
     );
-} elsif ($command eq 'future') {
-    my @selection = @args;
-    if ($opt_all) {
-        @selection = '*';
-    }
-    if (scalar(@selection) < 1) {
-        user_error('future: no account selected');
-    }
-    my $login_info = do_login(config => $cfg);
-    my $account_info = do_list(
-        login => $login_info,
-        quiet => 1,
-    );
-    do_future(
-        login => $login_info,
-        accounts => $account_info,
-        selection => [@selection],
-        display_name => $opt_all || $opt_multi,
-    );
-} elsif ($command eq 'blocked') {
-    user_error('blocked: command not implemented');
-} elsif ($command eq 'deposits') {
-    my $login_info = do_login(config => $cfg);
-    do_deposits(login => $login_info);
-} elsif ($command eq 'cards') {
-    my $login_info = do_login(config => $cfg);
-    do_cards(login => $login_info);
-} elsif ($command eq 'funds') {
-    my $login_info = do_login(config => $cfg);
-    do_funds(login => $login_info);
-} elsif ($command eq 'notices') {
-    my $login_info = do_login(config => $cfg);
-    do_notices(login => $login_info);
-} elsif ($command eq 'logout') {
-    # TODO: allow logging out from the old web interface
-    my $login_info = do_login();
-    do_logout(login => $login_info);
-    if (not defined($login_info)) {
-        user_error('logout: the user was not logged in')
-    }
-} else {
-    user_error("$command: invalid command");
 }
+$command->(@cmd_options);
 
 END {
     # catch write errors:
