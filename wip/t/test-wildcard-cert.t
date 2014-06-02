@@ -68,7 +68,7 @@ $cli->finish();
 TODO: {
     local $TODO = 'LWP::protocol::https stomps on SSL_verifycn_scheme'
         # https://bugs.debian.org/747225
-        if $LWP::VERSION >= 6
+        if $LWP::VERSION >= 6  ## no critic (PostfixControl)
         and $IO::Socket::SSL::VERSION < 1.969;
     cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
     cmp_ok($stdout, 'eq', '', 'empty stdout');
