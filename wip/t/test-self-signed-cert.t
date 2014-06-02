@@ -28,6 +28,7 @@ use v5.10;
 use Test::More tests => 3;
 
 use Cwd qw(abs_path);
+use English qw(-no_match_vars);
 use File::Basename qw(dirname);
 use File::Temp qw(tempdir);
 use IPC::Run qw();
@@ -38,16 +39,16 @@ my $tmpdir = tempdir(
     CLEANUP => 1,
 ) or die;
 
-my $home = abs_path(dirname($0));
-chdir $tmpdir or die $!;
+my $home = abs_path(dirname(__FILE__));
+chdir $tmpdir or die $ERRNO;
 
 my $config = <<EOF;
 Country pl
 CookieJar cookies
 EOF
-open(my $fh, '>', 'mbank-cli.conf') or die $!;
+open(my $fh, '>', 'mbank-cli.conf') or die $ERRNO;
 print {$fh} $config;
-close($fh) or die $!;
+close($fh) or die $ERRNO;
 
 local $ENV{MBANK_CLI_HOST} = 'mbank';
 local $ENV{LD_PRELOAD} = "libsocket_wrapper.so:libnss_wrapper.so";
@@ -75,6 +76,6 @@ like($stderr, qr(\bcertificate verify failed\b), 'certificate verification faile
 
 IPC::Run::kill_kill($server);
 
-chdir('/') or die $!;
+chdir('/') or die $ERRNO;
 
 # vim:ts=4 sw=4 et
