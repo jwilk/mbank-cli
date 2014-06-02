@@ -1507,8 +1507,8 @@ if (not defined($lang)) {
 }
 
 $mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
-$base_url = $ENV{MBANK_CLI_BASE_URL} // "https://$mbank_host/$lang";
-$csite_url = $ENV{MBANK_CLI_BASE_URL} // "https://$mbank_host/csite";
+$base_url = "https://$mbank_host/$lang";
+$csite_url = "https://$mbank_host/csite";
 
 $ua = http_init(
     host => $mbank_host,
