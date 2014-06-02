@@ -817,9 +817,15 @@ sub select_accounts
 
 sub _clean_history_form
 {
-    my ($form, $parameters) = @_;
+    my ($form, %options) = @_;
+    my $parameters = delete($options{'params'});
+    my $reset = delete($options{'reset'});
+    check_for_unexpected_options(%options);
     for my $input ($form->inputs) {
         if ($input->name =~ m/\Alastdays_\w+\z/) {
+            $input->disabled(1);
+        }
+        if ($reset and $input->name !~ m/\A__/) {
             $input->disabled(1);
         }
     }
@@ -935,7 +941,7 @@ sub _do_history_account
         or scraping_error('history.form.n: ' . scalar(@forms));
     my ($form) = @forms;
     if (length($parameters) > 0) {
-        _clean_history_form($form, $parameters);
+        _clean_history_form($form, params => $parameters);
         $doc = download($form->click());
         @forms = HTML::Form->parse($doc->{response});
         scalar(@forms) == 1
@@ -1013,7 +1019,7 @@ sub _do_history_account
             scalar(@forms) == 1
                 or scraping_error('history.prev.form.n: ' . scalar(@forms));
             ($form) = @forms;
-            _clean_history_form($form, $parameters);
+            _clean_history_form($form, params => $parameters);
             $doc = download($form->click());
             next PAGE;
         } else {
