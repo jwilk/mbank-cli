@@ -43,14 +43,14 @@ my $tmpdir = tempdir(
 ) or die;
 
 my $home = abs_path(dirname(__FILE__));
-chdir $tmpdir or die $ERRNO;
+chdir($tmpdir) or die $ERRNO;
 
 my $config = <<EOF;
 Country pl
-CookieJar cookies
+CookieJar $tmpdir/cookies
 CAfile $home/ca.crt
 EOF
-open(my $fh, '>', 'mbank-cli.conf') or die $ERRNO;
+open(my $fh, '>', "$tmpdir/mbank-cli.conf") or die $ERRNO;
 print {$fh} $config;
 close($fh) or die $ERRNO;
 
@@ -60,7 +60,7 @@ local $ENV{MBANK_CLI_HOST} = $host;
 my ($stdout, $stderr);
 my $url = "https://$host/";
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", qw(-c ./mbank-cli.conf debug-https-get), $url],
+    ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf", 'debug-https-get', $url],
     '>', \$stdout,
     '2>', \$stderr,
 );
@@ -74,7 +74,5 @@ TODO: {
     cmp_ok($stdout, 'eq', '', 'empty stdout');
     like($stderr, qr(\bcertificate verify failed\b), 'certificate verification failed');
 }
-
-chdir('/') or die $ERRNO;
 
 # vim:ts=4 sw=4 et

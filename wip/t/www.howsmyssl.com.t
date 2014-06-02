@@ -42,14 +42,13 @@ my $tmpdir = tempdir(
 ) or die;
 
 my $home = abs_path(dirname(__FILE__));
-chdir $tmpdir or die $ERRNO;
 
 my $config = <<EOF;
 Country pl
-CookieJar cookies
+CookieJar $tmpdir/cookies
 CAfile $home/ca.crt
 EOF
-open(my $fh, '>', 'mbank-cli.conf') or die $ERRNO;
+open(my $fh, '>', "$tmpdir/mbank-cli.conf") or die $ERRNO;
 print {$fh} $config;
 close($fh) or die $ERRNO;
 
@@ -59,7 +58,7 @@ local $ENV{MBANK_CLI_HOST} = $host;
 my ($stdout, $stderr);
 my $url = "https://$host/a/check";
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", qw(-c ./mbank-cli.conf debug-https-get), $url],
+    ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf", 'debug-https-get', $url],
     '>', \$stdout,
     '2>', \$stderr,
 );
@@ -71,7 +70,5 @@ if (not cmp_ok($result->{'rating'}, 'eq', 'Probably Okay', 'www.howsmyssl.com ra
     delete $result->{'given_cipher_suites'};
     note(to_json($result, { ascii => 1, pretty => 1 }));
 }
-
-chdir('/') or die $ERRNO;
 
 # vim:ts=4 sw=4 et

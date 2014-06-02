@@ -40,13 +40,12 @@ my $tmpdir = tempdir(
 ) or die;
 
 my $home = abs_path(dirname(__FILE__));
-chdir $tmpdir or die $ERRNO;
 
 my $config = <<EOF;
 Country pl
 CookieJar cookies
 EOF
-open(my $fh, '>', 'mbank-cli.conf') or die $ERRNO;
+open(my $fh, '>', "$tmpdir/mbank-cli.conf") or die $ERRNO;
 print {$fh} $config;
 close($fh) or die $ERRNO;
 
@@ -65,7 +64,7 @@ my $server = IPC::Run::start(
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", qw(-c ./mbank-cli.conf)],
+    ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf"],
     '>', \$stdout,
     '2>', \$stderr,
 );
@@ -75,7 +74,5 @@ cmp_ok($stdout, 'eq', '', 'empty stdout');
 like($stderr, qr(\bcertificate verify failed\b), 'certificate verification failed');
 
 IPC::Run::kill_kill($server);
-
-chdir('/') or die $ERRNO;
 
 # vim:ts=4 sw=4 et
