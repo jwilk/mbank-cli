@@ -43,7 +43,7 @@ my $home = abs_path(dirname(__FILE__));
 
 my $config = <<"EOF";
 Country pl
-CookieJar cookies
+CookieJar $tmpdir/cookies
 EOF
 open(my $fh, '>', "$tmpdir/mbank-cli.conf") or die $ERRNO;
 print {$fh} $config;
