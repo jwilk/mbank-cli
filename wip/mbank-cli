@@ -1410,6 +1410,7 @@ sub do_debug_https_get
         my $doc = simple_download($request);
         print($doc->content());
     }
+    return;
 }
 
 # ================================
