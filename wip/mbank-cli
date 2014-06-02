@@ -465,7 +465,7 @@ sub _decrypt_config
     my ($config) = @_;
     my $pgp_chunks = delete $config->{__pgp__};
     defined($pgp_chunks) or return;
-    foreach my $encrypted_data (@{$pgp_chunks}) {
+    for my $encrypted_data (@{$pgp_chunks}) {
         my $decrypted_data;
         IPC::Run::run(
             ['gpg', '-d'],
@@ -473,7 +473,7 @@ sub _decrypt_config
             '>', \$decrypted_data,
         ) or os_error('gpg -d failed');
         my @decrypted_data = split(/\n/, $decrypted_data);
-        foreach (@decrypted_data) {
+        for (@decrypted_data) {
             if (m/^(?:#|\s*)$/) {
                 next;
             } elsif (m/^\s*([\w-]+)\s+(.*\S)\s*$/) {
@@ -802,7 +802,7 @@ sub select_accounts
         map { bytes_to_unicode $_ } @selection
     );
     my %result = ();
-    foreach my $account (@{$account_info}) {
+    for my $account (@{$account_info}) {
         my $name = $account->{name};
         my $number = $account->{number};
         if ($name =~ $regexp) {
@@ -818,7 +818,7 @@ sub select_accounts
 sub _clean_history_form
 {
     my ($form, $parameters) = @_;
-    foreach my $input ($form->inputs) {
+    for my $input ($form->inputs) {
         if ($input->name =~ m/\Alastdays_\w+\z/) {
             $input->disabled(1);
         }
@@ -881,7 +881,7 @@ sub do_history
     my %selected_accounts = select_accounts($account_info, @selection);
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
-    foreach my $number (sort keys %selected_accounts) {
+    for my $number (sort keys %selected_accounts) {
         $doc = _do_history_account(
             document => $doc,
             number => $number,
@@ -915,7 +915,7 @@ sub _do_history_account
         or scraping_error('history.account-menu');
     my ($e_account_menu) = @e_account_menu;
     my @e_accounts = $e_account_menu->content_list();
-    foreach my $e_account (@e_accounts) {
+    for my $e_account (@e_accounts) {
         my $o_name = $e_account->as_trimmed_text();
         my ($o_number) = ($o_name =~ m/- (\d{2}(?: \d{4}){6})\z/)
             or scraping_error("history.account.number: $o_name");
@@ -1331,7 +1331,7 @@ sub do_notices
         // scraping_error("notices.json: $EVAL_ERROR");
     my $elements = $json->{Elements}
         // scraping_error('notices.elements');
-    foreach my $element (@{$elements}) {
+    for my $element (@{$elements}) {
         my $template_path = $element->{TemplatePath}
             // scraping_error('notices.template-path');
         my $message = $element->{Message}
