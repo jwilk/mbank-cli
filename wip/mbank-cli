@@ -312,6 +312,7 @@ sub http_init
         cookie_jar => $cookie_jar,
         protocols_allowed => ['https'],
         timeout => $http_timeout,
+        keep_alive => 1,
     );
     if ($IO::Socket::SSL::VERSION >= 1.969) {
         IO::Socket::SSL::set_args_filter_hack('use_defaults');
