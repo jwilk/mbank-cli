@@ -1194,7 +1194,7 @@ sub _do_blocked_account
     if ($nothing_blocked) {
         return;
     }
-    ...;
+    ...;  # TODO
     return;
 }
 
