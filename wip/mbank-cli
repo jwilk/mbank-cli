@@ -720,8 +720,8 @@ sub do_login
     );
     defined($tabid)
         or scraping_error('login.tabid');
-    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_meta = $e_root->look_down(
+    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_meta = $html->look_down(
         _tag => 'meta',
         name => '__AjaxRequestVerificationToken'
     );
@@ -732,7 +732,7 @@ sub do_login
     $arvt =~ m{\A[\w/+]{100,}\z}
         or scraping_error("login.arvt: $arvt");
     my %menu = ();
-    for my $e_script ($e_root->look_down(_tag => 'script')) {
+    for my $e_script ($html->look_down(_tag => 'script')) {
         my @content = $e_script->content_list;
         scalar(@content) == 1
             or next;
@@ -869,8 +869,8 @@ sub _prepare_history
         'Referer' => $login_info->{url},
     );
     my $doc = download($request);
-    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_frames = $e_root->look_down(
+    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_frames = $html->look_down(
         _tag => 'frame',
         name => 'MainFrame',
     );
@@ -1032,13 +1032,13 @@ sub _do_history_account
     _clean_history_form($form);
     $doc = download($form->click());
     PAGE: while (1) {
-        my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
+        my $html = HTML::TreeBuilder->new_from_content($doc->{content});
         _do_history_page(
-            html => $e_root,
+            html => $html,
             name => $name,
             display_name => $display_name,
         );
-        my @e_prevpage = $e_root->look_down(
+        my @e_prevpage = $html->look_down(
             _tag => 'button',
             id => 'PrevPage',
         );
@@ -1067,16 +1067,16 @@ sub _do_history_account
 
 sub _do_history_page {
     my %options = @_;
-    my $e_root = delete($options{html})
+    my $html = delete($options{html})
         // internal_error('missing html');
     my $name = delete($options{name})
         // internal_error('missing name');
     my $display_name = delete($options{display_name})
         // internal_error('missing display_name');
     check_for_unexpected_options(%options);
-    my @e_op_descs = find_html_class($e_root, 'OperationDescription');
+    my @e_op_descs = find_html_class($html, 'OperationDescription');
     if (not @e_op_descs) {
-        $e_root->look_down(id => 'account_operations_NoData')
+        $html->look_down(id => 'account_operations_NoData')
             or scraping_error('history.empty');
         return;
     }
@@ -1359,8 +1359,8 @@ sub do_cards
         Content => '',
     );
     my $doc = download($request);
-    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_cards = find_html_class($e_root, 'card-properties');
+    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_cards = find_html_class($html, 'card-properties');
     for my $e_card (@e_cards) {
         my $e_name = find_html_class($e_card, 'card-name')
             // scraping_error('cards.name');
@@ -1396,8 +1396,8 @@ sub do_funds
         Content => '',
     );
     my $doc = download($request);
-    my $e_root = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_funds = find_html_class($e_root, 'investment-properties');
+    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my @e_funds = find_html_class($html, 'investment-properties');
     for my $e_fund (@e_funds) {
         my $class = $e_fund->attr('class');
         if ($class =~ html_class_regexp('wallet-properties')) {
