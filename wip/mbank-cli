@@ -1543,6 +1543,8 @@ sub do_logout
     my %options = @_;
     my $login_info = do_login();
     if (not defined($login_info)) {
+        $ua->cookie_jar->clear();
+        debug('cookies have been wiped out');
         user_error('logout: the user was not logged in')
     } else {
         debug('logging out...');
