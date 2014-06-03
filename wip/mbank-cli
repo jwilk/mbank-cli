@@ -420,7 +420,7 @@ sub get_default_ca_path
     if (defined($ssl_cert_dir)) {
         for my $hash (@hashes) {
             $path = "$ssl_cert_dir/$hash.0";
-            # TODO: actually when if this is the certificate we want
+            # TODO: actually check if this is the certificate we want
             # hash collisions are unlikely, but not impossible
             -r $path or next;
             my $rpath = readlink($path) or next;
