@@ -50,6 +50,8 @@ use Text::ParseWords ();
 
 my $opt_verbose = 0;
 my $opt_debug_dir = undef;
+my $bugtracker = 'https://code.google.com/p/mbank‐cli/issues/list';
+my $bugreport_request = "Please file a bug at <$bugtracker>.\n";
 
 sub write_log
 {
@@ -148,6 +150,7 @@ sub scraping_error
     write_log($message);
     local $Carp::CarpLevel = 1;
     Carp::cluck($message);
+    print {*STDERR} $bugreport_request;
     exit(3);
 }
 
@@ -171,6 +174,7 @@ sub internal_error
     write_log($message);
     local $Carp::CarpLevel = $level + 1;
     Carp::cluck($message);
+    print {*STDERR} $bugreport_request;
     exit(255);
 }
 
