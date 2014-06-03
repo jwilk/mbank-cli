@@ -22,6 +22,7 @@
 
 use strict;
 use warnings FATAL => qw(numeric);
+use charnames ':full';
 no encoding;
 
 use Date::Format qw(time2str);
