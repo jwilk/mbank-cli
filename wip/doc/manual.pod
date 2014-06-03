@@ -24,6 +24,9 @@ B<mbank-cli> B<blocked> [I<option>...] {I<account> | B<-M> I<account>...  | B<-A
 B<mbank-cli> B<deposits> [I<option>...]
 
 =item *
+B<mbank-cli> B<cards> [I<option>...]
+
+=item *
 B<mbank-cli> B<funds> [I<option>...]
 
 =item *
@@ -174,6 +177,22 @@ in the following format:
 =item Z<>
 
 I<deposit-name> I<establishment-date> I<maturity-date> I<term> I<interest> I<amount>
+
+=back
+
+=head2 The “cards” command
+
+Syntax:
+B<mbank-cli> B<cards> [I<option>...]
+
+Print the list of cards,
+in the following format:
+
+=over 4
+
+=item Z<>
+
+I<card-name> I<card-number> I<owner> I<amount>
 
 =back
 
