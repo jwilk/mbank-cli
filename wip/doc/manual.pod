@@ -251,7 +251,7 @@ Failure because of a user error.
 
 =item Z<>2
 
-Failure because of an HTTP error. This may be due to a network error, but might as well be a result of an scraping error (see below).
+Failure because of an HTTP error. This may be due to a network error, but might as well be a result of a scraping error (see below).
 
 =item Z<>3
 
