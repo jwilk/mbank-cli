@@ -27,7 +27,7 @@ Requirements
 
   - IO::Socket::SSL
 
-- GNU Privacy Guard (optionally, to protect your password)
+- GnuPG (optionally, to protect your password)
 
 
 Security
