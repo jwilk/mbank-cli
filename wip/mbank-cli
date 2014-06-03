@@ -856,14 +856,24 @@ sub _clean_history_form
     return;
 }
 
-sub _prepare_history
+sub _prepare_csite
 {
-    my ($login_info) = @_;
-    my $module = 'account_oper_list';
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    my $command = delete($options{command})
+        // internal_error('missing command');
+    my $module = delete($options{module})
+        // internal_error('missing module');
+    my $menu_item = delete($options{menu_item})
+        // internal_error('missing menu item');
+    check_for_unexpected_options(%options);
     my $frameset_url = "frames.aspx?module=$module";
-    my $menu_url = $login_info->{menu}->{hosthistory} // '';
+    my $menu_url = $login_info->{menu}->{$menu_item} // '';
     $menu_url eq "/csite/$frameset_url"  # sanity check
-        or scraping_error('history.menu: ' . $menu_url);
+        or scraping_error("$command.menu: $menu_url");
+        # scraping_error('history.menu')
+        # scraping_error('blocked.menu')
     my $request = GET(
         "$csite_url/$frameset_url",
         'Referer' => $login_info->{url},
@@ -875,12 +885,16 @@ sub _prepare_history
         name => 'MainFrame',
     );
     scalar(@e_frames) == 1
-        or scraping_error('history.frame');
+        or scraping_error("$command.frame");
+        # scraping_error('history.frame');
+        # scraping_error('blocked.frame');
     my ($e_frame) = @e_frames;
     my $frame_url = $e_frame->attr('src') // '';
     $frame_url =~ s/\A\s+|\s+\z//g;
     $frame_url eq "$module.aspx"  # sanity check
-        or scraping_error("history.frame.url: $frame_url");
+        or scraping_error("$command.frame.url: $frame_url");
+        # scraping_error('history.frame.url');
+        # scraping_error('blocked.frame.url');
     $request = GET(
         "$csite_url/$frame_url",
         'Referer' => $doc->{url},
@@ -904,7 +918,12 @@ sub do_history
     my $start_date = delete($options{start_date});
     my $end_date = delete($options{end_date});
     check_for_unexpected_options(%options);
-    my $doc = _prepare_history($login_info);
+    my $doc = _prepare_csite(
+        command => 'history',
+        login => $login_info,
+        module => 'account_oper_list',
+        menu_item => 'hosthistory',
+    );
     my %selected_accounts = select_accounts($account_info, @selection);
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
@@ -1139,31 +1158,6 @@ sub _do_history_page {
     return;
 }
 
-sub _prepare_blocked
-{
-    my ($login_info) = @_;
-    my $doc = _prepare_history($login_info);
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my $module = 'witholdings_list';
-    my $url = "/csite/$module.aspx";
-    $html->look_down(
-        _tag => 'a',
-        onclick => qr/\A\QdoSubmit('$url','','POST','',false,true,false,null);\E/,
-    )
-        or scraping_error('blocked.module');
-    my @forms = HTML::Form->parse($doc->{response});
-    scalar(@forms) == 1
-        or scraping_error('blocked.form.n: ' . scalar(@forms));
-    my ($form) = @forms;
-    _clean_history_form($form,
-        params => '',
-        reset => 1
-    );
-    $form->action("$csite_url/$module.aspx");
-    $doc = download($form->click);
-    return $doc;
-}
-
 sub do_blocked
 {
     my %options = @_;
@@ -1176,7 +1170,12 @@ sub do_blocked
     my @selection = @{$selection};
     my $display_name = delete($options{display_name})
         // internal_error('missing display_name');
-    my $doc = _prepare_blocked($login_info);
+    my $doc = _prepare_csite(
+        command => 'blocked',
+        login => $login_info,
+        module => 'witholdings_list',
+        menu_item => 'hostwitholdings',
+    );
     my %selected_accounts = select_accounts($account_info, @selection);
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
