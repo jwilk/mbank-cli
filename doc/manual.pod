@@ -9,7 +9,7 @@ mbank-cli - command-line interface to the on-line banking system of mBank
 =over 2
 
 =item *
-B<mbank-cli> [B<list>] [I<option>...] 
+B<mbank-cli> [B<list>] [I<option>...]
 
 =item *
 B<mbank-cli> B<history> [I<option>...] [B<--range> I<start-date> I<end-date> | B<--from> I<start-date> [B<--to> I<end-date>] ] {I<account> | B<-M> I<account>...  | B<-A>}
@@ -103,7 +103,7 @@ The “B<*>” character can be used as a wildcard character.
 =head2 The “list” command
 
 Syntax:
-B<mbank-cli> [B<list>] [I<option>...] 
+B<mbank-cli> [B<list>] [I<option>...]
 
 For each account, print:
 
@@ -310,21 +310,20 @@ can be specified using the B<--cookie-jar> option.
 =head1 EXAMPLES
 
     $ ./mbank-cli list  # list accounts
-    
-    $ ./mbank-cli history eKonto  # print history of the “eKonto” account
-    
-    $ ./mbank-cli history eKonto --range 2005-01-01 2005-12-31
-    
-    $ ./mbank-cli history eKonto --from 2006-06-01
-    
-    $ ./mbank-cli future eMax  # print planned operations for the “eMax” account
-    
-    $ ./mbank-cli rename 'eMax - foo' 'bar'  # from now on, it will be called “eMax - bar”
-    
-    $ ./mbank-cli funds  # list investment funds
-    
-    $ ./mbank-cli logout
 
+    $ ./mbank-cli history eKonto  # print history of the “eKonto” account
+
+    $ ./mbank-cli history eKonto --range 2005-01-01 2005-12-31
+
+    $ ./mbank-cli history eKonto --from 2006-06-01
+
+    $ ./mbank-cli future eMax  # print planned operations for the “eMax” account
+
+    $ ./mbank-cli rename 'eMax - foo' 'bar'  # from now on, it will be called “eMax - bar”
+
+    $ ./mbank-cli funds  # list investment funds
+
+    $ ./mbank-cli logout
 
 =head1 SEE ALSO
 
