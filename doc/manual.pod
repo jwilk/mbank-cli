@@ -309,7 +309,7 @@ can be specified using the B<--cookie-jar> option.
 
 =head1 EXAMPLES
 
-    $ ./mbank-cli list  # list available accounts
+    $ ./mbank-cli list  # list accounts
     
     $ ./mbank-cli history eKonto  # print history of the “eKonto” account
     
@@ -321,7 +321,7 @@ can be specified using the B<--cookie-jar> option.
     
     $ ./mbank-cli rename 'eMax - foo' 'bar'  # from now on, it will be called “eMax - bar”
     
-    $ ./mbank-cli funds  # list available investment funds
+    $ ./mbank-cli funds  # list investment funds
     
     $ ./mbank-cli logout
 
