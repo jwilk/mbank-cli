@@ -403,14 +403,35 @@ sub get_default_ca_path
     my ($name, @hashes) = @_;
     my $filename = "$name.crt";
     $filename =~ y/ /_/;
-    my $candidate = "/usr/share/ca-certificates/mozilla/$filename";
-    if (-r $candidate) {
-        return $candidate;
+    my $path = "/usr/share/ca-certificates/mozilla/$filename";
+    if (-r $path) {
+        return $path;
     }
-    # TODO: take into account @hashes
+    my $ssl_cert_dir = $ENV{SSL_CERT_DIR};
+    if (not defined $ssl_cert_dir) {
+        # https://www.openssl.org/docs/crypto/SSLeay_version.html
+        # SSLEAY_DIR == 5
+        my $openssl_info = Net::SSLeay::SSLeay_version(5);
+        my ($openssl_dir) = $openssl_info =~ m/\AOPENSSLDIR: "(.*)"\Z/;
+        if (defined($openssl_dir)) {
+            $ssl_cert_dir = "$openssl_dir/certs";
+        }
+    }
+    if (defined($ssl_cert_dir)) {
+        for my $hash (@hashes) {
+            $path = "$ssl_cert_dir/$hash.0";
+            # TODO: actually when if this is the certificate we want
+            # hash collisions are unlikely, but not impossible
+            -r $path or next;
+            my $rpath = readlink($path) or next;
+            $rpath =~ m{\A/}
+                or $rpath = "$ssl_cert_dir/$rpath";
+            return $rpath;
+        }
+    }
     my $here = dirname(__FILE__);
-    $candidate = File::Spec->catfile($here, 'ca.crt');
-    return $candidate;
+    $path = File::Spec->catfile($here, 'ca.crt');
+    return $path;
 }
 
 # ===========================
@@ -1613,6 +1634,9 @@ my $ca_path = get_config_var($cfg, 'cafile', \undef)
         # openssl x509 -subject_hash_old -noout
         '7651b327',
     );
+if (not -r $ca_path) {
+    os_error("$ca_path: $ERRNO");
+}
 debug("cafile = $ca_path");
 my $tld = get_config_var($cfg, 'country')
     // config_error($cfg, 'missing country');
