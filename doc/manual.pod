@@ -311,15 +311,15 @@ can be specified using the B<--cookie-jar> option.
 
     $ ./mbank-cli list  # list available accounts
     
-    $ ./mbank-cli history foo  # print history of the “foo” account
+    $ ./mbank-cli history eKonto  # print history of the “eKonto” account
     
-    $ ./mbank-cli history bar --range 2005-01-01 2005-12-31
+    $ ./mbank-cli history eKonto --range 2005-01-01 2005-12-31
     
-    $ ./mbank-cli history quux --from 2006-06-01
+    $ ./mbank-cli history eKonto --from 2006-06-01
     
-    $ ./mbank-cli future foo  # print planned operations for the “foo” account
+    $ ./mbank-cli future eMax  # print planned operations for the “eMax” account
     
-    $ ./mbank-cli rename 'eKonto - bar' 'quux'  # from now on, it will be called “eKonto - quux”
+    $ ./mbank-cli rename 'eMax - foo' 'bar'  # from now on, it will be called “eMax - bar”
     
     $ ./mbank-cli funds  # list available investment funds
     
