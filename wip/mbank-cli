@@ -301,6 +301,7 @@ sub http_init
         parse_head => 0,
     );
     if ($cookie_jar_path ne '/dev/null') {
+        # TODO: implement auto-logout if cookie jar is /dev/null
         push(@cookie_jar_options,
             file => $cookie_jar_path,
             autosave => 1,
