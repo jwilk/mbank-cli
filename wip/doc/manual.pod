@@ -1,0 +1,262 @@
+=encoding utf8
+
+=head1 NAME
+
+mbank-cli - command-line interface to the on-line banking system of mBank
+
+=head1 SYNOPSIS
+
+=over 2
+
+=item *
+B<mbank-cli> [B<list>] [I<option>...]
+
+=item *
+B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] {I<account> | B<-M> I<account>...  | B<-A>}
+
+=item *
+B<mbank-cli> B<future> [I<option>...] {I<account> | B<-M> I<account>...  | B<-A>}
+
+=item *
+B<mbank-cli> B<blocked> [I<option>...] {I<account> | B<-M> I<account>...  | B<-A>}
+
+=item *
+B<mbank-cli> B<deposits> [I<option>...]
+
+=item *
+B<mbank-cli> B<funds> [I<option>...]
+
+=item *
+B<mbank-cli> B<notices> [I<option>...]
+
+=item *
+B<mbank-cli> B<logout> [I<option>...]
+
+=back
+
+=head1 DESCRIPTION
+
+=head2 Output format
+
+Records are separated by newline (0x0A, LF) characters.
+Each line contains fields separated by tab (0x09, HT) characters.
+
+=head2 Common options
+
+The following options are available for all commands:
+
+=over 4
+
+=item B<--verbose>
+
+Display the debugging information.
+
+=item B<--debug> I<debug-directory>
+
+Save the debugging information (including dumps of downloaded pages) into I<debug-directory>.
+
+=item B<--config> I<config-file>
+
+Use I<config-file> as the configuration file.
+
+=back
+
+=head2 Selecting accounts
+
+Some commands (B<history>, B<future>, B<blocked>) can act on one or more accounts.
+They can be selected in the following names:
+
+=over 4
+
+=item I<account-name> (as a positional argument)
+
+select a single account
+
+=item B<-M>, B<--multiple-accounts> I<account>...
+
+select multiple accounts
+
+=item B<-A>, B<--all-accounts>
+
+select all accounts
+
+=back
+
+The “B<*>” character can be used as a wildcard character.
+
+=head2 The “list” command
+
+Syntax:
+B<mbank-cli> [B<list>] [I<option>...]
+
+For each account, print:
+
+=over 4
+
+=item Z<>
+
+I<account-name> I<account-number> I<balance> I<avail-resources>
+
+=back
+
+=head2 The “history” command
+
+Syntax:
+B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] {I<account> | B<-M> I<account>...  | B<-A>}
+
+Print the history of the selected account(s),
+in the following format:
+
+=over 4
+
+=item Z<>
+
+I<[account-name]> I<date> I<accounting-date> I<amount> I<balance> I<description>
+
+=back
+
+Newline characters in I<description> are replaced by tab charaters.
+
+Time range can be selected with the following options:
+
+=over 4
+
+=item B<--from> I<start-date>
+
+Show operations with the date not before I<start-date>.
+
+=back
+
+A date is either “B<now>” or in the I<YYYY>-I<MM>-I<DD> format.
+
+=head2 The “future” command
+
+Syntax:
+B<mbank-cli> B<future> [I<option>...] {I<account> | B<-M> I<account>...  | B<-A>}
+
+Print the list of planned operations for the selected account(s),
+in the following format:
+
+=over 4
+
+=item Z<>
+
+I<[account-name]> I<date> I<recipient> I<description> I<amount> I<status>
+
+=back
+
+=head2 The “blocked” command
+
+Syntax:
+B<mbank-cli> B<blocked> [I<option>...] {I<account> | B<-M> I<account>...  | B<-A>}
+
+Print the list of operations that were carried out but not booked,
+in the following format:
+
+=over 4
+
+=item Z<>
+
+I<[account-name]> I<registration-date> I<finalization-date> I<amount> I<description>
+
+=back
+
+=head2 The “deposits” command
+
+Syntax:
+B<mbank-cli> B<deposits> [I<option>...]
+
+Print the list of time deposits,
+in the following format:
+
+=over 4
+
+=item Z<>
+
+I<deposit-name> I<establishment-date> I<maturity-date> I<term> I<interest> I<amount>
+
+=back
+
+=head2 The “funds” command
+
+Syntax:
+B<mbank-cli> B<funds> [I<option>...]
+
+Prin the list of investment funds,
+in the following format:
+
+=over 4
+
+=item Z<>
+
+I<fund-name> I<amount> I<[planned-amount]>
+
+=back
+
+=head2 The “notices” command
+
+Syntax:
+B<mbank-cli> B<notices> [I<option>...]
+
+Print the list of notices,
+in the following format:
+
+=over 4
+
+=item Z<>
+
+I<flag> I<date> I<title>
+
+=back
+
+I<flag> is either “B<N>” (for an unread notice) or an empty string (otherwise).
+
+=head2 The “logout” command
+
+Syntax:
+B<mbank-cli> B<logout> [I<option>...]
+
+Log out from the web interface.
+
+=head1 EXIT STATUS
+
+=over 4
+
+=item Z<>0
+
+Success.
+
+=item Z<>1
+
+Failure because of a user error.
+
+=item Z<>2
+
+Failure because of an HTTP error. This may be due to a network error, but might as well be a result of an scraping error (see below).
+
+=item Z<>3
+
+Failure because of an unexpected behaviour of the web interface (so called “scraping error”).
+If you encounter this, please file a bug at the L<issue tracker|https://code.google.com/p/mbank‐cli/issues/list>.
+
+=back
+
+=head1 EXAMPLES
+
+    $ ./mbank-cli list  # list accounts
+
+    $ ./mbank-cli history eKonto  # print history of the “eKonto” account
+
+    $ ./mbank-cli history eKonto --from 2005-01-01 --to 2005-12-31
+
+    $ ./mbank-cli history eKonto --from 2006-06-01
+
+    $ ./mbank-cli future eMax  # print planned operations for the “eMax” account
+
+    $ ./mbank-cli funds  # list investment funds
+
+    $ ./mbank-cli logout
+
+=head1 SEE ALSO
+
+L<gpg(1)>
