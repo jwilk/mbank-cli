@@ -64,7 +64,7 @@ my $server = IPC::Run::start(
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf"],
+    ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf", 'debug-https-get'],
     '>', \$stdout,
     '2>', \$stderr,
 );
