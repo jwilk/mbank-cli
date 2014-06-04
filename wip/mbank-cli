@@ -28,7 +28,6 @@ no encoding;
 use Date::Format qw(time2str);
 use Date::Parse qw(str2time);
 use Encode ();
-use Encode::Locale ();
 use English qw(-no_match_vars);
 use File::Basename qw(dirname);
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
@@ -196,6 +195,18 @@ sub check_for_unexpected_options
 # internationalization
 # ====================
 
+my $_locale_encoding;
+eval {
+    require Encode::Locale;
+    $_locale_encoding = 'locale';
+} or do {
+    # Encode::Locale is a dependency of LWP ≥ 6.0,
+    # but it might be unavailable on older systems.
+    require I18N::Langinfo;
+    I18N::Langinfo->import(qw(langinfo CODESET));
+    $_locale_encoding = langinfo(CODESET());
+};
+
 my %_encoding_fallback = (
     0x104 => 'A', 0x105 => 'a', # letter A with ogonek
     0x0c1 => 'A', 0x0e1 => 'a', # letter A with acute
@@ -238,14 +249,14 @@ sub _encoding_fallback
 sub bytes_to_unicode
 {
     my ($u, $encoding) = @_;
-    $encoding //= 'locale';
+    $encoding //= $_locale_encoding;
     return Encode::decode($encoding, $u);
 }
 
 sub unicode_to_bytes
 {
     my ($s, $encoding) = @_;
-    $encoding //= 'locale';
+    $encoding //= $_locale_encoding;
     return Encode::encode($encoding, $s, \&_encoding_fallback);
 }
 
