@@ -415,7 +415,7 @@ sub get_default_ca_path
         return $path;
     }
     my $ssl_cert_dir = $ENV{SSL_CERT_DIR};
-    if (not defined $ssl_cert_dir) {
+    if (not defined($ssl_cert_dir) and $Net::SSLeay::Version >= 1.43) {
         # https://www.openssl.org/docs/crypto/SSLeay_version.html
         # SSLEAY_DIR == 5
         my $openssl_info = Net::SSLeay::SSLeay_version(5);
