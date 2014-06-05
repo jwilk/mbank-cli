@@ -551,11 +551,15 @@ sub _decrypt_config
     defined($pgp_chunks) or return;
     for my $encrypted_data (@{$pgp_chunks}) {
         my $decrypted_data;
-        IPC::Run::run(
-            ['gpg', '-d'],
-            '<', \$encrypted_data,
-            '>', \$decrypted_data,
-        ) or os_error('gpg -d failed');
+        eval {
+            IPC::Run::run(
+                ['gpg', '-d'],
+                '<', \$encrypted_data,
+                '>', \$decrypted_data,
+            ) or os_error('gpg -d failed');
+        } // do {
+            os_error($EVAL_ERROR);
+        };
         my @decrypted_data = split(/\n/, $decrypted_data);
         for (@decrypted_data) {
             if (m/^(?:#|\s*)$/) {
