@@ -497,7 +497,7 @@ sub _read_config
             }
         } elsif ($_ eq '-----BEGIN PGP MESSAGE-----') {
             $pgp = "$_\n";
-        } elsif (m/^(?:#|\s*)$/) {
+        } elsif (m/^(?:#|\s*$)/) {
             next;
         } elsif (m/^\s*([\w-]+)\s+(.*\S)\s*$/) {
             my ($key, $value) = ($1, $2);
