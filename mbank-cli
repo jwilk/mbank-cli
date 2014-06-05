@@ -207,7 +207,7 @@ sub lwp_init()
   my @ssl_options = (
     SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
     SSL_ca_file => './ca.crt',
-    SSL_ca_path => \undef,
+    SSL_ca_path => undef,  # https://bugs.debian.org/750642
     SSL_verify_mode => 1,
     SSL_verifycn_name => $mbank_host,
     SSL_verifycn_scheme => {
