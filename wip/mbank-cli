@@ -1622,6 +1622,7 @@ my $opt_start_date = undef;
 my $opt_end_date = undef;
 my $opt_all = 0;
 my $opt_multi = 0;
+my $cfg;
 
 sub show_help
 {
@@ -1655,6 +1656,54 @@ sub check_user_date
     return $date;
 }
 
+sub initialize
+{
+    if (not -e $opt_config) {
+        user_error("missing configuration file: $opt_config");
+    }
+    $cfg = read_config($opt_config);
+    my $cookie_jar_path = get_config_var($cfg, 'cookiejar')
+        // config_error($cfg, 'missing cookiejar');
+    my $ca_path = get_config_var($cfg, 'cafile', \undef)
+        // get_default_ca_path(
+            'Verisign Class 3 Public Primary Certification Authority',
+            # openssl x509 -subject_hash -noout
+            '415660c1',
+            # openssl x509 -subject_hash_old -noout
+            '7651b327',
+        );
+    if (not -r $ca_path) {
+        os_error("$ca_path: $ERRNO");
+    }
+    debug("cafile = $ca_path");
+    my $tld = get_config_var($cfg, 'country')
+        // config_error($cfg, 'missing country');
+    $tld = lc $tld;
+    my $lang = $country_to_language{$tld};
+    if (not defined($lang)) {
+        local $LIST_SEPARATOR = ', ';
+        my $known_countries = "{@known_countries}";
+        config_error($cfg, "unknown country $tld, not in $known_countries");
+    }
+    $mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
+    $base_url = "https://$mbank_host/$lang";
+    $csite_url = "https://$mbank_host/csite";
+    $ua = http_init(
+        host => $mbank_host,
+        cookie_jar => $cookie_jar_path,
+        ca => $ca_path,
+    );
+    $ua->cookie_jar->scan(
+        # sanity check
+        sub {
+            my ($version, $key, $value, $path, $domain) = @_;
+            if ($domain ne $mbank_host) {
+                user_error("$cookie_jar_path: unexpected domain $domain (!= $mbank_host)")
+            }
+        }
+    );
+}
+
 {
     local $SIG{__WARN__} = sub {
         my ($message) = @_;
@@ -1679,54 +1728,6 @@ sub check_user_date
         'h|help' => \&show_help,
     ) or user_error();
 }
-
-if (not -e $opt_config) {
-    user_error("missing configuration file: $opt_config");
-}
-my $cfg = read_config($opt_config);
-my $cookie_jar_path = get_config_var($cfg, 'cookiejar')
-    // config_error($cfg, 'missing cookiejar');
-my $ca_path = get_config_var($cfg, 'cafile', \undef)
-    // get_default_ca_path(
-        'Verisign Class 3 Public Primary Certification Authority',
-        # openssl x509 -subject_hash -noout
-        '415660c1',
-        # openssl x509 -subject_hash_old -noout
-        '7651b327',
-    );
-if (not -r $ca_path) {
-    os_error("$ca_path: $ERRNO");
-}
-debug("cafile = $ca_path");
-my $tld = get_config_var($cfg, 'country')
-    // config_error($cfg, 'missing country');
-$tld = lc $tld;
-my $lang = $country_to_language{$tld};
-if (not defined($lang)) {
-    local $LIST_SEPARATOR = ', ';
-    my $known_countries = "{@known_countries}";
-    config_error($cfg, "unknown country $tld, not in $known_countries");
-}
-
-$mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
-$base_url = "https://$mbank_host/$lang";
-$csite_url = "https://$mbank_host/csite";
-
-$ua = http_init(
-    host => $mbank_host,
-    cookie_jar => $cookie_jar_path,
-    ca => $ca_path,
-);
-
-$ua->cookie_jar->scan(
-    # sanity check
-    sub {
-        my ($version, $key, $value, $path, $domain) = @_;
-        if ($domain ne $mbank_host) {
-            user_error("$cookie_jar_path: unexpected domain $domain (!= $mbank_host)")
-        }
-    }
-);
 
 my ($command_name, @args) = @ARGV;
 $command_name //= 'list';
@@ -1764,6 +1765,9 @@ if ($command_name =~ m/^debug-/) {
     push(@cmd_options,
         args => [@args],
     );
+}
+if ($command_info->{config} // 1) {
+    initialize();
 }
 if ($command_info->{todo} ) {
     user_error("$command_name: command not implemented");
