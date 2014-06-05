@@ -1616,6 +1616,8 @@ sub xdg_config_home
 # main program
 # ============
 
+umask(umask() | 077);
+
 my $xdg_config_home = xdg_config_home();
 my $opt_config = "$xdg_config_home/mbank-cli/config";
 my $opt_start_date = undef;
