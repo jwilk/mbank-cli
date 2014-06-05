@@ -1656,6 +1656,13 @@ sub check_user_date
     return $date;
 }
 
+sub expand_tilde
+{
+    my ($path) = @_;
+    $path =~ s{\A(~[^/]*)}{glob($1)}e;
+    return $path;
+}
+
 sub initialize
 {
     if (not -e $opt_config) {
@@ -1664,14 +1671,20 @@ sub initialize
     $cfg = read_config($opt_config);
     my $cookie_jar_path = get_config_var($cfg, 'cookiejar')
         // config_error($cfg, 'missing cookiejar');
-    my $ca_path = get_config_var($cfg, 'cafile', \undef)
-        // get_default_ca_path(
+    $cookie_jar_path = expand_tilde($cookie_jar_path);
+    debug("cookiejar = $cookie_jar_path");
+    my $ca_path = get_config_var($cfg, 'cafile', \undef);
+    if (defined($ca_path)) {
+        $ca_path = expand_tilde($ca_path);
+    } else {
+        $ca_path = get_default_ca_path(
             'Verisign Class 3 Public Primary Certification Authority',
             # openssl x509 -subject_hash -noout
             '415660c1',
             # openssl x509 -subject_hash_old -noout
             '7651b327',
         );
+    }
     if (not -r $ca_path) {
         os_error("$ca_path: $ERRNO");
     }
