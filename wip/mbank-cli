@@ -29,6 +29,7 @@ use Date::Format qw(time2str);
 use Date::Parse qw(str2time);
 use Encode ();
 use English qw(-no_match_vars);
+use File::Path ();
 use File::Basename qw(dirname);
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use HTML::Form ();
@@ -42,6 +43,9 @@ use JSON qw(encode_json);
 use LWP::UserAgent;
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay ();
+use POSIX ();
+use Term::ReadLine ();
+use Term::ReadLine::Gnu ();
 use Text::ParseWords ();
 
 # ==========================
@@ -169,6 +173,8 @@ sub scraping_count
 sub os_error
 {
     my ($message) = @_;
+    my $file = __FILE__;
+    $message =~ s/ at \Q$file\E line \d+[.]\n+//;
     if ((caller(1))[3] eq 'main::write_log') {
         # avoid infinite recursion
     } else {
@@ -278,7 +284,34 @@ my %country_to_language = (
     sk => 'sk',  # Slovakia => Slovak
 );
 
+my %locale_aliases = (
+    'polish' => 'pl',
+    'czech' => 'cz',
+    'slovak' => 'sk',
+);
+
 my @known_countries = keys(%country_to_language);
+
+sub guess_country
+{
+    my %cc = ();
+    my $locales = POSIX::setlocale(POSIX::LC_ALL);
+    my @locales = $locales =~ m/(?:^|;)LC_[A-Z_]+=([^;\s]+)/g;  ## no critic (EnumeratedClasses)
+    for my $locale (@locales) {
+        $locale = $locale_aliases{$locale} // ${locale};
+        (my $cc = $locale) =~ s/_.*//;
+        $cc =~ m/\A[a-z]{2}\Z/ or next;  ## no critic (EnumeratedClasses)
+        if (exists($country_to_language{$cc})) {
+            $cc{$cc} = 1;
+        }
+    }
+    my @cc = keys(%cc);
+    if (scalar(@cc) == 1) {
+        my ($cc) = @cc;
+        return $cc;
+    }
+    return;
+}
 
 # =============
 # HTTP, SSL/TLS
@@ -1595,28 +1628,170 @@ sub do_debug_https_get
     return;
 }
 
+sub _make_config_line
+{
+    my ($key, $value) = @_;
+    my $escaped_value = $value;
+    if ($value !~ m{\A[/\w.~-]+\z}) {
+        $value =~ s/["\\]/\\$1/;
+        $value = qq("$value");
+    }
+    return "$key $value\n";
+}
+
+sub do_configure
+{
+    my %options = @_;
+    my $config_path = delete($options{config_path});
+    check_for_unexpected_options(%options);
+    my $term = Term::ReadLine->new('mbank-cli');
+    ## no critic (Until)
+    # overwrite?
+    if (-e $config_path) {
+        my $overwrite;
+        until ($overwrite =~ m/\A[yYnN]\z/) {
+            $overwrite = $term->readline(
+                unexpand_tilde($config_path) . ' already exists. Overwrite (y/n)? '
+            );
+        }
+        if ($overwrite =~ m/[nN]/) {
+            user_error();
+        }
+    }
+    # country:
+    my $guessed_cc = guess_country();
+    my $cc;
+    until (exists($country_to_language{$cc})) {
+        $cc = $term->readline('Country (CZ, or SK, or PL): ', uc($guessed_cc));
+        $cc = lc($cc // '');
+    }
+    # login:
+    my $login;
+    until (length($login) > 0) {
+        $login = $term->readline('Login: ');
+        $login //= '';
+    }
+    defined($term->Attribs->{shadow_redisplay})
+        or internal_error('shadow_redisplay not defined');
+    # password:
+    my $password;
+    until (length($password) > 0) {
+        local $term->Attribs->{redisplay_function} =  ## no critic (LocalVars)
+            $term->Attribs->{shadow_redisplay};
+        $password = $term->readline('Password: ');
+        $password //= '';
+    }
+    my $use_gpg;
+    until ($use_gpg =~ m/\A[yYnN]\z/) {
+        $use_gpg = $term->readline('Encrypt password with GnuPG (y/n)? ', 'y')
+    }
+    $use_gpg = ($use_gpg =~ m/[yY]/);
+    my $encrypted_password;
+    ENCRYPT: while ($use_gpg) {
+        my $password_line = _make_config_line('Password', $password);
+        eval {
+            IPC::Run::run(
+                [qw(gpg --armor --encrypt --default-recipient-self)],
+                '<', \$password_line,
+                '>', \$encrypted_password,
+            )
+        } or do {
+            if ($EVAL_ERROR) {
+                my $message = $EVAL_ERROR;
+                my $file = __FILE__;
+                $message =~ s/ at \Q$file\E line \d+[.]\n+//;
+                print {*STDERR} "$message\n";
+            }
+            my $retry;
+            until ($retry =~ m/\A[yYnN]\z/) {
+                $retry = $term->readline('GnuPG encryption failed. Retry (y/n)? ')
+            }
+            if ($retry =~ m/[yY]/) {
+                next ENCRYPT;
+            } else {
+                user_error();
+            }
+        };
+        last ENCRYPT;
+    }
+    # cookie jar:
+    (my $sanitized_login = $login) =~ s/\W/_/g;
+    my $xdg_data_home = xdg_data_home();
+    my $cookie_home = unexpand_tilde($xdg_data_home) . '/mbank-cli';
+    my $default_cookie_jar_path =  "$cookie_home/$sanitized_login.cookies";
+    my $cookie_jar_path;
+    until (length($cookie_jar_path) > 1) {
+        $cookie_jar_path = $term->readline('Session cookie storage file: ', $default_cookie_jar_path);
+        $cookie_jar_path //= '';
+    }
+    ## use critic
+    # save the file:
+    my $config_dir = dirname($config_path);
+    eval {
+        File::Path::make_path($config_dir);
+    } // os_error($EVAL_ERROR);
+    open(my $fh, '>', "$config_path.new")
+        or os_error("$config_path.new: $ERRNO");
+    print {$fh} _make_config_line('CookieJar', $cookie_jar_path);
+    print {$fh} _make_config_line('Country', uc($cc));
+    print {$fh} _make_config_line('Login', $login);
+    if ($encrypted_password) {
+        print {$fh} "# Password (encrypted):\n";
+        print {$fh} $encrypted_password;
+    } else {
+        print {$fh} _make_config_line('Password', $password);
+    }
+    close($fh)
+        or system_error("$config_path.new: $ERRNO");
+    if (rename($config_path, "$config_path.bak")) {
+        print {*STDERR} "Backup copy: $config_path.bak\n";
+    } elsif ($ERRNO{ENOENT}) {
+        # okay
+    } else {
+        os_error("$config_path: $ERRNO");
+    };
+    rename("$config_path.new", $config_path)
+        or system_error("$config_path: $ERRNO");
+    print {*STDERR} "Configuration file: $config_path\n";
+    return;
+}
+
 # ================================
 # XDG Base Directory Specification
 # ================================
 
-sub xdg_config_home
+sub _xdg_home
 {
-    my $home = $ENV{XDG_CONFIG_HOME};
+    my ($key, $default) = @_;
+    my $home = $ENV{"XDG_$key\_HOME"};
     if ($home !~ m{\A/}) {
         # “All paths […] must be absolute.
         # If an implementation encounters a relative path […]
         # it should consider the path invalid and ignore it.
-        $home = "$ENV{HOME}/.config";
+        $home = "$ENV{HOME}/$default";
     }
     $home =~ s{[^/]\K/+\z}{};  # strip trailing slashes
     return $home;
+}
+
+sub xdg_config_home
+{
+    return _xdg_home('CONFIG', '.config');
+}
+
+sub xdg_data_home
+{
+    my @args = @_;
+    return _xdg_home('DATA', '.local/share');
 }
 
 # ============
 # main program
 # ============
 
-umask(umask() | 077);
+umask(
+    umask() | oct('077')
+);
 
 my $xdg_config_home = xdg_config_home();
 my $opt_config = "$xdg_config_home/mbank-cli/config";
@@ -1639,6 +1814,7 @@ Usage:
   mbank-cli cards
   mbank-cli notices
   mbank-cli logout
+  mbank-cli configure
 
 Common options:
   --verbose
@@ -1662,6 +1838,13 @@ sub expand_tilde
 {
     my ($path) = @_;
     $path =~ s{\A(~[^/]*)}{glob($1)}e;
+    return $path;
+}
+
+sub unexpand_tilde
+{
+    my ($path) = @_;
+    $path =~ s{\A\Q$ENV{HOME}\E/}{~/};
     return $path;
 }
 
@@ -1761,6 +1944,7 @@ my %commands = (
     'funds' => {},
     'notices' => {},
     'logout' => { login => 0 },
+    'configure' => { login => 0, config => 0 },
 );
 
 my $command_info = $commands{$command_name};
@@ -1784,6 +1968,8 @@ if ($command_name =~ m/^debug-/) {
 }
 if ($command_info->{config} // 1) {
     initialize();
+} else {
+    push(@cmd_options, config_path => $opt_config);
 }
 if ($command_info->{todo} ) {
     user_error("$command_name: command not implemented");
