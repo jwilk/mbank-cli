@@ -1756,9 +1756,23 @@ sub do_configure
     return;
 }
 
-# ================================
-# XDG Base Directory Specification
-# ================================
+# ============================================
+# filesystem; XDG Base Directory Specification
+# ============================================
+
+sub expand_tilde
+{
+    my ($path) = @_;
+    $path =~ s{\A(~[^/]*)}{glob($1)}e;
+    return $path;
+}
+
+sub unexpand_tilde
+{
+    my ($path) = @_;
+    $path =~ s{\A\Q$ENV{HOME}\E/}{~/};
+    return $path;
+}
 
 sub _xdg_home
 {
@@ -1832,20 +1846,6 @@ sub check_user_date
     str2time($date)
         // user_error("invalid --$option date: $date");
     return $date;
-}
-
-sub expand_tilde
-{
-    my ($path) = @_;
-    $path =~ s{\A(~[^/]*)}{glob($1)}e;
-    return $path;
-}
-
-sub unexpand_tilde
-{
-    my ($path) = @_;
-    $path =~ s{\A\Q$ENV{HOME}\E/}{~/};
-    return $path;
 }
 
 sub initialize
