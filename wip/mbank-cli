@@ -959,10 +959,9 @@ sub _switch_history_account
     check_for_unexpected_options(%options);
     my $parameters = undef;
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_account_menu = $html->look_down(id => 'MenuAccountsCombo');
-    @e_account_menu
+    my ($e_account_menu) = $html->look_down(id => 'MenuAccountsCombo');
+    defined($e_account_menu)
         or scraping_error('history.account-menu');
-    my ($e_account_menu) = @e_account_menu;
     my @e_accounts = $e_account_menu->content_list();
     for my $e_account (@e_accounts) {
         my $o_name = $e_account->as_trimmed_text();
