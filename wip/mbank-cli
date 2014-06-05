@@ -154,6 +154,18 @@ sub scraping_error
     exit(3);
 }
 
+sub scraping_count
+{
+    my ($array, $n, $message) = @_;
+    ref($array) eq 'ARRAY'
+        or internal_error('not an array');
+    my $m = scalar(@{$array});
+    $n == $m
+        and return @{$array};
+    my $s = $n == 1 ? '' : 's';
+    return scraping_error("$message: expected $n instance$s, got $m");
+}
+
 sub os_error
 {
     my ($message) = @_;
@@ -739,13 +751,12 @@ sub do_login
     defined($tabid)
         or scraping_error('login.tabid');
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_meta = $html->look_down(
+    my ($e_meta) = $html->look_down(
         _tag => 'meta',
         name => '__AjaxRequestVerificationToken'
     );
-    scalar(@e_meta) == 1
-        or scraping_error('login.arvt.n' . scalar(@e_meta));
-    my ($e_meta) = @e_meta;
+    defined($e_meta)
+        or scraping_error('login.arvt.n');
     my $arvt = $e_meta->attr('content');
     $arvt =~ m{\A[\w/+]{100,}\z}
         or scraping_error("login.arvt: $arvt");
@@ -888,13 +899,12 @@ sub _prepare_history
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_frames = $html->look_down(
+    my ($e_frame) = $html->look_down(
         _tag => 'frame',
         name => 'MainFrame',
     );
-    scalar(@e_frames) == 1
+    defined($e_frame)
         or scraping_error('history.frame');
-    my ($e_frame) = @e_frames;
     my $frame_url = $e_frame->attr('src') // '';
     $frame_url =~ s/\A\s+|\s+\z//g;
     $frame_url eq "$module.aspx"  # sanity check
@@ -950,7 +960,7 @@ sub _switch_history_account
     my $parameters = undef;
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
     my @e_account_menu = $html->look_down(id => 'MenuAccountsCombo');
-    scalar(@e_account_menu) == 1
+    @e_account_menu
         or scraping_error('history.account-menu');
     my ($e_account_menu) = @e_account_menu;
     my @e_accounts = $e_account_menu->content_list();
@@ -971,9 +981,7 @@ sub _switch_history_account
         or scraping_error("history.account.phantom: $number");
     if (length($parameters) > 0) {
         my @forms = HTML::Form->parse($doc->{response});
-        scalar(@forms) == 1
-            or scraping_error('history.form.n: ' . scalar(@forms));
-        my ($form) = @forms;
+        my ($form) = scraping_count(\@forms, 1, 'history.form#');
         _clean_history_form($form, params => $parameters);
         $doc = download($form->click());
     }
@@ -999,9 +1007,7 @@ sub _do_history_account
         number => $number,
     );
     my @forms = HTML::Form->parse($doc->{response});
-    scalar(@forms) == 1
-        or scraping_error('history.form.n: ' . scalar(@forms));
-    my ($form) = @forms;
+    my ($form) = scraping_count(\@forms, 1, 'history.form#');
     if (defined($start_date) or defined($end_date)) {
         my $min_date = '1901-01-01';
         my $get_limit = sub {
@@ -1056,23 +1062,18 @@ sub _do_history_account
             name => $name,
             display_name => $display_name,
         );
-        my @e_prevpage = $html->look_down(
+        my ($e_prevpage) = $html->look_down(
             _tag => 'button',
             id => 'PrevPage',
         );
-        scalar(@e_prevpage) <= 1
-            or scraping_error('history.prev.n: ' . scalar(@e_prevpage));
-        if (@e_prevpage) {
-            my ($e_prevpage) = @e_prevpage;
+        if (defined($e_prevpage)) {
             my $onclick = $e_prevpage->attr('onclick');
             my $url = $doc->{response}->base;
             $url =~ s{\A.*?(?=/csite/)}{};
             my ($parameters) = ($onclick =~ m{\AdoSubmit[(]'\Q$url\E','','POST','([^']*)',true,false,true,null[)];})
                 or scraping_error('history.prev.onclick');
             @forms = HTML::Form->parse($doc->{response});
-            scalar(@forms) == 1
-                or scraping_error('history.prev.form.n: ' . scalar(@forms));
-            ($form) = @forms;
+            ($form) = scraping_count(\@forms, 1, 'history.prev.form#');
             _clean_history_form($form, params => $parameters);
             $doc = download($form->click());
             next PAGE;
@@ -1107,12 +1108,9 @@ sub _do_history_page {
             or next;
         # dates:
         my @e_dates = find_html_class($e_op, 'Date');
-        scalar(@e_dates) == 1
-            or scraping_error('history.date.1');
-        my ($e_dates) = @e_dates;
+        my ($e_dates) = scraping_count(\@e_dates, 1, 'history.date.1#');
         @e_dates = $e_dates->content_list();
-        scalar(@e_dates) == 2
-            or scraping_error('history.date.2');
+        scraping_count(\@e_dates, 2, 'history.date.2#');
         my @dates = ();
         for my $e_date (@e_dates) {
             my $date = $e_date->as_trimmed_text();
@@ -1122,8 +1120,7 @@ sub _do_history_page {
         }
         # amounts:
         my @e_amounts = find_html_class($e_op, 'Amount');
-        scalar(@e_amounts) == 2
-            or scraping_error('history.amount.n');
+        scraping_count(\@e_amounts, 2, 'history.amount#');
         my @amounts;
         for my $e_amount (@e_amounts) {
             my $amount = $e_amount->as_trimmed_text();
@@ -1133,8 +1130,9 @@ sub _do_history_page {
         }
         # details:
         my @e_details = $e_op_desc->content_list();
-        scalar(@e_details) >= 3
-            or scraping_error('history.details.n');
+        my $n_details = scalar(@e_details);
+        $n_details >= 3
+            or scraping_error("history.details#: expected >= 3 instances, got $n_details");
         my @details;
         for my $e_detail (@e_details) {
             $class = $e_detail->attr('class');
@@ -1170,9 +1168,7 @@ sub _prepare_blocked
     )
         or scraping_error('blocked.module');
     my @forms = HTML::Form->parse($doc->{response});
-    scalar(@forms) == 1
-        or scraping_error('blocked.form.n: ' . scalar(@forms));
-    my ($form) = @forms;
+    my ($form) = scraping_count(\@forms, 1, 'blocked.form#');
     _clean_history_form($form,
         params => '',
         reset => 1
@@ -1248,8 +1244,7 @@ sub _do_blocked_account
             or next;
         # dates:
         my @e_dates = find_html_class($e_op, 'Date');
-        scalar(@e_dates) == 2
-            or scraping_error('blocked.date.n');
+        scraping_count(\@e_dates, 2, 'blocked.date#');
         my @dates = ();
         for my $e_date (@e_dates) {
             my $date = $e_date->as_trimmed_text();
@@ -1259,23 +1254,17 @@ sub _do_blocked_account
         }
         # amount:
         my @e_amounts = find_html_class($e_op, 'Amount');
-        scalar(@e_amounts) == 1
-            or scraping_error('blocked.amount.n');
-        my ($e_amount) = @e_amounts;
+        my ($e_amount) = scraping_count(\@e_amounts, 1, 'blocked.amount#');
         my $amount = $e_amount->as_trimmed_text();
         $amount = format_amount($amount)
             // scraping_error("blocked.amount: $amount");
         # description:
         my @e_descriptions = find_html_class($e_op, 'WitholdingDescription');
-        scalar(@e_descriptions) == 1
-            or scraping_error('blocked.description.n');
-        my ($e_description) = @e_descriptions;
+        my ($e_description) = scraping_count(\@e_descriptions, 1, 'blocked.description#');
         my $description = $e_description->as_trimmed_text();
         # type:
         my @e_types = find_html_class($e_op, 'WitholdingType');
-        scalar(@e_types) == 1
-            or scraping_error('blocked.type.n');
-        my ($e_type) = @e_types;
+        my ($e_type) = scraping_count(\@e_types, 1, 'blocked.type#');
         my $type = $e_type->as_trimmed_text();
         # print:
         {
@@ -1482,7 +1471,7 @@ sub do_funds
         my @e_amounts = $e_amounts->look_down(_tag => 'span');
         my $n_amounts = scalar(@e_amounts);
         ($n_amounts == 1) or ($n_amounts == 2)
-            or scraping_error('funds.amount.n');
+            or scraping_error("funds.amount#: expected 1 or 2 instances, got $n_amounts");
         my ($e_current_amount, $e_planned_amount) = @e_amounts;
         my $current_amount = $e_current_amount->as_trimmed_text();
         $current_amount = format_amount($current_amount)
