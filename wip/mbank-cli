@@ -1887,7 +1887,7 @@ sub initialize
         my $known_countries = "{@known_countries}";
         config_error($cfg, "unknown country $tld, not in $known_countries");
     }
-    $mbank_host = $ENV{MBANK_CLI_HOST} // "online.mbank.$tld";
+    $mbank_host = $ENV{MBANK_CLI_TEST_HOST} // "online.mbank.$tld";
     $base_url = "https://$mbank_host/$lang";
     $csite_url = "https://$mbank_host/csite";
     $ua = http_init(

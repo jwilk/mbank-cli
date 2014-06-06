@@ -55,7 +55,7 @@ print {$fh} $config;
 close($fh) or die $ERRNO;
 
 my $host = 'en.wikipedia.org';
-local $ENV{MBANK_CLI_HOST} = $host;
+local $ENV{MBANK_CLI_TEST_HOST} = $host;
 
 my ($stdout, $stderr);
 my $url = "https://$host/";
