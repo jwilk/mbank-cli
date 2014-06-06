@@ -204,15 +204,15 @@ in the following format:
 
 =item Z<>
 
-I<deposit-name> I<establishment-date> I<maturity-date> I<term> I<interest> I<amount>
+I<deposit-name> I<deposit-type> I<establishment-date> I<maturity-date> I<term> I<interest> I<amount>
 
 =back
 
 Example:
 
     $ mbank-cli deposits
-    EMAX LOKATA  2003-02-09  2004-02-09  12 MIESIĘCY  4.00%  2500.00 PLN
-    MLOKATA      2004-03-09  2004-05-09  2 MIESIĄCE   4.00%  1200.00 PLN
+    Moja lokata  eMax lokata  2003-02-09  2004-02-09  12 miesięcy  4.00%  2500.00 PLN
+    mLokata      mLokata      2004-03-09  2004-05-09  2 miesiące   4.00%  1200.00 PLN
 
 =head2 The “cards” command
 
