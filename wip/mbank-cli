@@ -25,6 +25,14 @@ use warnings FATAL => qw(numeric);
 use charnames ':full';
 no encoding;
 
+BEGIN { $::loading_modules = 1; }
+
+END {
+    if ($::loading_modules) {
+        exit(-1);
+    }
+}
+
 use Date::Format qw(time2str);
 use Date::Parse qw(str2time);
 use Encode ();
@@ -45,7 +53,7 @@ use Net::SSLeay ();
 use POSIX ();
 use Text::ParseWords ();
 
-# FIXME: module load errors can cause mbank-cli to exit with an unexpected exit code
+BEGIN { $::loading_modules = 0; }
 
 # ==========================
 # logging and error handling
