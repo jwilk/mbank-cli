@@ -37,6 +37,8 @@ Requirements
 
   - Net::SSLeay
 
+  - Term::ReadLine::Gnu
+
 - GnuPG (optionally, to protect your password)
 
 
