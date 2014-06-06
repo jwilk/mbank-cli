@@ -134,11 +134,15 @@ Time range can be selected with the following options:
 
 =item B<--from> I<start-date>
 
-Show operations with the date not before I<start-date>.
+Show operations since I<start-date>.
+
+=item B<--from> I<start-date> B<--to> I<end-date>
+
+Show operations from I<start-date> to I<end-date>, inclusive.
 
 =back
 
-A date is either “B<now>” or in the I<YYYY>-I<MM>-I<DD> format.
+Dates should be specified in the in the I<YYYY>-I<MM>-I<DD> format.
 
 Examples:
 
