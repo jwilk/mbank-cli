@@ -200,7 +200,7 @@ sub internal_error
     local $Carp::CarpLevel = $level + 1;
     Carp::cluck($message);
     print {*STDERR} $bugreport_request;
-    exit(255);
+    exit(-1);
 }
 
 sub check_for_unexpected_options
