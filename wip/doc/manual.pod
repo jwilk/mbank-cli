@@ -102,6 +102,14 @@ I<account-name> I<account-number> I<balance> I<avail-resources>
 
 =back
 
+Example:
+
+    $ mbank-cli
+    eKonto     03 1140 2004 0000 3902 0147 1002  4106.16 PLN  4082.79 PLN
+    izzyKonto  03 1140 2004 0000 3902 0147 1045  1684.32 PLN  1684.32 PLN
+    eMax       03 1140 2004 0000 3902 0147 3213  2436.98 PLN  2436.98 PLN
+    eMax EUR   03 1140 2004 0000 3902 0147 1002  2384.36 EUR  2384.36 EUR
+
 =head2 The “history” command
 
 Syntax:
@@ -132,6 +140,17 @@ Show operations with the date not before I<start-date>.
 
 A date is either “B<now>” or in the I<YYYY>-I<MM>-I<DD> format.
 
+Examples:
+
+    $ ./mbank-cli history eKonto
+    [ recent history ]
+
+    $ ./mbank-cli history eKonto --from 2006-06-01
+    [ history since 2006-06-01 ]
+
+    $ ./mbank-cli history eKonto --from 2005-01-01 --to 2005-12-31
+    [ history from 2006-06-01 to 2005-12-31 ]
+
 =head2 The “future” command
 
 Syntax:
@@ -147,6 +166,11 @@ in the following format:
 I<[account-name]> I<date> I<recipient> I<description> I<amount> I<status>
 
 =back
+
+Example:
+
+    $ ./mbank-cli future eMax
+    [ planned operations for the “eMax” account ]
 
 =head2 The “blocked” command
 
@@ -180,6 +204,12 @@ I<deposit-name> I<establishment-date> I<maturity-date> I<term> I<interest> I<amo
 
 =back
 
+Example:
+
+    $ mbank-cli deposits
+    EMAX LOKATA  2003-02-09  2004-02-09  12 MIESIĘCY  4.00%  2500.00 PLN
+    MLOKATA      2004-03-09  2004-05-09  2 MIESIĄCE   4.00%  1200.00 PLN
+
 =head2 The “cards” command
 
 Syntax:
@@ -196,6 +226,12 @@ I<card-name> I<card-number> I<owner> I<amount>
 
 =back
 
+Example:
+
+    $ mbank-cli cards
+    ELECTRON EKONTO  1111 **** **** 5772  JAN WIRTUALNY  4082.79 PLN
+    ELECTRON EMAX    1111 **** **** 2561  JAN WIRTUALNY  2436.98 PLN
+
 =head2 The “funds” command
 
 Syntax:
@@ -211,6 +247,12 @@ in the following format:
 I<fund-name> I<amount> I<[planned-amount]>
 
 =back
+
+Example:
+
+    $ mbank-cli funds
+    SKARBIEC - III FILAR        2821.12 PLN
+    Investor Zrównoważony FIO	   0.00 PLN  1000.00 PLN
 
 =head2 The “notices” command
 
@@ -229,6 +271,12 @@ I<flag> I<date> I<title>
 =back
 
 I<flag> is either “B<N>” (for an unread notice) or an empty string (otherwise).
+
+Example:
+
+    $ mbank-cli notices
+       2010-08-07  Odrzucony przelew
+    N  2010-08-06  Odrzucone zlecenie nabycia FI
 
 =head2 The “logout” command
 
@@ -270,22 +318,6 @@ Failure because of an internal error.
 =head1 BUGS
 
 Please report bugs at the L<issue tracker|https://code.google.com/p/mbank-cli/issues/list>.
-
-=head1 EXAMPLES
-
-    $ ./mbank-cli list  # list accounts
-
-    $ ./mbank-cli history eKonto  # print history of the “eKonto” account
-
-    $ ./mbank-cli history eKonto --from 2005-01-01 --to 2005-12-31
-
-    $ ./mbank-cli history eKonto --from 2006-06-01
-
-    $ ./mbank-cli future eMax  # print planned operations for the “eMax” account
-
-    $ ./mbank-cli funds  # list investment funds
-
-    $ ./mbank-cli logout
 
 =head1 SEE ALSO
 
