@@ -304,7 +304,7 @@ Example:
     Password: *************
     Encrypt password with GnuPG (y/n)? y
     Session cookie storage file: ~/.local/share/mbank-cli/12345678.cookies
-    Configuration file: /home/janwirtualny/.config/mbank-cli/config
+    Configuration file: ~/.config/mbank-cli/config
 
     $ cat ~/.config/mbank-cli/config
     CookieJar ~/.local/share/mbank-cli/12345678.cookies
