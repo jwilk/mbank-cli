@@ -149,13 +149,13 @@ Dates should be specified in the in the I<YYYY>-I<MM>-I<DD> format.
 
 Examples:
 
-    $ ./mbank-cli history eKonto
+    $ mbank-cli history eKonto
     [ recent history ]
 
-    $ ./mbank-cli history eKonto --from 2006-06-01
+    $ mbank-cli history eKonto --from 2006-06-01
     [ history since 2006-06-01 ]
 
-    $ ./mbank-cli history eKonto --from 2005-01-01 --to 2005-12-31
+    $ mbank-cli history eKonto --from 2005-01-01 --to 2005-12-31
     [ history from 2006-06-01 to 2005-12-31 ]
 
 =head2 The “future” command
@@ -176,7 +176,7 @@ I<[account-name]> I<date> I<recipient> I<description> I<amount> I<status>
 
 Example:
 
-    $ ./mbank-cli future eMax
+    $ mbank-cli future eMax
     [ planned operations for the “eMax” account ]
 
 =head2 The “blocked” command
@@ -298,7 +298,7 @@ Create the configuration file interactively.
 
 Example:
 
-    $ ./mbank-cli configure
+    $ mbank-cli configure
     Country (CZ, or SK, or PL): PL
     Login: 12345678
     Password: *************
