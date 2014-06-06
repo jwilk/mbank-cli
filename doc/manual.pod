@@ -80,7 +80,7 @@ B<mbank-cli> script itself.
 =head2 Selecting accounts
 
 Some commands (B<history>, B<future>, B<blocked>) can act on one or more accounts.
-They can be selected in the following names:
+They can be selected in the following ways:
 
 =over 4
 
