@@ -37,7 +37,7 @@ use HTML::HeadParser ();
 use HTML::TreeBuilder ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
-use IO::Socket::SSL ();  # TODO: make this dependency optional
+use IO::Socket::SSL ();
 use JSON qw(encode_json);
 use LWP::UserAgent;
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
