@@ -44,8 +44,6 @@ use LWP::UserAgent;
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay ();
 use POSIX ();
-use Term::ReadLine ();
-use Term::ReadLine::Gnu ();  # TODO: make this dependency optional
 use Text::ParseWords ();
 
 # FIXME: module load errors can cause mbank-cli to exit with an unexpected exit code
@@ -1652,6 +1650,10 @@ sub do_configure
     my %options = @_;
     my $config_path = delete($options{config_path});
     check_for_unexpected_options(%options);
+    eval {
+        require Term::ReadLine;
+        require Term::ReadLine::Gnu;
+    } // user_error('Term::ReadLine::Gnu is required to run configure');
     my $term = Term::ReadLine->new('mbank-cli');
     ## no critic (Until)
     # overwrite?

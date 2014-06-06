@@ -37,7 +37,7 @@ Requirements
 
   - Net::SSLeay
 
-  - Term::ReadLine::Gnu
+  - Term::ReadLine::Gnu (only required by the “configure” command)
 
 - GnuPG (optionally, to protect your password)
 
