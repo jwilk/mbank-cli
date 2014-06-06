@@ -43,7 +43,6 @@ my $tmpdir = tempdir(
 ) or die;
 
 my $home = abs_path(dirname(__FILE__));
-chdir($tmpdir) or die $ERRNO;
 
 my $config = <<"EOF";
 Country pl
