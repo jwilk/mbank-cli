@@ -201,7 +201,7 @@ I<card-name> I<card-number> I<owner> I<amount>
 Syntax:
 B<mbank-cli> B<funds> [I<option>...]
 
-Prin the list of investment funds,
+Print the list of investment funds,
 in the following format:
 
 =over 4

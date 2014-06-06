@@ -202,7 +202,7 @@ I<deposit-name> I<establishment-date> I<maturity-date> I<term> I<interest> I<sta
 Syntax:
 B<mbank-cli> B<funds> [I<option>...]
 
-Prin the list of investment funds,
+Print the list of investment funds,
 in the following format:
 
 =over 4
