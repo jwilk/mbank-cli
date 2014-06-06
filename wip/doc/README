@@ -25,7 +25,7 @@ Requirements
 
   - IO::Socket::SSL
 
-  - IPC::Run
+  - IPC::Run (optionally, for password encryption)
 
   - JSON
 
@@ -39,7 +39,7 @@ Requirements
 
   - Term::ReadLine::Gnu (only required by the “configure” command)
 
-- GnuPG (optionally, to protect your password)
+- GnuPG (optionally, for password encryption)
 
 
 Security

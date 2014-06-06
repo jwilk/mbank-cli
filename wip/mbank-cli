@@ -38,7 +38,6 @@ use HTML::TreeBuilder ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL ();  # TODO: make this dependency optional
-use IPC::Run;
 use JSON qw(encode_json);
 use LWP::UserAgent;
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
@@ -550,6 +549,9 @@ sub _decrypt_config
     my ($config) = @_;
     my $pgp_chunks = delete $config->{__pgp__};
     defined($pgp_chunks) or return;
+    eval {
+        require IPC::Run;
+    } // user_error('IPC::Run is required to decrypt the configuration file');
     for my $encrypted_data (@{$pgp_chunks}) {
         my $decrypted_data;
         eval {
@@ -1700,6 +1702,7 @@ sub do_configure
     ENCRYPT: while ($use_gpg) {
         my $password_line = _make_config_line('Password', $password);
         eval {
+            require IPC::Run;
             IPC::Run::run(
                 [qw(gpg --armor --encrypt --default-recipient-self)],
                 '<', \$password_line,
