@@ -33,13 +33,18 @@ END {
     }
 }
 
-use Date::Format qw(time2str);
-use Date::Parse qw(str2time);
+# core modules:
 use Encode ();
 use English qw(-no_match_vars);
-use File::Path ();
 use File::Basename qw(dirname);
+use File::Path ();
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
+use POSIX ();
+use Text::ParseWords ();
+
+# 3rd-party modules:
+use Date::Format qw(time2str);
+use Date::Parse qw(str2time);
 use HTML::Form ();
 use HTML::HeadParser ();
 use HTML::TreeBuilder ();
@@ -50,8 +55,6 @@ use JSON qw(encode_json);
 use LWP::UserAgent ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay ();
-use POSIX ();
-use Text::ParseWords ();
 
 BEGIN { $::loading_modules = 0; }  ## no critic (PackageVars)
 
