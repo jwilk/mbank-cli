@@ -25,10 +25,10 @@ use warnings FATAL => qw(numeric);
 use charnames ':full';
 no encoding;
 
-BEGIN { $::loading_modules = 1; }
+BEGIN { $::loading_modules = 1; }  ## no critic (PackageVars)
 
 END {
-    if ($::loading_modules) {
+    if ($::loading_modules) {  ## no critic (PackageVars)
         exit(-1);
     }
 }
@@ -53,7 +53,7 @@ use Net::SSLeay ();
 use POSIX ();
 use Text::ParseWords ();
 
-BEGIN { $::loading_modules = 0; }
+BEGIN { $::loading_modules = 0; }  ## no critic (PackageVars)
 
 # ==========================
 # logging and error handling
