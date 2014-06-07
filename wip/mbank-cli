@@ -2037,6 +2037,7 @@ $command->(@cmd_options);
         $ua->cookie_jar->save();
     } // os_error("$cookie_jar_path: $ERRNO");
     # FIXME: HTTP::Cookies ignores write errors
+    # https://bugs.debian.org/750850
 }
 
 END {
