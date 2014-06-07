@@ -373,7 +373,7 @@ sub http_init
         # TODO: implement auto-logout if cookie jar is /dev/null
         push(@cookie_jar_options,
             file => $cookie_jar_path,
-            autosave => 1,
+            autosave => 0,
         );
     };
     my $cookie_jar = HTTP::Cookies->new(@cookie_jar_options);
@@ -2030,6 +2030,13 @@ if ($command_info->{dates}) {
     );
 }
 $command->(@cmd_options);
+
+{
+    my $cookie_jar_path = $ua->cookie_jar->{file};
+    eval {
+        $ua->cookie_jar->save();
+    } // os_error("$cookie_jar_path: $ERRNO");
+}
 
 END {
     # catch write errors:
