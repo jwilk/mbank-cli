@@ -2036,6 +2036,7 @@ $command->(@cmd_options);
     eval {
         $ua->cookie_jar->save();
     } // os_error("$cookie_jar_path: $ERRNO");
+    # FIXME: HTTP::Cookies ignores write errors
 }
 
 END {
