@@ -47,7 +47,7 @@ use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL ();
 use JSON qw(encode_json);
-use LWP::UserAgent;
+use LWP::UserAgent ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay ();
 use POSIX ();
