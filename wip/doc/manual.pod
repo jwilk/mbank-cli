@@ -65,6 +65,10 @@ Save the debugging information (including dumps of downloaded pages) into I<debu
 
 Use I<config-file> as the configuration file.
 
+TBD: default file name
+
+TBD: file format
+
 =back
 
 =head2 Selecting accounts
@@ -351,6 +355,32 @@ Failure because of a system-related error or an I/O error.
 Failure because of an internal error.
 
 =back
+
+=head1 ENVIRONMENT
+
+=over 4
+
+=item B<XDG_CONFIG_HOME>
+
+TBD
+
+=item B<XDG_DATA_HOME>
+
+TBD
+
+=item B<LC_ALL>, B<LC_CTYPE>, B<LANG>
+
+TBD
+
+=item B<LC_I<*>>
+
+TBD
+
+=back
+
+=head1 FILES
+
+TBD
 
 =head1 BUGS
 
