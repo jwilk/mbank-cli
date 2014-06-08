@@ -53,11 +53,9 @@ open(my $fh, '>', "$tmpdir/mbank-cli.conf") or die $ERRNO;
 print {$fh} $config;
 close($fh) or die $ERRNO;
 
-my $host = 'en.wikipedia.org';
-local $ENV{MBANK_CLI_TEST_HOST} = $host;
 
 my ($stdout, $stderr);
-my $url = "https://$host/";
+my $url = "https://en.wikipedia.org/";
 my $cli = IPC::Run::start(
     ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf", 'debug-https-get', $url],
     '>', \$stdout,

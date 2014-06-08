@@ -49,12 +49,12 @@ open(my $fh, '>', "$tmpdir/mbank-cli.conf") or die $ERRNO;
 print {$fh} $config;
 close($fh) or die $ERRNO;
 
-local $ENV{MBANK_CLI_TEST_HOST} = 'mbank';
 local $ENV{HOSTALIASES} = "$home/hostaliases";
 
 my ($stdout, $stderr);
+my $url = 'https://mbank/';
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf", 'debug-https-get'],
+    ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf", 'debug-https-get', $url],
     '>', \$stdout,
     '2>', \$stderr,
 );
