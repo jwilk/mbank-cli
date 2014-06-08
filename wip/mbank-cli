@@ -348,8 +348,6 @@ my $http_timeout = 30;
 sub http_init
 {
     my %options = @_;
-    my $host = delete $options{host}
-        // internal_error('missing host');
     my $cookie_jar_path = delete $options{cookie_jar}
         // internal_error('missing cookie_jar');
     my $ca_path = delete $options{ca}
@@ -368,7 +366,6 @@ sub http_init
         SSL_ca_file => $ca_path,
         SSL_ca_path => undef,  # https://bugs.debian.org/750642
         SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_PEER,
-        SSL_verifycn_name => $host,
         SSL_verifycn_scheme => {
             check_cn => 0,
             wildcards_in_alt => 0,
@@ -1926,7 +1923,6 @@ sub initialize
     $base_url = "https://$mbank_host/$lang";
     $csite_url = "https://$mbank_host/csite";
     $ua = http_init(
-        host => $mbank_host,
         cookie_jar => $cookie_jar_path,
         ca => $ca_path,
     );
