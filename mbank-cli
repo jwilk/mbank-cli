@@ -234,7 +234,6 @@ sub lwp_init()
   elsif ($LWP::UserAgent::VERSION >= 6)
   {
     $ua->ssl_opts(
-      verify_hostname => 1,
       @ssl_options,
     )
   };
