@@ -42,6 +42,19 @@ use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use POSIX ();
 use Text::ParseWords ();
 
+# JSON:
+BEGIN {
+    eval {
+        require JSON;
+        JSON->import('encode_json');
+        *_decode_json = *JSON::decode_json;
+    } or do {
+        require JSON::PP;
+        JSON::PP->import('encode_json');
+        *_decode_json = *JSON::PP::decode_json;
+    }
+}
+
 # 3rd-party modules:
 use Date::Format qw(time2str);
 use Date::Parse qw(str2time);
@@ -51,7 +64,6 @@ use HTML::TreeBuilder ();
 use HTTP::Cookies ();
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL ();
-use JSON qw(encode_json);
 use LWP::UserAgent ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay ();
@@ -724,7 +736,7 @@ sub decode_json
 {
     my ($json) = @_;
     return eval {
-        JSON::decode_json($json);
+        _decode_json($json);
     } // return;
 }
 

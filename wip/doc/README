@@ -27,7 +27,7 @@ Requirements
 
   - IPC::Run (optionally, for password encryption)
 
-  - JSON
+  - JSON or JSON::PP (the latter is a core module since Perl 5.14)
 
   - LWP::UserAgent
 
