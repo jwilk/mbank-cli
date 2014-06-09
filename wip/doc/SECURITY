@@ -1,6 +1,26 @@
 Security advisories for *mbank-cli* and the dependent libraries
 ===============================================================
 
+2014-05-01: missing certificate validation
+------------------------------------------
+
+Due to a bug in the LWP module, if the IO::Socket::SSL module was installed,
+mbank-cli did not verify the SSL certificate, making man-in-the-middle
+attacks feasible.
+
+It is highly recommended that affected users:
+
+   1) Upgrade mbank-cli to 20120617 (or a later version).
+
+   2) Log out from any existing mbank-cli sessions.
+
+   3) Change the mBank password.
+
+References:
+
+   - https://bugs.debian.org/746579
+   - https://bitbucket.org/jwilk/mbank-cli/commits/9ed861f1d9c7
+
 2014-04-09: Heatblead
 ---------------------
 
@@ -23,5 +43,43 @@ Security advisories for *mbank-cli* and the dependent libraries
 
 .. _Heartbleed: http://heartbleed.com/
 .. _CVE-2014-0160: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0160
+
+2011-02-15: insecure file permissions
+-------------------------------------
+
+mbank-cli did not ensure that files (including some of security-sensitive
+nature, e.g. the session cookie storage file) are created with secure
+permissions.
+
+It is highly recommended that users:
+
+   1) Upgrade to 20110215 (or a later version).
+
+   2) Log out from any existing mbank-cli sessions.
+
+   3) Truncate and unlink any files that were exposed to other local users.
+
+References:
+
+   - https://bitbucket.org/jwilk/mbank-cli/commits/b0a6e542b33d
+
+2009-12-08: insufficient certificate validation
+-----------------------------------------------
+
+mbank-cli did not check whether the server hostname matches the Common Name
+(CN) of the SSL certificate, making man-in-the-middle attacks feasible.
+
+It is highly recommended that users:
+
+   1) Upgrade mbank-cli to 20091208 (or a later version).
+
+   2) Log out from any existing mbank-cli sessions.
+
+   3) Change the mBank password.
+
+References:
+
+  - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-0633
+  - https://bitbucket.org/jwilk/mbank-cli/commits/aae4eaa3d5ad
 
 .. vim:ft=rst tw=76 ts=2 sw=2 et
