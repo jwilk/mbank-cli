@@ -1933,17 +1933,31 @@ sub initialize
         cookie_jar => $cookie_jar_path,
         ca => $ca_path,
     );
+    my @legacy_domains = (
+        'mbank-cli.invalid',
+        'www.mbank.com.pl',
+        'cz.mbank.eu',
+        'sk.mbank.eu',
+    );
+    my $legacy_domain;
     $ua->cookie_jar->scan(
         # sanity check
         sub {
             my ($version, $key, $value, $path, $domain) = @_;
-            if ($domain eq 'mbank-cli.invalid') {
-                user_error("$cookie_jar_path: found cookies for legacy mbank-cli")
+            if (grep { $domain eq $_ } @legacy_domains) {  ## no critic (BooleanGrep)
+                $legacy_domain ||= ($domain =~ m/[.]invalid$/) ? 0 : $domain;
             } elsif ($domain ne $mbank_host) {
-                user_error("$cookie_jar_path: found cookies for unexpected domain $domain (!= $mbank_host)")
+                user_error("$cookie_jar_path: found cookies for unexpected domain: $domain (!= $mbank_host)")
             }
         }
     );
+    if (defined($legacy_domain)) {
+        my $message = "$cookie_jar_path: found cookies for legacy mbank-cli";
+        if ($legacy_domain) {
+            $message .= ": $legacy_domain";
+        }
+        user_error($message);
+    }
     return;
 }
 
