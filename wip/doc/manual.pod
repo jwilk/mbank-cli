@@ -135,7 +135,7 @@ I<[account-name]> I<date> I<accounting-date> I<amount> I<balance> I<description>
 
 =back
 
-Newline characters in I<description> are replaced by tab charaters.
+Newline characters in I<description> are replaced by tab characters.
 
 Time range can be selected with the following options:
 
