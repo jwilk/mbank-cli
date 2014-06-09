@@ -63,7 +63,8 @@ Save the debugging information (including dumps of downloaded pages) into I<debu
 
 =item B<--config> I<config-file>
 
-Use I<config-file> as the configuration file. The default is to use
+Use I<config-file> as the configuration file.
+The default is to use
 B<I<$>I<XDG_CONFIG_HOME>/mbank-cli/config>
 (or B<I<$>I<HOME>/.config/mbank-cli/config>).
 See the B<FILES> and B<ENVIRONMENT> sections for details.
@@ -339,7 +340,8 @@ Failure because of a user error.
 
 =item Z<>2
 
-Failure because of an HTTP error. This may be due to a network error, but might as well be a result of a scraping error (see below).
+Failure because of an HTTP error.
+This may be due to a network error, but might as well be a result of a scraping error (see below).
 
 =item Z<>3
 
