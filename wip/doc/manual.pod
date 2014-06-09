@@ -63,11 +63,10 @@ Save the debugging information (including dumps of downloaded pages) into I<debu
 
 =item B<--config> I<config-file>
 
-Use I<config-file> as the configuration file.
-
-TBD: default file name
-
-TBD: file format
+Use I<config-file> as the configuration file. The default is to use
+B<I<$>I<XDG_CONFIG_HOME>/mbank-cli/config>
+(or B<I<$>I<HOME>/.config/mbank-cli/config>).
+See the B<FILES> and B<ENVIRONMENT> sections for details.
 
 =back
 
@@ -379,6 +378,12 @@ TBD
 =back
 
 =head1 FILES
+
+=head2 Configuration file
+
+TBD
+
+=head2 Session cookie storage file
 
 TBD
 
