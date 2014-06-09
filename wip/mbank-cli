@@ -1933,8 +1933,10 @@ sub initialize
         # sanity check
         sub {
             my ($version, $key, $value, $path, $domain) = @_;
-            if ($domain ne $mbank_host) {
-                user_error("$cookie_jar_path: unexpected domain $domain (!= $mbank_host)")
+            if ($domain eq 'mbank-cli.invalid') {
+                user_error("$cookie_jar_path: found cookies for legacy mbank-cli")
+            } elsif ($domain ne $mbank_host) {
+                user_error("$cookie_jar_path: found cookies for unexpected domain $domain (!= $mbank_host)")
             }
         }
     );
