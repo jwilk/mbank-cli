@@ -1,0 +1,88 @@
+mbank-cli (20140505) unstable; urgency=low
+
+  Security improvements:
+
+  * mbank-cli now uses IO::Socket::SSL (rather that Net::SSL aka
+    Crypt::SSLeay) as the SSL/TLS backend.
+
+  * mbank-cli no longer trusts any certificate authorities, except for VeriSign
+    Class 3 Public Primary Certification Authority.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 05 May 2014 18:36:43 +0200
+
+mbank-cli (20120704) unstable; urgency=low
+
+  The “withholdings” command has been renamed to “blocked”.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 04 Aug 2012 23:07:47 +0200
+
+mbank-cli (20120617) unstable; urgency=high
+
+  * mbank-cli no longer creates debug files automatically by default. Use the
+    --debug option to enable this feature.
+
+  * Due to a bug in the LWP module, if the IO::Socket::SSL module was
+    installed, mbank-cli did not verify the SSL certificate, making
+    man-in-the-middle attacks feasible.
+
+    It is highly recommended that affected users:
+
+      1) Upgrade mbank-cli to 20120617 (or a later version).
+
+      2) Invalidate the existing mbank-cli session:
+
+         cd /path/to/mbank-cli
+         ./mbank-cli logout
+
+      3) Change the mBank password.
+
+    References:
+    - https://bugs.debian.org/746579
+    - https://bitbucket.org/jwilk/mbank-cli/commits/9ed861f1d9c7
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Sun, 17 Jun 2012 11:23:16 +0200
+
+mbank-cli (20110215) unstable; urgency=medium
+
+  mbank-cli did not ensure that files (including some of security-sensitive
+  nature, e.g. the cookie jar) are created with secure permissions.
+
+  It is highly recommended that users:
+
+    1) Upgrade to 20110215 (or a later version).
+
+    2) If the files were actually exposed to other local users, follow this
+       procedure:
+
+       cd /path/to/mbank-cli
+       chmod -R go-rwx .  # revoke excessive permissions
+       ./mbank-cli logout  # invalidate existing session
+       rm -f cookie-jar.txt  # unlink the cookie jar
+       rm -f debug/*  # unlink the debug dumps
+
+  References:
+  - https://bitbucket.org/jwilk/mbank-cli/commits/b0a6e542b33d
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 15 Feb 2012 22:21:37 +0100
+
+mbank-cli (20091208) unstable; urgency=high
+
+  mbank-cli did not check whether the server hostname matches the Common Name
+  (CN) of the SSL certificate, making man-in-the-middle attacks feasible.
+
+  It is highly recommended that users:
+
+    1) Upgrade mbank-cli to 20091208 (or a later version).
+
+    2) Invalidate the existing mbank-cli session:
+
+       cd /path/to/mbank-cli
+       ./mbank-cli logout
+
+    3) Change the mBank password.
+
+  References:
+  - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-0633
+  - https://bitbucket.org/jwilk/mbank-cli/commits/aae4eaa3d5ad
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 08 Dec 2009 19:54:26 +0100
