@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+use v5.10;
+
 use strict;
 use warnings FATAL => qw(numeric);
 use charnames ':full';
@@ -62,8 +64,9 @@ use HTML::Form ();
 use HTML::HeadParser ();
 use HTML::TreeBuilder ();
 use HTTP::Cookies ();
+use HTTP::Message 5.802;
 use HTTP::Request::Common qw(GET POST);
-use IO::Socket::SSL ();
+use IO::Socket::SSL 1.31;
 use LWP::UserAgent ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay ();

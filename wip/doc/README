@@ -23,13 +23,15 @@ Requirements
 
   - HTML::TreeBuilder
 
-  - IO::Socket::SSL
+  - HTTP::Message (≥ 5.802)
+
+  - IO::Socket::SSL (≥ 1.31)
 
   - IPC::Run (optionally, for password encryption)
 
   - JSON or JSON::PP (the latter is a core module since Perl 5.14)
 
-  - LWP::UserAgent
+  - LWP::UserAgent (≥ 5.802)
 
   - LWP::Protocol::https
 
