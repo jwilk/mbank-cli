@@ -439,9 +439,15 @@ and will be automatically decrypted when needed.
 It is recommended to encrypt only the password.
 This is what the “B<configure>” command does.
 
-=head2 Session cookie storage file
+=head2 Session cookie storage file (a.k.a. cookie jar)
 
-TBD
+Session cookies are stored on disk,
+so that subsequent invocations of the program can reuse existing session,
+instead of re-logging every time.
+
+The file is not encrypted.
+If keeping unencrypted session cookies on disk is not desirable,
+set B<CookieJar> to B</dev/null> in the configuration file.
 
 =head1 BUGS
 
