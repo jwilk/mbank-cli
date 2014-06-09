@@ -1890,7 +1890,10 @@ sub check_user_date
 sub initialize
 {
     if (not -e $opt_config) {
-        user_error("missing configuration file: $opt_config");
+        user_error(
+            "missing configuration file: $opt_config\n" .
+            'Run "mbank-cli configure" or create the configuration file manually.'
+        );
     }
     $cfg = read_config($opt_config);
     my $cookie_jar_path = get_config_var($cfg, 'cookiejar')  # TODO: bring back the --cookie-jar option
