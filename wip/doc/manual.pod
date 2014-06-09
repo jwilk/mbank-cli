@@ -64,10 +64,12 @@ Save the debugging information (including dumps of downloaded pages) into I<debu
 =item B<--config> I<config-file>
 
 Use I<config-file> as the configuration file.
+
 The default is to use
 B<I<$>I<XDG_CONFIG_HOME>/mbank-cli/config>
 (or B<I<$>I<HOME>/.config/mbank-cli/config>).
-See the B<FILES> and B<ENVIRONMENT> sections for details.
+
+Consult the B<FILES> sections for the configuration file syntax.
 
 =back
 
@@ -395,7 +397,47 @@ The “B<configure>” command uses the internationalization variables to guess 
 
 =head2 Configuration file
 
-TBD
+By default, configuration is read from
+B<I<$>I<XDG_CONFIG_HOME>/mbank-cli/config>
+(or B<I<$>I<HOME>/.config/mbank-cli/config>).
+An alternative location can be specified with the B<--config> option.
+
+The configuration file is a simple text file.
+Empty lines are ignored.
+Lines starting with the “B<#>” character are comments, and are ignored, too.
+The remaining lines are I<key>-I<value> pairs:
+
+=over 4
+
+=over 4
+
+=item CookieJar I<path>
+
+Location of the session cookie storage file.
+
+=item Country I<cc>
+
+I<cc> is a two-letter country code:
+B<CZ> (Czech Republic),
+B<SK> (Slovakia), or
+B<PL> (Poland).
+
+=item Login I<login>
+
+Z<>
+
+=item Password I<password>
+
+Z<>
+
+=back
+
+=back
+
+Any part of the configuration file can be encrypted with GnuPG,
+and will be automatically decrypted when needed.
+It is recommended to encrypt only the password.
+This is what the “B<configure>” command does.
 
 =head2 Session cookie storage file
 
