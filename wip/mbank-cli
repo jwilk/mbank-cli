@@ -1715,6 +1715,7 @@ sub do_configure
         $password = $term->readline('Password: ');
         $password //= '';
     }
+    # TODO: check if the private key exists in the first place
     my $use_gpg;
     until ($use_gpg =~ m/\A[yYnN]\z/) {
         $use_gpg = $term->readline('Encrypt password with GnuPG (y/n)? ', 'y')
