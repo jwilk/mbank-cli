@@ -42,6 +42,23 @@ B<mbank-cli> B<configure> [I<option>...]
 
 =head1 DESCRIPTION
 
+B<mbank-cli> provides basic command-line interface to the online banking system of mBank.
+
+It can use the following web interfaces:
+
+=over 2
+
+=item *
+L<https://online.mbank.cz/>
+
+=item *
+L<https://online.mbank.sk/>
+
+=item *
+L<https://online.mbank.pl/>
+
+=back
+
 =head2 Output format
 
 Records are separated by newline (0x0A, LF) characters.
