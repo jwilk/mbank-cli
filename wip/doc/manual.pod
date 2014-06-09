@@ -361,19 +361,31 @@ Failure because of an internal error.
 
 =item B<XDG_CONFIG_HOME>
 
-TBD
+The variable defines the base directory relative to which user specific configuration files should be stored.
+If it is not set to an absolute path, B<I<$>I<HOME>/.config> is used instead.
+Consult the XDG Base Directory Specification for details.
+
+This variable is used to determine default location of the configuration file.
 
 =item B<XDG_DATA_HOME>
 
-TBD
+The variable defines the base directory relative to which user-specific data files should be stored.
+If it is not set to an absolute path, B<I<$>I<HOME>/.local/share> is used instead.
+Please consult the XDG Base Directory Specification for details.
+
+The “B<configure>” command uses this variable to choose location of the session cookie storage file.
 
 =item B<LC_ALL>, B<LC_CTYPE>, B<LANG>
 
-TBD
+These variables affect, amongst others, determine the interpretation of sequences of bytes as characters.
+B<LC_ALL> overrides B<LC_CTYPE>, which overrides B<LANG>.
+Please consult L<locale(7)> for details.
 
-=item B<LC_I<*>>
+These variables are used to determine input and output encoding.
 
-TBD
+=item B<LC_I<*>>, B<LANG>
+
+The “B<configure>” command uses the internationalization variables to guess the user's country.
 
 =back
 
