@@ -68,6 +68,8 @@ mbank-cli (1.0) UNRELEASED; urgency=low
     code than it was documented in some pathological circumstances.
     This bug should be now fixed.
 
+  TBD: new Perl module dependencies.
+
  -- Jakub Wilk <jwilk@jwilk.net>  Tue, 10 Jun 2014 12:46:27 +0200
 
 mbank-cli (20140505) unstable; urgency=low
