@@ -1,8 +1,72 @@
 mbank-cli (1.0) UNRELEASED; urgency=low
 
-  * 
+  This version of mbank-cli has been rewritten (almost) from scratch.
+  It uses https://online.mbank.pl/ (or https://online.mbank.cz/, or
+  https://online.mbank.sk) as the web backend.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 10 Jun 2014 00:37:36 +0200
+  The old version of mbank-cli, which uses the old interface at
+  https://www.mbank.com.pl/, is still available, but it is no longer
+  developed.
+
+  Changes to the user interface:
+
+  * The default configuration file location has changed: it's now it
+    ~/.config/mbank-cli/config or $XDG_CONFIG_HOME/mbank-cli/config.
+    This change make it feasible to install mbank-cli system-wide.
+
+  * Some aspects of the configuration file syntax has changed:
+    + Any part of the configuration file can be now GnuPG-encrypted, not
+      necessarily the whole file.
+    + The encrypted parts are now required to be ASCII-armored (--armor).
+    + Comments (lines starting with the “#” character) are now allowed.
+
+  * The --cookie-jar option has been removed.
+    Users must set path to session cookie storage file in the configuration
+    file instead.
+
+  * The feature of automatic re-logging when the configuration file changes
+    has been removed. Users must now use different session cookie storage
+    files for different bank accounts.
+
+  * Slovak and Czech mBank interfaces are now supported.
+    Users must set their country in the configuration file.
+
+  * The “configure” command has been added.
+
+  * The “cards” command has been added.
+
+  * The “--range <date1> <date2>” option has been removed.
+    Users should use “--from <date1> --to <date2>” instead.
+    “now” is no longer accepted as a valid date.
+
+  * Output format for the “deposits” command have changed:
+    + The <status> column has been removed.
+
+  * Output format for the “funds” command have changed:
+    + The optional <planned-amount> column has been added.
+
+  * The “rename” and “void” have been removed.
+
+  * New exit codes:
+    + 4 for system-related errors and I/O errors;
+    + 255 for internal errors.
+
+  Bug fixes:
+
+  * mbank-cli 20140505 died with “only SSL_ca_path or SSL_ca_file should be
+    given” when used together with IO::Socket::SSL between v1.87 and v1.972
+    (inclusive), e.g. on Ubuntu 14.04 LTS (Trusty Tahr):
+    https://code.google.com/p/mbank-cli/issues/detail?id=51
+    This bug is now fixed.
+
+  * Previous versions of mbank-cli ignored write errors (e.g. ENOSPC).
+    This bug is now fixed.
+
+  * Previous versions of mbank-cli exited with a different (non-zero) exit
+    code than it was documented in some pathological circumstances.
+    This bug should be now fixed.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 10 Jun 2014 12:18:09 +0200
 
 mbank-cli (20140505) unstable; urgency=low
 
