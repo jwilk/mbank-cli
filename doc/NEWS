@@ -7,8 +7,8 @@ mbank-cli (1.0) UNRELEASED; urgency=low
   The new code is available under the permissive Expat (a.k.a. MIT) license.
 
   The old version of mbank-cli, which uses the old interface at
-  https://www.mbank.com.pl/, is still available, but it is no longer
-  developed.
+  https://www.mbank.com.pl/, is still available in the legacy/ subdirectory,
+  but it is no longer developed.
 
   Changes to the user interface:
 
@@ -68,7 +68,7 @@ mbank-cli (1.0) UNRELEASED; urgency=low
     code than it was documented in some pathological circumstances.
     This bug should be now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 10 Jun 2014 12:18:09 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 10 Jun 2014 12:46:27 +0200
 
 mbank-cli (20140505) unstable; urgency=low
 
