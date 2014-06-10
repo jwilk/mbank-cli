@@ -79,7 +79,7 @@ BEGIN { $::loading_modules = 0; }  ## no critic (PackageVars)
 
 my $opt_verbose = 0;
 my $opt_debug_dir = undef;
-my $bugtracker = 'https://code.google.com/p/mbank‐cli/issues/list';
+my $bugtracker = 'https://code.google.com/p/mbank‐cli/issues';
 my $bugreport_request = "Please file a bug at <$bugtracker>.\n";
 
 sub write_log

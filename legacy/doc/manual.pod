@@ -275,7 +275,7 @@ Failure because of an HTTP error. This may be due to a network error, but might 
 
 =item Z<>3
 
-Failure because of an unexpected behaviour of the web interface (so called “API error”). If you encounter this, please file a bug at the L<issue tracker|https://code.google.com/p/mbank‐cli/issues/list>.
+Failure because of an unexpected behaviour of the web interface (so called “API error”). If you encounter this, please file a bug at the L<issue tracker|https://code.google.com/p/mbank‐cli/issues>.
 
 =back
 
