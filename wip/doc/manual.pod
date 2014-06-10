@@ -64,6 +64,8 @@ L<https://online.mbank.pl/>
 Records are separated by newline (0x0A, LF) characters.
 Each line contains fields separated by tab (0x09, HT) characters.
 
+TBD: date format
+
 =head2 Common options
 
 The following options are available for all commands:
@@ -465,6 +467,8 @@ instead of re-logging every time.
 The file is not encrypted.
 If keeping unencrypted session cookies on disk is not desirable,
 set B<CookieJar> to B</dev/null> in the configuration file.
+
+TBD: each user has to have own cookie jar
 
 =head1 BUGS
 
