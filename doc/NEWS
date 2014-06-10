@@ -28,7 +28,7 @@ mbank-cli (1.0) UNRELEASED; urgency=low
 
   * The feature of automatic re-logging when the configuration file changes
     has been removed. Users must now use different session cookie storage
-    files for different bank accounts.
+    files for different mBank users.
 
   * Slovak and Czech mBank interfaces are now supported.
     Users must set their country in the configuration file.

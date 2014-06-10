@@ -434,6 +434,10 @@ The remaining lines are I<key>-I<value> pairs:
 
 Location of the session cookie storage file.
 
+Each mBank user must use a separate file.
+This is currently not enforced,
+and there is no protection against accidentally using another user's file.
+
 =item Country I<cc>
 
 I<cc> is a two-letter country code:
@@ -467,8 +471,6 @@ instead of re-logging every time.
 The file is not encrypted.
 If keeping unencrypted session cookies on disk is not desirable,
 set B<CookieJar> to B</dev/null> in the configuration file.
-
-TBD: each user has to have own cookie jar
 
 =head1 BUGS
 
