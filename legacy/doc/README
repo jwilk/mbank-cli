@@ -26,34 +26,4 @@ Requirements
 
 - GnuPG (optionally, to protect your password)
 
-
-Security
---------
-
-* The Heartbleed_ Bug (also known as CVE-2014-0160_) is a serious
-  vulnerability in the OpenSSL library. When the weakness is exploited it
-  leads to the leak of memory contents from the server to the client, or
-  from the client to the server.
-
-  mbank-cli uses the OpenSSL library under the hood to connect to the mBank
-  server. It is believed that exploiting Heartbleed to attack mbank-cli,
-  while difficult, is feasible.
-
-  It is highly recommended that users of affected versions of OpenSSL:
-
-    1) Upgrade the OpenSSL library.
-
-    2) Invalidate the existing mbank-cli session::
-
-         cd /path/to/mbank-cli
-         ./mbank-cli logout
-
-    3) Change the mBank password.
-
-* Users of versions prior to 20110215 might have been affected by security
-  issues. Please see the NEWS file for details.
-
-.. _Heartbleed: http://heartbleed.com/
-.. _CVE-2014-0160: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0160
-
 .. vim:ft=rst tw=76 ts=2 sw=2 et
