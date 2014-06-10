@@ -103,7 +103,7 @@ mbank-cli (20120617) unstable; urgency=high
 
  -- Jakub Wilk <jwilk@jwilk.net>  Sun, 17 Jun 2012 11:23:16 +0200
 
-mbank-cli (20110215) unstable; urgency=medium
+mbank-cli (20120215) unstable; urgency=medium
 
   mbank-cli did not ensure that files (including some of security-sensitive
   nature, e.g. the cookie jar) are created with secure permissions. This bug

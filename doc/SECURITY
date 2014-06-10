@@ -44,7 +44,7 @@ It is highly recommended that users of affected versions of OpenSSL:
 .. _Heartbleed: http://heartbleed.com/
 .. _CVE-2014-0160: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0160
 
-2011-02-15: insecure file permissions
+2012-02-15: insecure file permissions
 -------------------------------------
 
 mbank-cli did not ensure that files (including some of security-sensitive
@@ -53,11 +53,14 @@ permissions.
 
 It is highly recommended that users:
 
-   1) Upgrade to 20110215 (or a later version).
+   1) Upgrade to 20120215 (or a later version).
 
    2) Log out from any existing mbank-cli sessions.
 
    3) Truncate and unlink any files that were exposed to other local users.
+
+Note that pervious version of this advisory incorrectly stated that the bug
+was fixed in 20110215.
 
 References:
 
