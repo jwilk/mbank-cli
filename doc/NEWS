@@ -53,6 +53,14 @@ mbank-cli (1.0) UNRELEASED; urgency=low
     + 4 for system-related errors and I/O errors;
     + 255 for internal errors.
 
+  New required Perl modules:
+    + Date::Format and Date::Parse;
+    + HTML::HeadParser;
+    + HTML::TreeBuilder;
+    + IPC::Run (optionally, for password encryption);
+    + JSON or JSON::PP (the latter is a core module since Perl 5.14);
+    + Term::ReadLine::Gnu (only required by the “configure” command).
+
   Bug fixes:
 
   * mbank-cli 20140505 died with “only SSL_ca_path or SSL_ca_file should be
@@ -67,8 +75,6 @@ mbank-cli (1.0) UNRELEASED; urgency=low
   * Previous versions of mbank-cli exited with a different (non-zero) exit
     code than it was documented in some pathological circumstances.
     This bug should be now fixed.
-
-  TBD: new Perl module dependencies.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Tue, 10 Jun 2014 12:46:27 +0200
 
