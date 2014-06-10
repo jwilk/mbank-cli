@@ -820,7 +820,7 @@ sub do_login
     defined($e_meta)
         or scraping_error('login.arvt.n');
     my $arvt = $e_meta->attr('content');
-    $arvt =~ m{\A[\w/+]{100,}\z}
+    $arvt =~ m{\A[\w/+=]{100,}\z}
         or scraping_error("login.arvt: $arvt");
     my %menu = ();
     for my $e_script ($html->look_down(_tag => 'script')) {
