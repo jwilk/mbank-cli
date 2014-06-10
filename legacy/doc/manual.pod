@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-mbank-cli - command-line interface to the on-line banking system of mBank
+mbank-cli - (legacy) command-line interface to the on-line banking system of mBank
 
 =head1 SYNOPSIS
 
@@ -41,6 +41,11 @@ B<mbank-cli> B<void> [I<option>...]
 =back
 
 =head1 DESCRIPTION
+
+B<mbank-cli> provides basic command-line interface to the online banking system of mBank.
+
+This is the legacy version of B<mbank-cli>, which uses the web interface at
+L<https://www.mbank.com.pl/>, which is in the process of being shut down.
 
 =head2 Output format
 
