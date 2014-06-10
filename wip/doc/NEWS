@@ -4,6 +4,8 @@ mbank-cli (1.0) UNRELEASED; urgency=low
   It uses https://online.mbank.pl/ (or https://online.mbank.cz/, or
   https://online.mbank.sk) as the web backend.
 
+  The new code is available under the permissive Expat (a.k.a. MIT) license.
+
   The old version of mbank-cli, which uses the old interface at
   https://www.mbank.com.pl/, is still available, but it is no longer
   developed.
