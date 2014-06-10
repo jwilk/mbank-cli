@@ -1,14 +1,11 @@
-This is `mbank-cli`, a command line interface to the on-line banking system of
-mBank.
+This is legacy version of *mbank-cli*, a command line interface to the
+on-line banking system of mBank.
 
-**Warning**: You use `mbank-cli` on your own risk!
+**Warning**: You use *mbank-cli* on your own risk! The software is provided
+“as is”, without warranty of any kind.
 
-**Warning**: `mbank-cli` is considered highly experimental. The interface is
-likely to change in the near future.
-
-**Warning**: `mbank-cli` uses the web interface at https://www.mbank.com.pl/
-which is subject to change unexpectedly.
-
+**Warning**: This version of *mbank-cli* uses the web interface at
+https://www.mbank.com.pl/, which is in the process of begin shut down.
 
 Requirements
 ------------
