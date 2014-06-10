@@ -78,17 +78,28 @@ mbank-cli (20140505) unstable; urgency=low
 
   * mbank-cli now uses IO::Socket::SSL (rather that Net::SSL aka
     Crypt::SSLeay) as the SSL/TLS backend.
+    This change mitigates brokennes of the Net::HTTP Perl module on Ubuntu
+    12.04 LTS (Precise Pangolin).
+    https://code.google.com/p/mbank-cli/issues/detail?id=48
 
   * mbank-cli no longer trusts any certificate authorities, except for VeriSign
     Class 3 Public Primary Certification Authority.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Mon, 05 May 2014 18:36:43 +0200
 
-mbank-cli (20120704) unstable; urgency=low
+mbank-cli (20131014) unstable; urgency=low
 
-  The “withholdings” command has been renamed to “blocked”.
+  [ Jakub Wilk ]
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 04 Aug 2012 23:07:47 +0200
+  * The “withholdings” command has been renamed as “blocked”.
+
+  [ Marcin Gryszkalis ]
+
+  * In some environments, LWP hangs when reading the SSL stream.
+    This is now mitigated by using a big buffer length hint.
+    https://code.google.com/p/mbank-cli/issues/detail?id=47
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 14 Oct 2013 15:00:04 +0200
 
 mbank-cli (20120617) unstable; urgency=high
 
@@ -97,7 +108,7 @@ mbank-cli (20120617) unstable; urgency=high
 
   * Due to a bug in the LWP module, if the IO::Socket::SSL module was
     installed, mbank-cli did not verify the SSL certificate, making
-    man-in-the-middle attacks feasible. This bug is now fixed.
+    man-in-the-middle attacks feasible. This bug is now mitigated.
 
     Please consult the SECURITY file for details.
 
@@ -105,13 +116,72 @@ mbank-cli (20120617) unstable; urgency=high
 
 mbank-cli (20120215) unstable; urgency=medium
 
-  mbank-cli did not ensure that files (including some of security-sensitive
-  nature, e.g. the cookie jar) are created with secure permissions. This bug
-  is now fixed.
+  * mbank-cli did not ensure that files (including some of security-sensitive
+    nature, e.g. the cookie jar) are created with secure permissions. This bug
+    is now fixed.
 
-  Please consult the SECURITY file for details.
+    Please consult the SECURITY file for details.
+
+  * New command-line options have been added:
+    + “-M” as an alias for “--multiple-accounts”;
+    + “-A” as an alias for “--all-accounts”;
+    + “--help”.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Wed, 15 Feb 2012 22:21:37 +0100
+
+mbank-cli (20111122) unstable; urgency=low
+
+  * Previous version of mbank-cli would silently ignore a request to select
+    an account that does not exist. This is now fixed, and selecting a
+    non-existent account is an error.
+    https://code.google.com/p/mbank-cli/issues/detail?id=25
+
+  * The program is now more verbose in the event of HTTP errors.
+
+  * The Apache::ConfigFile Perl module is no longer required.
+    https://code.google.com/p/mbank-cli/issues/detail?id=31
+
+  * The --cookie-jar option has been added.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 22 Nov 2011 00:32:19 +0100
+
+mbank-cli (20110725) unstable; urgency=low
+
+  [ Jakub Wilk ]
+
+  * Perl v5.10 (or a later version) is now required.
+
+  * The program is now more verbose in the event of unexpected errors.
+
+  * Previous versions of mbank-cli died when an account had a negative amount.
+    This bug is now fixed.
+
+  [ Łukasz Indeka ]
+
+  * The “deposits” command have been added.
+    https://code.google.com/p/mbank-cli/issues/detail?id=42
+
+  * In previous versions of mbank-cli, the “future” command could prematurely
+    exit without checking all the requested accounts. This bug is now fixed.
+    https://code.google.com/p/mbank-cli/issues/detail?id=39
+
+  * In previous versions of mbank-cli, the “notices” command showed only
+    customer notices. Now account notices are showed, too.
+    https://code.google.com/p/mbank-cli/issues/detail?id=40
+
+  * In previous versions of mbank-cli, the “future” and “withholdings”
+    commands failed to skip accounts without corresponing menu items. This bug
+    is now fixed.
+    https://code.google.com/p/mbank-cli/issues/detail?id=41
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 27 Jul 2011 17:51:17 +0200
+
+mbank-cli (20110412) unstable; urgency=low
+
+  The “notices” command works again.
+  Notices are now global, rather than per account.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 12 Apr 2011 18:02:33 +0200
 
 mbank-cli (20091208) unstable; urgency=high
 
