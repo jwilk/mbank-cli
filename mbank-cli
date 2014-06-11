@@ -619,6 +619,11 @@ sub get_config_var
 # misc parsing
 # ============
 
+my $account_number_re = qr{
+  \d{2}(?:[ ]\d{4}){6}  # Polish IBAN (without the country code)
+| (?:\d{1,6}-)?\d{2,10}/\d{4}  # Slovak national format: http://www.nbs.sk/en/payment-systems/iban/iban-slovak-republic
+}x;
+
 sub format_amount
 {
     my ($s, %options) = @_;
@@ -1027,7 +1032,7 @@ sub _switch_history_account
     my @e_accounts = $e_account_menu->content_list();
     for my $e_account (@e_accounts) {
         my $o_name = $e_account->as_trimmed_text();
-        my ($o_number) = ($o_name =~ m/- (\d{2}(?: \d{4}){6})\z/)
+        my ($o_number) = ($o_name =~ m/- ($account_number_re)\z/)
             or scraping_error("history.account.number: $o_name");
         if ($number eq $o_number) {
             if ($e_account->attr('selected')) {
