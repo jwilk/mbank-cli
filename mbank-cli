@@ -1692,11 +1692,12 @@ sub do_configure
     my $term = Term::ReadLine->new('mbank-cli');
     # overwrite?
     if (-e $config_path) {
-        my $overwrite;
+        my $overwrite = '';
         until ($overwrite =~ m/\A[yYnN]\z/) {  ## no critic (Until)
             $overwrite = $term->readline(
                 unexpand_tilde($config_path) . ' already exists. Overwrite (y/n)? '
             );
+            $overwrite //= '';
         }
         if ($overwrite =~ m/[nN]/) {
             user_error();
@@ -1759,9 +1760,10 @@ sub do_configure
                 $message =~ s/ at \Q$file\E line \d+[.]\n+//;
                 print {*STDERR} "$message\n";
             }
-            my $retry;
+            my $retry = '';
             until ($retry =~ m/\A[yYnN]\z/) {  ## no critic (Until)
-                $retry = $term->readline('GnuPG encryption failed. Retry (y/n)? ')
+                $retry = $term->readline('GnuPG encryption failed. Retry (y/n)? ');
+                $retry //= '';
             }
             if ($retry =~ m/[yY]/) {
                 next ENCRYPT;
