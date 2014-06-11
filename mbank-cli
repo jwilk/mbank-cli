@@ -942,10 +942,11 @@ sub _clean_history_form
     my $reset = delete($options{'reset'});
     check_for_unexpected_options(%options);
     for my $input ($form->inputs) {
-        if ($input->name =~ m/\Alastdays_\w+\z/) {
+        my $name = $input->name // '';
+        if ($name =~ m/\Alastdays_\w+\z/) {
             $input->disabled(1);
         }
-        if ($reset and $input->name !~ m/\A__/) {
+        if ($reset and $name !~ m/\A__/) {
             $input->disabled(1);
         }
     }
@@ -1172,7 +1173,7 @@ sub _do_history_page {
         my $e_op = $e_op_desc->parent;
         $e_op->tag eq 'li'
             or scraping_error('history.table');
-        my $class = $e_op->attr('class');
+        my $class = $e_op->attr('class') // '';
         $class !~ html_class_regexp('header')
             or next;
         # dates:
@@ -1204,12 +1205,13 @@ sub _do_history_page {
             or scraping_error("history.details#: expected >= 3 instances, got $n_details");
         my @details;
         for my $e_detail (@e_details) {
-            $class = $e_detail->attr('class');
+            $class = $e_detail->attr('class') // '';
             if ($class =~ html_class_regexp('FilterType')) {
                 next;
             }
             my $detail = $e_detail->as_trimmed_text();
             $detail =~ s/\N{SOFT HYPHEN}//g;
+            $detail = unicode_to_bytes($detail);
             push(@details, $detail);
         }
         # print:
