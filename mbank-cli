@@ -1736,7 +1736,7 @@ sub do_configure
                 '>', \$secret_keys,
             );
             if (not scalar($secret_keys)) {
-                die(
+                die(  ## no critic (Carping)
                     "No secret keys in the GnuPG keyring.\n" .
                     'Use "gpg --gen-key" to generate a key pair.'
                 );
