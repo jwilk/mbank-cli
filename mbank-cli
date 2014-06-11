@@ -1736,7 +1736,10 @@ sub do_configure
                 '>', \$secret_keys,
             );
             if (not scalar($secret_keys)) {
-                die qq(No secret keys in the GnuPG keyring.\nUse "gpg --gen-key" to generate a key pair.);
+                die(
+                    "No secret keys in the GnuPG keyring.\n" .
+                    'Use "gpg --gen-key" to generate a key pair.'
+                );
             }
             IPC::Run::run(
                 [qw(gpg --armor --encrypt --default-recipient-self)],
