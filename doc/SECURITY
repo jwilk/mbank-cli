@@ -21,6 +21,7 @@ References:
    - https://bugs.debian.org/746579
    - https://bitbucket.org/jwilk/mbank-cli/commits/9ed861f1d9c7
 
+
 2014-04-09: Heatblead
 ---------------------
 
@@ -44,6 +45,7 @@ It is highly recommended that users of affected versions of OpenSSL:
 .. _Heartbleed: http://heartbleed.com/
 .. _CVE-2014-0160: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0160
 
+
 2012-02-15: insecure file permissions
 -------------------------------------
 
@@ -65,6 +67,7 @@ was fixed in 20110215.
 References:
 
    - https://bitbucket.org/jwilk/mbank-cli/commits/b0a6e542b33d
+
 
 2009-12-08: insufficient certificate validation
 -----------------------------------------------
