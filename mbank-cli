@@ -449,7 +449,7 @@ sub download
         close($fh)
             or os_error("$path: $ERRNO");
         my $rpath = "${path}.request";
-        open(my $fh, '>', $rpath)
+        open($fh, '>', $rpath)
             or os_error("$rpath: $ERRNO");
         print {$fh} $request->dump(maxlength => 1);
         close($fh)
