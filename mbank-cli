@@ -633,7 +633,14 @@ sub format_amount
     my ($s, %options) = @_;
     my $use_plus = delete($options{plus});
     my $currency = delete($options{currency});
+    my $fp = delete($options{fp});
     check_for_unexpected_options(%options);
+    if ($fp) {
+        if (not defined($currency)) {
+            internal_error('floting-point number, but no currency');
+        }
+        $s = format_number('%.2f', $s);
+    }
     my $sign_re;
     $s =~ s/\s+(?=\d)//g;
     if ($use_plus) {
@@ -1408,7 +1415,7 @@ sub do_future
             // scraping_error('future.transfer.amount');
         my $currency = $transfer->{currency}
             // scraping_error('future.transfer.currency');
-        $amount = format_amount($amount, currency => $currency)
+        $amount = format_amount($amount, fp => 1, currency => $currency)
             // scraping_error("future.transfer.amount: $amount $currency");
         my $status = $transfer->{transferType}
             // scraping_error('future.transfer.type');
