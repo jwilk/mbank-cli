@@ -184,8 +184,10 @@ mbank-cli (20110725) unstable; urgency=low
 
 mbank-cli (20110412) unstable; urgency=low
 
+  [ Piotr Lewandowski ]
   The “notices” command works again.
   Notices are now global, rather than per account.
+  https://code.google.com/p/mbank-cli/issues/detail?id=13
 
  -- Jakub Wilk <jwilk@jwilk.net>  Tue, 12 Apr 2011 18:02:33 +0200
 
