@@ -175,7 +175,10 @@ Dates should be specified in the in the I<YYYY>-I<MM>-I<DD> format.
 Examples:
 
     $ mbank-cli history eKonto
-    [ recent history ]
+    2010-08-01  2010-08-02  -10.00 PLN  4106.16 PLN  OPŁATA ZA PROWADZENIE RACHUNKU  WYPŁATY ZE WSZYSTKICH ATM
+    2010-08-01  2010-08-02  -22.00 PLN  4116.16 PLN  PODATEK OD ODSETEK KAPITAŁOWYCH
+    2010-08-01  2010-08-01  107.89 PLN  4138.16 PLN  KAPITALIZACJA ODSETEK
+    2010-07-30  2010-08-01   -5.00 PLN  4030.27 PLN  OPŁATA ZA MIES. ZESTAWIENIE OPER.
 
     $ mbank-cli history eKonto --from 2006-06-01
     [ history since 2006-06-01 ]
