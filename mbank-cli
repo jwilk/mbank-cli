@@ -1720,7 +1720,6 @@ sub do_configure
         $password = $term->readline('Password: ');
         $password //= '';
     }
-    # TODO: check if the private key exists in the first place
     my $use_gpg;
     until ($use_gpg =~ m/\A[yYnN]\z/) {
         $use_gpg = $term->readline('Encrypt password with GnuPG (y/n)? ', 'y')
@@ -1731,6 +1730,14 @@ sub do_configure
         my $password_line = _make_config_line('Password', $password);
         eval {
             require IPC::Run;
+            my $secret_keys;
+	        IPC::Run::run(
+                [qw(gpg --batch --list-secret-keys)],
+                '>', \$secret_keys,
+            );
+            if (not scalar($secret_keys)) {
+                die qq(No secret keys in the GnuPG keyring.\nUse "gpg --gen-key" to generate a key pair.);
+            }
             IPC::Run::run(
                 [qw(gpg --armor --encrypt --default-recipient-self)],
                 '<', \$password_line,
