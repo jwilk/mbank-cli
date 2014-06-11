@@ -1684,11 +1684,10 @@ sub do_configure
         require Term::ReadLine::Gnu;
     } // user_error('Term::ReadLine::Gnu is required to run configure');
     my $term = Term::ReadLine->new('mbank-cli');
-    ## no critic (Until)
     # overwrite?
     if (-e $config_path) {
         my $overwrite;
-        until ($overwrite =~ m/\A[yYnN]\z/) {
+        until ($overwrite =~ m/\A[yYnN]\z/) {  ## no critic (Until)
             $overwrite = $term->readline(
                 unexpand_tilde($config_path) . ' already exists. Overwrite (y/n)? '
             );
@@ -1700,13 +1699,13 @@ sub do_configure
     # country:
     my $guessed_cc = guess_country();
     my $cc;
-    until (exists($country_to_language{$cc})) {
+    until (exists($country_to_language{$cc})) {  ## no critic (Until)
         $cc = $term->readline('Country (CZ, or SK, or PL): ', uc($guessed_cc));
         $cc = lc($cc // '');
     }
     # login:
     my $login;
-    until (length($login) > 0) {
+    until (length($login) > 0) {  ## no critic (Until)
         $login = $term->readline('Login: ');
         $login //= '';
     }
@@ -1714,14 +1713,14 @@ sub do_configure
         or internal_error('shadow_redisplay not defined');
     # password:
     my $password;
-    until (length($password) > 0) {
+    until (length($password) > 0) {  ## no critic (Until)
         local $term->Attribs->{redisplay_function} =  ## no critic (LocalVars)
             $term->Attribs->{shadow_redisplay};
         $password = $term->readline('Password: ');
         $password //= '';
     }
     my $use_gpg;
-    until ($use_gpg =~ m/\A[yYnN]\z/) {
+    until ($use_gpg =~ m/\A[yYnN]\z/) {  ## no critic (Until)
         $use_gpg = $term->readline('Encrypt password with GnuPG (y/n)? ', 'y')
     }
     $use_gpg = ($use_gpg =~ m/[yY]/);
@@ -1754,7 +1753,7 @@ sub do_configure
                 print {*STDERR} "$message\n";
             }
             my $retry;
-            until ($retry =~ m/\A[yYnN]\z/) {
+            until ($retry =~ m/\A[yYnN]\z/) {  ## no critic (Until)
                 $retry = $term->readline('GnuPG encryption failed. Retry (y/n)? ')
             }
             if ($retry =~ m/[yY]/) {
@@ -1771,12 +1770,11 @@ sub do_configure
     my $cookie_home = unexpand_tilde($xdg_data_home) . '/mbank-cli';
     my $default_cookie_jar_path =  "$cookie_home/$sanitized_login.cookies";
     my $cookie_jar_path;
-    until (length($cookie_jar_path) > 1) {
+    until (length($cookie_jar_path) > 1) {  ## no critic (Until)
         $cookie_jar_path = $term->readline('Session cookie storage file: ', $default_cookie_jar_path);
         $cookie_jar_path //= '';
     }
     # TODO: create the cookie jar directory if it doesn't exist
-    ## use critic
     # save the file:
     my $config_dir = dirname($config_path);
     eval {
