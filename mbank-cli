@@ -1701,13 +1701,13 @@ sub do_configure
     }
     # country:
     my $guessed_cc = guess_country();
-    my $cc;
+    my $cc = '';
     until (exists($country_to_language{$cc})) {  ## no critic (Until)
         $cc = $term->readline('Country (CZ, or SK, or PL): ', uc($guessed_cc));
         $cc = lc($cc // '');
     }
     # login:
-    my $login;
+    my $login = '';
     until (length($login) > 0) {  ## no critic (Until)
         $login = $term->readline('Login: ');
         $login //= '';
@@ -1715,16 +1715,17 @@ sub do_configure
     defined($term->Attribs->{shadow_redisplay})
         or internal_error('shadow_redisplay not defined');
     # password:
-    my $password;
+    my $password = '';
     until (length($password) > 0) {  ## no critic (Until)
         local $term->Attribs->{redisplay_function} =  ## no critic (LocalVars)
             $term->Attribs->{shadow_redisplay};
         $password = $term->readline('Password: ');
         $password //= '';
     }
-    my $use_gpg;
+    my $use_gpg = '';
     until ($use_gpg =~ m/\A[yYnN]\z/) {  ## no critic (Until)
-        $use_gpg = $term->readline('Encrypt password with GnuPG (y/n)? ', 'y')
+        $use_gpg = $term->readline('Encrypt password with GnuPG (y/n)? ', 'y');
+        $use_gpg //= '';
     }
     $use_gpg = ($use_gpg =~ m/[yY]/);
     my $encrypted_password;
@@ -1772,7 +1773,7 @@ sub do_configure
     my $xdg_data_home = xdg_data_home();
     my $cookie_home = unexpand_tilde($xdg_data_home) . '/mbank-cli';
     my $default_cookie_jar_path =  "$cookie_home/$sanitized_login.cookies";
-    my $cookie_jar_path;
+    my $cookie_jar_path = '';
     until (length($cookie_jar_path) > 1) {  ## no critic (Until)
         $cookie_jar_path = $term->readline('Session cookie storage file: ', $default_cookie_jar_path);
         $cookie_jar_path //= '';
