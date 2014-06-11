@@ -1141,7 +1141,7 @@ sub _do_history_account
             my $url = $doc->{response}->base;
             $url =~ s{\A.*?(?=/csite/)}{};
             my ($parameters) = ($onclick =~ m{\AdoSubmit[(]'\Q$url\E','','POST','([^']*)',true,false,true,null[)];})
-                or scraping_error('history.prev.onclick');
+                or scraping_error("history.prev.onclick: $onclick");
             @forms = HTML::Form->parse($doc->{response});
             ($form) = scraping_count(\@forms, 1, 'history.prev.form#');
             _clean_history_form($form, params => $parameters);
@@ -1555,7 +1555,7 @@ sub do_funds
                 or scraping_error('funds.amount.planned.gray');
             $planned_amount = $e_planned_amount->as_trimmed_text();
             $planned_amount = format_amount($planned_amount, plus => 1)
-                or scraping_error("cards.amount.planned: $planned_amount");
+                or scraping_error("funds.amount.planned: $planned_amount");
         }
         my $line = "$name\t$current_amount";
         if (defined($planned_amount)) {
