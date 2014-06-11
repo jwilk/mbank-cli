@@ -23,7 +23,10 @@
 use v5.10;
 
 use strict;
-use warnings FATAL => qw(numeric);
+use warnings (
+    NONFATAL => qw(all),
+    FATAL => qw(numeric)
+);
 use charnames ':full';
 no encoding;
 
