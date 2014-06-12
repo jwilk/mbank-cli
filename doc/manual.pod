@@ -219,9 +219,14 @@ in the following format:
 
 =item Z<>
 
-I<[account-name]> I<registration-date> I<finalization-date> I<amount> I<description>
+I<[account-name]> I<registration-date> I<finalization-date> I<amount> I<description> I<type>
 
 =back
+
+Example:
+
+    $ mbank-cli blocked eKonto
+    [ blocking operations for the “eKonto” account ]
 
 =head2 The “deposits” command
 
