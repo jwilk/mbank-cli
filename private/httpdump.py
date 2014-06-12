@@ -23,6 +23,8 @@
 '''
 logging script for mitmproxy
 usage: mitmproxy [options] --anticache -s httpdump.py
+
+Beware that mitmproxy itself doesn't verify peer certificates!
 '''
 
 import os
