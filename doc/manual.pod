@@ -64,7 +64,7 @@ L<https://online.mbank.pl/>
 Records are separated by newline (0x0A, LF) characters.
 Each line contains fields separated by tab (0x09, HT) characters.
 
-TBD: date format
+All dates are in the I<YYYY>-I<MM>-I<DD> format.
 
 =head2 Common options
 

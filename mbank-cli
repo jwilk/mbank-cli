@@ -676,10 +676,16 @@ sub format_number
 
 sub parse_timestamp
 {
-    my ($timestamp) = @_;
+    my ($timestamp, %options) = @_;
+    my $discard_time = delete($options{discard_time});
+    check_for_unexpected_options(%options);
     my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d[.]\d+)\z/)
         or return;
-    return str2time($timestamp);
+    $discard_time or ($time =~ m/\A[0:.]+\Z/)
+        or return;
+    str2time("$date UTC")
+        or return;
+    return $date;
 }
 
 sub parse_le_date
@@ -687,40 +693,24 @@ sub parse_le_date
     my ($date) = @_;
     my ($d, $m, $y) = ($date =~ m/\A(\d\d)-(\d\d)-(\d\d\d\d)\z/)
         or return;
-    return str2time("$y-$m-$d");
+    $date = "$y-$m-$d";
+    str2time("$date UTC")
+        or return;
+    return $date;
 }
 
-sub format_timestamp
+sub shift_date
 {
-    my ($timestamp, %options) = @_;
-    my $use_time = delete($options{time}) // 1;
-    my $use_le = delete($options{le});
-    my $use_unix = delete($options{unix});
-    check_for_unexpected_options(%options);
-    my $unix_timestamp;
-    if ($use_unix) {
-        $unix_timestamp = $timestamp;
-    } elsif ($use_le) {
-        $unix_timestamp = parse_le_date($timestamp)
-    } else {
-        $unix_timestamp = parse_timestamp($timestamp)
-    }
-    defined($unix_timestamp)
+    my ($date, $offset) = @_;
+    my $unix_ts = str2time("$date UTC");
+    defined $unix_ts
         or return;
-    my $date = time2str('%Y-%m-%d', $unix_timestamp)
-        // return;
-    if (not $use_time) {
-        return $date;
-    }
-    my $time = time2str('%H:%M:%S', $unix_timestamp)
-        // return;
-    if (my ($frac_seconds) = ($unix_timestamp =~ /[.](\d+)\z/)) {
-        # fractional seconds are boring
-    } elsif ($time =~ /\A[0:]+\z/) {
-        # exactly-midnight times are boring
-        return $date;
-    }
-    return "${date}T${time}";
+    my $seconds_in_day = 60 * 60 * 24;
+    $unix_ts += $offset * $seconds_in_day;
+    $date = time2str('%Y-%m-%d', $unix_ts, 'UTC');
+    $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
+        or return;
+    return $date;
 }
 
 sub wildcards_to_regexp
@@ -1206,7 +1196,7 @@ sub _do_history_page {
         my @dates = ();
         for my $e_date (@e_dates) {
             my $date = $e_date->as_trimmed_text();
-            $date = format_timestamp($date, le => 1)
+            $date = parse_le_date($date)
                 // scraping_error("history.date: $date");
             push(@dates, $date);
         }
@@ -1342,7 +1332,7 @@ sub _do_blocked_account
         my @dates = ();
         for my $e_date (@e_dates) {
             my $date = $e_date->as_trimmed_text();
-            $date = format_timestamp($date, le => 1)
+            $date = parse_le_date($date)
                 // scraping_error("blocked.date: $date");
             push(@dates, $date);
         }
@@ -1411,9 +1401,9 @@ sub do_future
         if ($display_name) {
             print("$name\t");
         }
-        my $timestamp = $transfer->{date};
-        $timestamp = format_timestamp($timestamp)
-            // scraping_error('future.transfer.date');
+        my $timestamp = $transfer->{date} // '';
+        my $date = parse_timestamp($timestamp)
+            // scraping_error("future.transfer.date: $timestamp");
         my $recipient = $transfer->{benef}
             // scraping_error('future.transfer.recipient');
         for my $key (qw(benefAddress benefCity)) {
@@ -1433,7 +1423,7 @@ sub do_future
             // scraping_error("future.transfer.amount: $amount $currency");
         my $status = $transfer->{transferType}
             // scraping_error('future.transfer.type');
-        print("$timestamp\t$recipient\t$description\t$amount\t$status\n");
+        print("$date\t$recipient\t$description\t$amount\t$status\n");
     }
     return;
 }
@@ -1460,7 +1450,6 @@ sub do_deposits
     $json->{footer}->{isListComplete}
         or scraping_error('deposits.incomplete');
     my $deposits = $json->{deposits};
-    my $seconds_in_day = 60 * 60 * 24;
     for my $deposit (@{$deposits}) {
         my $title = $deposit->{title}
             // scraping_error('deposits.title');
@@ -1471,14 +1460,11 @@ sub do_deposits
         my $end_date = $deposit->{endDate} // '';
         $end_date = parse_timestamp($end_date)
             // scraping_error("deposits.end-date: $end_date");
-        my $duration_in_days = $deposit->{depositLength} // '';
-        $duration_in_days =~ m/\A\d+\z/
-            or scraping_error("deposits.duration: $duration_in_days");
-        my $start_date = $end_date - $duration_in_days * $seconds_in_day;
-        $start_date = format_timestamp($start_date, unix => 1)
-            // scraping_error("deposits.start-date.unix: $start_date");
-        $end_date = format_timestamp($end_date, unix => 1)
-            // scraping_error("deposits.end-date.unix: $end_date");
+        my $length = $deposit->{depositLength} // '';
+        $length =~ m/\A\d+\z/
+            or scraping_error("deposits.length: $length");
+        my $start_date = shift_date($end_date, -$length)
+            or internal_error("could not shift $end_date by -$length days");
         my $duration = $deposit->{period}
             // scraping_error('deposits.duration');
         $duration = unicode_to_bytes($duration);
@@ -1621,12 +1607,12 @@ sub do_notices
             // scraping_error('notices.is-read');
         my $new_flag = $is_read ? '' : 'N';
         my $timestamp = $message->{StartDate};
-        $timestamp = format_timestamp($timestamp, time => 0)
-            // scraping_error('notices.date');
+        my $date = parse_timestamp($timestamp, discard_time => 1)
+            // scraping_error("notices.date: $timestamp");
         my $title = $message->{Title}
             // scraping_error('notices.title');
         $title = unicode_to_bytes($title);
-        print("$new_flag\t$timestamp\t$title\n");
+        print("$new_flag\t$date\t$title\n");
     }
     return;
 }
