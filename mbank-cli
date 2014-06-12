@@ -715,7 +715,7 @@ sub format_timestamp
         // return;
     if (my ($frac_seconds) = ($unix_timestamp =~ /[.](\d+)\z/)) {
         # fractional seconds are boring
-    } elsif ($time =~ /\A[\d:]+\z/) {
+    } elsif ($time =~ /\A[0:]+\z/) {
         # exactly-midnight times are boring
         return $date;
     }
