@@ -1392,7 +1392,7 @@ sub do_future
     for my $transfer (@{$transfer_info}) {
         my $number = $transfer->{accountNumber} // '';
         $number =~ m/\A$account_number_re\z/
-            or scraping_error('future.transfer.account-number');
+            or scraping_error("future.transfer.account-number: $number");
         my $name = $selected_accounts{$number};
         defined($name) or next;
         if ($display_name) {
