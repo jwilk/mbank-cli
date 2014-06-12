@@ -1456,9 +1456,9 @@ sub do_deposits
         my $end_date = $deposit->{endDate} // '';
         $end_date = parse_timestamp($end_date)
             // scraping_error("deposits.end-date: $end_date");
-        my $duration_in_days = $deposit->{durationInDays} // '';
+        my $duration_in_days = $deposit->{depositLength} // '';
         $duration_in_days =~ m/\A\d+\z/
-            or scraping_error('deposits.duration-in-days');
+            or scraping_error("deposits.duration: $duration_in_days");
         my $start_date = $end_date - $duration_in_days * $seconds_in_day;
         $start_date = format_timestamp($start_date, unix => 1)
             // scraping_error("deposits.start-date.unix: $start_date");
