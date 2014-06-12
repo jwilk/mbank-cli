@@ -93,7 +93,7 @@ mbank-cli (20140505) unstable; urgency=low
 
   * mbank-cli now uses IO::Socket::SSL (rather that Net::SSL aka
     Crypt::SSLeay) as the SSL/TLS backend.
-    This change mitigates brokennes of the Net::HTTP Perl module on Ubuntu
+    This change mitigates brokenness of the Net::HTTP Perl module on Ubuntu
     12.04 LTS (Precise Pangolin).
     https://code.google.com/p/mbank-cli/issues/detail?id=48
 
@@ -185,7 +185,7 @@ mbank-cli (20110725) unstable; urgency=low
     https://code.google.com/p/mbank-cli/issues/detail?id=40
 
   * In previous versions of mbank-cli, the “future” and “withholdings”
-    commands failed to skip accounts without corresponing menu items. This bug
+    commands failed to skip accounts without corresponding menu items. This bug
     is now fixed.
     https://code.google.com/p/mbank-cli/issues/detail?id=41
 
