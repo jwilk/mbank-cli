@@ -1686,17 +1686,9 @@ sub _make_config_line
     return "$key $value\n";
 }
 
-sub do_configure
+sub _configure_overwrite
 {
-    my %options = @_;
-    my $config_path = delete($options{config_path});
-    check_for_unexpected_options(%options);
-    eval {
-        require Term::ReadLine;
-        require Term::ReadLine::Gnu;
-    } // user_error('Term::ReadLine::Gnu is required to run configure');
-    my $term = Term::ReadLine->new('mbank-cli');
-    # overwrite?
+    my ($term, $config_path) = @_;
     if (-e $config_path) {
         my $overwrite = '';
         until ($overwrite =~ m/\A[yYnN]\z/) {  ## no critic (Until)
@@ -1709,22 +1701,37 @@ sub do_configure
             user_error();
         }
     }
-    # country:
+    return;
+}
+
+sub _configure_country
+{
+    my ($term) = @_;
     my $guessed_cc = guess_country();
     my $cc = '';
     until (exists($country_to_language{$cc})) {  ## no critic (Until)
         $cc = $term->readline('Country (CZ, or SK, or PL): ', uc($guessed_cc));
         $cc = lc($cc // '');
     }
-    # login:
+    return $cc;
+}
+
+sub _configure_login
+{
+    my ($term) = @_;
     my $login = '';
     until (length($login) > 0) {  ## no critic (Until)
         $login = $term->readline('Login: ');
         $login //= '';
     }
+    return $login;
+}
+
+sub _configure_password
+{
+    my ($term) = @_;
     defined($term->Attribs->{shadow_redisplay})
         or internal_error('shadow_redisplay not defined');
-    # password:
     my $password = '';
     until (length($password) > 0) {  ## no critic (Until)
         local $term->Attribs->{redisplay_function} =  ## no critic (LocalVars)
@@ -1779,7 +1786,12 @@ sub do_configure
         };
         last ENCRYPT;
     }
-    # cookie jar:
+    return ($password, $encrypted_password);
+}
+
+sub _configure_cookie_jar
+{
+    my ($term, $login) = @_;
     (my $sanitized_login = $login) =~ s/\W/_/g;
     my $xdg_data_home = xdg_data_home();
     my $cookie_home = unexpand_tilde($xdg_data_home) . '/mbank-cli';
@@ -1791,6 +1803,24 @@ sub do_configure
     }
     # TODO: create the cookie jar directory if it doesn't exist
     # save the file:
+    return $cookie_jar_path;
+}
+
+sub do_configure
+{
+    my %options = @_;
+    my $config_path = delete($options{config_path});
+    check_for_unexpected_options(%options);
+    eval {
+        require Term::ReadLine;
+        require Term::ReadLine::Gnu;
+    } // user_error('Term::ReadLine::Gnu is required to run configure');
+    my $term = Term::ReadLine->new('mbank-cli');
+    _configure_overwrite($term, $config_path);
+    my $cc = _configure_country($term);
+    my $login = _configure_login($term);
+    my ($password, $encrypted_password) = _configure_password($term);
+    my $cookie_jar_path = _configure_cookie_jar($term, $login);
     my $config_dir = dirname($config_path);
     eval {
         File::Path::make_path($config_dir);

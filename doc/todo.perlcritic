@@ -1,3 +1,2 @@
       1 CodeLayout::RequireTidyCode
       1 InputOutput::RequireBriefOpen
-      1 Subroutines::ProhibitExcessComplexity
