@@ -52,12 +52,11 @@ BEGIN {
     eval {
         require JSON;
         JSON->import('encode_json');
-        *_decode_json = *JSON::decode_json;
+        *_decode_json = \&JSON::decode_json;
     } or do {
-        no warnings 'once';  ## no critic (Warnings) # FIXME
         require JSON::PP;
         JSON::PP->import('encode_json');
-        *_decode_json = *JSON::PP::decode_json;
+        *_decode_json = \&JSON::PP::decode_json;
     }
 }
 
