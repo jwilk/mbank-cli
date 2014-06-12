@@ -203,7 +203,8 @@ sub os_error
     my ($message) = @_;
     my $file = __FILE__;
     $message =~ s/ at \Q$file\E line \d+[.]\n+//;
-    if ((caller(1))[3] eq 'main::write_log') {
+    my $caller_name = (caller(1))[3] // '';
+    if ($caller_name eq 'main::write_log') {
         # avoid infinite recursion
     } else {
         write_log($message);
