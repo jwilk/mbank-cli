@@ -1092,7 +1092,12 @@ sub _do_history_account
             my ($var) = @_;
             my $min_date_nh = $min_date;
             $min_date_nh =~ s/-//g;
-            my $regexp = qr{\bDateValidator[(]theform[.]daterange_\Q$var\E_day, '\Q$min_date_nh\E', '(\d\d\d\d)(\d\d)(\d\d)', '', ''[)]};
+            my $regexp_template =
+                "DateValidator(theform.daterange_${var}_day, '$min_date_nh', '<YYYY><MM><DD>', '', '')";
+            # Replace <YYYYY> with (\d\d\d\d), <MM> with (\d\d), and so on;
+            # treat everything else literally:
+            my $regexp = "\\b\Q$regexp_template\E";
+            $regexp =~ s/\\<([YMD]+)\\>/'(' . ('\d' x length($1)) . ')'/eg;
             my @limit = ($doc->{content} =~ $regexp)
                 or return;
             return join('-', @limit);

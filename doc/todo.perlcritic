@@ -1,4 +1,4 @@
       1 CodeLayout::RequireTidyCode
       1 InputOutput::RequireBriefOpen
-      2 RegularExpressions::ProhibitComplexRegexes
+      1 RegularExpressions::ProhibitComplexRegexes
       1 Subroutines::ProhibitExcessComplexity
