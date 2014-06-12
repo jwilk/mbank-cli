@@ -42,4 +42,23 @@ Requirements
 
 - GnuPG (optionally, for password encryption)
 
+
+CA certificate
+--------------
+
+*mbank-cli* has to verify that the server certificate has been signed by a
+trusted CA (certificate authority). Unlike many other SSL/TLS clients, it
+doesn't trust all the CAs whose certificates are installed system-wide, but
+only **VeriSign Class 3 Public Primary Certification Authority**, which is
+know to be the root CA for mBank.
+
+*mbank-cli* tries to find the certificate in the system certificate directory;
+if that fails, it uses ``ca.crt`` from the same directory as the script
+itself.
+
+This procedure might not be adequate when the program is installed
+system-wide on some operating systems. Packagers/administrators might want
+to patch the ``get_default_ca_path()`` subroutine in such case.
+
+
 .. vim:ft=rst tw=76 ts=3 sw=3 et
