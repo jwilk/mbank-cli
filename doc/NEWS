@@ -41,11 +41,20 @@ mbank-cli (1.0) UNRELEASED; urgency=low
     Users should use “--from <date1> --to <date2>” instead.
     “now” is no longer accepted as a valid date.
 
-  * Output format for the “deposits” command have changed:
-    + The <status> column has been removed.
+  * Output format for the “future” command has been changed:
+    + more information in the <recipient> field;
+    + the <status> is now machine-readable.
 
-  * Output format for the “funds” command have changed:
-    + The optional <planned-amount> column has been added.
+  * Output format for the “blocked” command has been changed:
+    + new field: <type>.
+
+  * Output format for the “deposits” command has been changed:
+    + removed field: <status>;
+    + the <deposit-name> field is now split into <deposit-name> and
+      <deposit-type>.
+
+  * Output format for the “funds” command has changed:
+    + new field: <planned-amount> (optional).
 
   * The “rename” and “void” have been removed.
 
