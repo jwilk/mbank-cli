@@ -1153,7 +1153,14 @@ sub _do_history_account
             my $onclick = $e_prevpage->attr('onclick') // '';
             my $url = $doc->{response}->base;
             $url =~ s{\A.*?(?=/csite/)}{};
-            my ($parameters) = ($onclick =~ m{\AdoSubmit[(]'\Q$url\E','','POST','([^']*)',true,false,true,null[)];})
+            my $regexp_template =
+                "doSubmit('$url','','POST','<params>',true,false,true,null);";
+            # Replace <params> with ([^']*); treat everything else literally:
+            my $regexp = "\\A\Q$regexp_template\E";
+            $regexp =~ s/\\<params\\>/([^']*)/g;
+            $regexp !~ m/</
+                or internal_error("unexpected character in regexp: $regexp");
+            my ($parameters) = ($onclick =~ $regexp)
                 or scraping_error("history.prev.onclick: $onclick");
             @forms = HTML::Form->parse($doc->{response});
             ($form) = scraping_count(\@forms, 1, 'history.prev.form#');
