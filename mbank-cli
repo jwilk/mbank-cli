@@ -1390,8 +1390,9 @@ sub do_future
     my $transfer_info = $json->{transferInfos}
         // scraping_error('future.transfer');
     for my $transfer (@{$transfer_info}) {
-        my $number = $transfer->{accountNumber}
-            // scraping_error('future.transfer.account-number');
+        my $number = $transfer->{accountNumber} // '';
+        $number =~ m/\A$account_number_re\z/
+            or scraping_error('future.transfer.account-number');
         my $name = $selected_accounts{$number};
         defined($name) or next;
         if ($display_name) {
