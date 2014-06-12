@@ -899,8 +899,9 @@ sub do_list
         if ($subtitle ne '') {
             $name .= " - $subtitle";
         }
-        my $number = $account->{AccountNumber}
-            // scraping_error('list.account-number');
+        my $number = $account->{AccountNumber} // '';
+        $number =~ m/\A$account_number_re\z/
+            or scraping_error("list.account-number: $number");
         push(@result, {
             name => $name,
             number => $number,
