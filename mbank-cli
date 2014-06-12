@@ -216,6 +216,7 @@ sub os_error
 sub internal_error
 {
     my ($message, $level) = @_;
+    $level //= 0;
     $message = "Internal error: $message";
     write_log($message);
     local $Carp::CarpLevel = $level + 1;
