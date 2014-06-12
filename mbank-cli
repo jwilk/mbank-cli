@@ -971,7 +971,7 @@ sub _prepare_history
     my $frameset_url = "frames.aspx?module=$module";
     my $menu_url = $login_info->{menu}->{hosthistory} // '';
     $menu_url eq "/csite/$frameset_url"  # sanity check
-        or scraping_error('history.menu: ' . $menu_url);
+        or scraping_error("history.menu: $menu_url");
     my $request = GET(
         "$csite_url/$frameset_url",
         'Referer' => $login_info->{url},
