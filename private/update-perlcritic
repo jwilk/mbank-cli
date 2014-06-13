@@ -3,13 +3,19 @@ set -e -u
 here=$(basename "$0")
 cd "$here/.."
 target=doc/todo.perlcritic
-if perlcritic --verbose '%p\n' mbank-cli | sort | uniq -c > "${target}.new"
+if perlcritic --verbose '%p\n' mbank-cli > "${target}.tmp"
 then
     :
 else
     rc=$?
-    [ $rc -eq 2 ] || exit $rc
+    if [ $rc -ne 2 ]
+    then
+        rm -f "${target}.tmp"
+        exit $rc
+    fi
 fi
+sort "${target}.tmp" | uniq -c > "${target}.new"
+rm -f "${target}.tmp"
 diff -u "${target}" "${target}.new" || true
 mv "${target}.new" "${target}"
 
