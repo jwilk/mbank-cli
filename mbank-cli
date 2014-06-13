@@ -1826,7 +1826,7 @@ sub do_configure
     eval {
         File::Path::make_path($config_dir);
     } // os_error($EVAL_ERROR);
-    open(my $fh, '>', "$config_path.new")
+    open(my $fh, '>', "$config_path.new")  ## no critic (BriefOpen)
         or os_error("$config_path.new: $ERRNO");
     print {$fh} _make_config_line('CookieJar', $cookie_jar_path);
     print {$fh} _make_config_line('Country', uc($cc));
