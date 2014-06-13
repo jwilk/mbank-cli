@@ -1312,7 +1312,7 @@ sub _do_blocked_account
         id => 'witholdingsListHoldings_NoData',
     );
     if ($nothing_blocked) {
-        return;
+        return $doc;
     }
     my $e_blocked = $html->look_down(
         _tag => 'div',
@@ -1360,7 +1360,7 @@ sub _do_blocked_account
             print("@dates\t$amount\t$description\t$type\n");
         }
     }
-    return;
+    return $doc;
 }
 
 sub do_future
