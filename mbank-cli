@@ -1017,6 +1017,8 @@ sub do_history
             start_date => $start_date,
             end_date => $end_date,
         );
+        defined($doc)
+            or internal_error('missing document');
     }
     return;
 }
@@ -1286,6 +1288,8 @@ sub do_blocked
             name => $selected_accounts{$number},
             display_name => $display_name,
         );
+        defined($doc)
+            or internal_error('missing document');
     }
     return;
 }
