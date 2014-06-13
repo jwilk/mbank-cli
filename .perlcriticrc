@@ -4,6 +4,9 @@ verbose = 1
 [-CodeLayout::ProhibitParensWithBuiltins]
 # no, thanks
 
+[-CodeLayout::RequireTidyCode]
+# perltidy is too limited for our purposes
+
 [InputOutput::RequireCheckedSyscalls]
 functions = :builtins
 # print failures are caught at the END
