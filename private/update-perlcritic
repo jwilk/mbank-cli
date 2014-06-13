@@ -14,7 +14,9 @@ else
         exit $rc
     fi
 fi
-sort "${target}.tmp" | uniq -c > "${target}.new"
+sort "${target}.tmp" \
+| grep -v ' source OK$' \
+| uniq -c > "${target}.new"
 rm -f "${target}.tmp"
 diff -u "${target}" "${target}.new" || true
 mv "${target}.new" "${target}"
