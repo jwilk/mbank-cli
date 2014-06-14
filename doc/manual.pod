@@ -496,4 +496,14 @@ Please report bugs at the L<issue tracker|https://code.google.com/p/mbank-cli/is
 
 =head1 SEE ALSO
 
+=over 2
+
+=item *
+
 L<gpg(1)>
+
+=item *
+
+L<XDG Base Directory Specification|http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>
+
+=back
