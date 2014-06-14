@@ -51,7 +51,7 @@ close($fh) or die $ERRNO;
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", '-c', "$tmpdir/mbank-cli.conf", 'debug-https-get'],
+    ["$home/../mbank-cli", '--config', "$tmpdir/mbank-cli.conf", 'debug-https-get'],
     '>', \$stdout,
     '2>', \$stderr,
 );
