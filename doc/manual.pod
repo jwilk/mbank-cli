@@ -88,13 +88,13 @@ The default is to use
 B<I<$>I<XDG_CONFIG_HOME>/mbank-cli/config>
 (or B<I<$>I<HOME>/.config/mbank-cli/config>).
 
-Consult the B<FILES> section for the configuration file syntax.
+Please consult the B<FILES> section for the configuration file syntax.
 
 =item B<--cookie-jar> I<cookie-jar-file>
 
 Use I<cookie-jar-file> as the session cookie store.
 
-Consult the B<FILES> section for details.
+Please consult the B<FILES> section for details.
 
 =item B<--help>
 
@@ -404,7 +404,7 @@ Failure because of an internal error.
 
 The variable defines the base directory relative to which user specific configuration files should be stored.
 If it is not set to an absolute path, B<I<$>I<HOME>/.config> is used instead.
-Consult the XDG Base Directory Specification for details.
+Please consult the XDG Base Directory Specification for details.
 
 This variable is used to determine default location of the configuration file.
 
