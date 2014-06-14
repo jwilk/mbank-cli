@@ -90,6 +90,12 @@ B<I<$>I<XDG_CONFIG_HOME>/mbank-cli/config>
 
 Consult the B<FILES> sections for the configuration file syntax.
 
+=item B<--cookie-jar> I<cookie-jar-file>
+
+Use I<cookie-jar-file> as the session cookie storage file.
+
+Consult the B<FILES> section for details.
+
 =back
 
 =head2 Selecting accounts

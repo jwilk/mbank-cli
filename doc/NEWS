@@ -22,9 +22,8 @@ mbank-cli (1.0) UNRELEASED; urgency=low
     + The encrypted parts are now required to be ASCII-armored (--armor).
     + Comments (lines starting with the “#” character) are now allowed.
 
-  * The --cookie-jar option has been removed.
-    Users must set path to session cookie storage file in the configuration
-    file instead.
+  * The location of the session cookie storage file must now be set in the
+    configuration file, or on the command line.
 
   * The feature of automatic re-logging when the configuration file changes
     has been removed. Users must now use different session cookie storage

@@ -1796,11 +1796,11 @@ sub _configure_password
 
 sub _configure_cookie_jar
 {
-    my ($term, $login) = @_;
+    my ($term, $login, $default_cookie_jar_path) = @_;
     (my $sanitized_login = $login) =~ s/\W/_/g;
     my $xdg_data_home = xdg_data_home();
     my $cookie_home = unexpand_tilde($xdg_data_home) . '/mbank-cli';
-    my $default_cookie_jar_path =  "$cookie_home/$sanitized_login.cookies";
+    $default_cookie_jar_path //= "$cookie_home/$sanitized_login.cookies";
     my $cookie_jar_path = '';
     until (length($cookie_jar_path) > 1) {  ## no critic (Until)
         $cookie_jar_path = $term->readline('Session cookie storage file: ', $default_cookie_jar_path);
@@ -1815,6 +1815,7 @@ sub do_configure
 {
     my %options = @_;
     my $config_path = delete($options{config_path});
+    my $cookie_jar_path = delete($options{cookie_jar_path});
     check_for_unexpected_options(%options);
     eval {
         require Term::ReadLine;
@@ -1825,7 +1826,7 @@ sub do_configure
     my $cc = _configure_country($term);
     my $login = _configure_login($term);
     my ($password, $encrypted_password) = _configure_password($term);
-    my $cookie_jar_path = _configure_cookie_jar($term, $login);
+    $cookie_jar_path = _configure_cookie_jar($term, $login, $cookie_jar_path);
     my $config_dir = dirname($config_path);
     eval {
         File::Path::make_path($config_dir);
@@ -1913,6 +1914,7 @@ umask(
 
 my $xdg_config_home = xdg_config_home();
 my $opt_config = "$xdg_config_home/mbank-cli/config";
+my $opt_cookie_jar = undef;
 my $opt_start_date = undef;
 my $opt_end_date = undef;
 my $opt_all = 0;
@@ -1938,6 +1940,7 @@ Common options:
   --verbose
   --debug <debug-directory>
   --config <config-file>
+  --cookie-jar <cookie-jar-file>
 EOF
     exit();
 }
@@ -1961,9 +1964,14 @@ sub initialize
         );
     }
     $cfg = read_config($opt_config);
-    my $cookie_jar_path = get_config_var($cfg, 'cookiejar')  # TODO: bring back the --cookie-jar option
-        // config_error($cfg, 'missing cookiejar');
-    $cookie_jar_path = expand_tilde($cookie_jar_path);
+    my $cookie_jar_path;
+    if (defined($opt_cookie_jar)) {
+        $cookie_jar_path = $opt_cookie_jar;
+    } else {
+        $cookie_jar_path = get_config_var($cfg, 'cookiejar')
+            // config_error($cfg, 'missing cookiejar');
+        $cookie_jar_path = expand_tilde($cookie_jar_path);
+    }
     debug("cookiejar = $cookie_jar_path");
     my $ca_path = get_config_var($cfg, 'cafile', \undef);
     if (defined($ca_path)) {
@@ -2036,6 +2044,7 @@ sub initialize
         'verbose' => \$opt_verbose,
         'debug=s' => \$opt_debug_dir,
         'config=s' => \$opt_config,
+        'cookie-jar=s' => \$opt_cookie_jar,
         'from=s' => sub {
             my ($option, $date) = @_;
             $opt_start_date = check_user_date($option, $date);
@@ -2091,7 +2100,10 @@ if ($command_name =~ m/^debug-/) {
 if ($command_info->{config} // 1) {
     initialize();
 } else {
-    push(@cmd_options, config_path => $opt_config);
+    push(@cmd_options,
+        config_path => $opt_config,
+        cookie_jar_path => $opt_cookie_jar,
+    );
 }
 if ($command_info->{todo} ) {
     user_error("$command_name: command not implemented");
