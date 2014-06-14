@@ -1928,7 +1928,7 @@ my $cfg;
 
 sub show_help
 {
-    print {*STDERR} <<'EOF' ;
+    print <<'EOF' ;
 Usage:
   mbank-cli [list]
   mbank-cli history [--from <start-date> [--to <end-date>]] {<account> | -M <account>... | -A}

@@ -62,6 +62,9 @@ mbank-cli (1.0) UNRELEASED; urgency=low
     + 4 for system-related errors and I/O errors;
     + 255 for internal errors.
 
+  * The “--help” command-line option has been changed to print to stdout,
+    instead of stderr.
+
   * New command-line option: “--version”.
 
   New required Perl modules:
