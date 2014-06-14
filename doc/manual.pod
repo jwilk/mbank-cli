@@ -88,7 +88,7 @@ The default is to use
 B<I<$>I<XDG_CONFIG_HOME>/mbank-cli/config>
 (or B<I<$>I<HOME>/.config/mbank-cli/config>).
 
-Consult the B<FILES> sections for the configuration file syntax.
+Consult the B<FILES> section for the configuration file syntax.
 
 =item B<--cookie-jar> I<cookie-jar-file>
 
