@@ -1848,7 +1848,7 @@ sub do_configure
     close($fh)
         or os_error("$config_path.new: $ERRNO");
     if (rename($config_path, "$config_path.bak")) {
-        print {*STDERR} "Backup copy: $config_path.bak\n";
+        print("Backup copy: $config_path.bak\n");
     } elsif ($ERRNO{ENOENT}) {
         # okay
     } else {
@@ -1856,7 +1856,7 @@ sub do_configure
     };
     rename("$config_path.new", $config_path)
         or os_error("$config_path: $ERRNO");
-    print {*STDERR} (
+    print(
         'Created configuration file: ',
         unexpand_tilde($config_path),
         "\n"
