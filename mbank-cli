@@ -1846,7 +1846,7 @@ sub do_configure
         print {$fh} _make_config_line('Password', $password);
     }
     close($fh)
-        or system_error("$config_path.new: $ERRNO");
+        or os_error("$config_path.new: $ERRNO");
     if (rename($config_path, "$config_path.bak")) {
         print {*STDERR} "Backup copy: $config_path.bak\n";
     } elsif ($ERRNO{ENOENT}) {
@@ -1855,7 +1855,7 @@ sub do_configure
         os_error("$config_path: $ERRNO");
     };
     rename("$config_path.new", $config_path)
-        or system_error("$config_path: $ERRNO");
+        or os_error("$config_path: $ERRNO");
     print {*STDERR} (
         'Created configuration file: ',
         unexpand_tilde($config_path),
