@@ -50,7 +50,7 @@ It is highly recommended that users of affected versions of OpenSSL:
 -------------------------------------
 
 mbank-cli did not ensure that files (including some of security-sensitive
-nature, e.g. the session cookie storage file) are created with secure
+nature, e.g. the session cookie store) are created with secure
 permissions.
 
 It is highly recommended that users:

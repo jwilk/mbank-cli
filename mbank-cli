@@ -1803,7 +1803,10 @@ sub _configure_cookie_jar
     $default_cookie_jar_path //= "$cookie_home/$sanitized_login.cookies";
     my $cookie_jar_path = '';
     until (length($cookie_jar_path) > 1) {  ## no critic (Until)
-        $cookie_jar_path = $term->readline('Session cookie storage file: ', $default_cookie_jar_path);
+        $cookie_jar_path = $term->readline(
+            'Session cookie store: ',
+            $default_cookie_jar_path
+        );
         $cookie_jar_path //= '';
     }
     # TODO: create the cookie jar directory if it doesn't exist

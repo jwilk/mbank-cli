@@ -22,12 +22,12 @@ mbank-cli (1.0) UNRELEASED; urgency=low
     + The encrypted parts are now required to be ASCII-armored (--armor).
     + Comments (lines starting with the “#” character) are now allowed.
 
-  * The location of the session cookie storage file must now be set in the
+  * The location of the session cookie store must now be set in the
     configuration file, or on the command line.
 
   * The feature of automatic re-logging when the configuration file changes
-    has been removed. Users must now use different session cookie storage
-    files for different mBank users.
+    has been removed. Users must now use different session cookie stores
+    for different mBank users.
 
   * Slovak and Czech mBank interfaces are now supported.
     Users must set their country in the configuration file.
