@@ -45,6 +45,7 @@ use File::Basename qw(dirname);
 use File::Path ();
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use POSIX ();
+use Symbol ();
 use Text::ParseWords ();
 
 # JSON:
@@ -58,6 +59,27 @@ BEGIN {
         JSON::PP->import('encode_json');
         *_decode_json = \&JSON::PP::decode_json;
     }
+}
+
+# Work-around for HTTP::Cookies not catching write errors:
+# https://bugs.debian.org/750850
+BEGIN {
+    *CORE::GLOBAL::close = sub(;*) {
+        my ($fh) = @_;
+        if (not defined($fh)) {
+            return CORE::close();
+        }
+        $fh = Symbol::qualify_to_ref($fh, caller);
+        my ($module) = caller;
+        if (($module eq 'HTTP::Cookies') and not defined(wantarray)) {
+            return (
+                CORE::close($fh)
+                or die $ERRNO  ## no critic (Carping)
+            );
+        } else {
+            return CORE::close($fh);
+        }
+    };
 }
 
 # 3rd-party modules:
@@ -2163,8 +2185,6 @@ if (defined($ua)) {
     eval {
         $ua->cookie_jar->save();
     } // os_error("$cookie_jar_path: $ERRNO");
-    # FIXME: HTTP::Cookies ignores write errors
-    # https://bugs.debian.org/750850
 }
 
 END {
