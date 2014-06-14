@@ -31,6 +31,7 @@ mbank-cli (1.0) UNRELEASED; urgency=low
 
   * Slovak and Czech mBank interfaces are now supported.
     Users must set their country in the configuration file.
+    https://code.google.com/p/mbank-cli/issues/detail?id=22
 
   * The “configure” command has been added.
 
@@ -84,7 +85,7 @@ mbank-cli (1.0) UNRELEASED; urgency=low
     code than it was documented in some pathological circumstances.
     This bug should be now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 10 Jun 2014 12:46:27 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 14 Jun 2014 19:18:44 +0200
 
 mbank-cli (20140505) unstable; urgency=low
 
