@@ -53,7 +53,7 @@ print {$fh} $config;
 close($fh) or die $ERRNO;
 
 my ($stdout, $stderr);
-my $url = "https://www.howsmyssl.com/a/check";
+my $url = 'https://www.howsmyssl.com/a/check';
 my $cli = IPC::Run::start(
     ["$home/../mbank-cli", '--config', "$tmpdir/mbank-cli.conf", 'debug-https-get', $url],
     '>', \$stdout,

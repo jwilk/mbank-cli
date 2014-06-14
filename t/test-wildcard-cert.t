@@ -55,7 +55,7 @@ close($fh) or die $ERRNO;
 
 
 my ($stdout, $stderr);
-my $url = "https://en.wikipedia.org/";
+my $url = 'https://en.wikipedia.org/';
 my $cli = IPC::Run::start(
     ["$home/../mbank-cli", '--config', "$tmpdir/mbank-cli.conf", 'debug-https-get', $url],
     '>', \$stdout,
