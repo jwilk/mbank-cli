@@ -65,10 +65,10 @@ BEGIN {
 # https://bugs.debian.org/750850
 BEGIN {
     *CORE::GLOBAL::close = sub(;*) {
-        my ($fh) = @_;
-        if (not defined($fh)) {
+        if (not @_) {
             return CORE::close();
         }
+        my ($fh) = @_;
         $fh = Symbol::qualify_to_ref($fh, caller);
         my ($module) = caller;
         if (($module eq 'HTTP::Cookies') and not defined(wantarray)) {
