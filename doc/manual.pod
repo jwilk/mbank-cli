@@ -96,6 +96,10 @@ Use I<cookie-jar-file> as the session cookie store.
 
 Consult the B<FILES> section for details.
 
+=item B<--help>
+
+Display help and exit.
+
 =back
 
 =head2 Selecting accounts

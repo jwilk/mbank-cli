@@ -1944,6 +1944,7 @@ Common options:
   --debug <debug-directory>
   --config <config-file>
   --cookie-jar <cookie-jar-file>
+  --help
 EOF
     exit();
 }
