@@ -1809,8 +1809,6 @@ sub _configure_cookie_jar
         );
         $cookie_jar_path //= '';
     }
-    # TODO: create the cookie jar directory if it doesn't exist
-    # save the file:
     return $cookie_jar_path;
 }
 
@@ -1830,6 +1828,13 @@ sub do_configure
     my $login = _configure_login($term);
     my ($password, $encrypted_password) = _configure_password($term);
     $cookie_jar_path = _configure_cookie_jar($term, $login, $cookie_jar_path);
+    my $cookie_dir = dirname($cookie_jar_path);
+    if (not -d $cookie_dir) {
+        eval {
+            File::Path::make_path($cookie_dir);
+        } // os_error($EVAL_ERROR);
+        print("Created directory for session cookie store: $cookie_dir\n");
+    }
     my $config_dir = dirname($config_path);
     eval {
         File::Path::make_path($config_dir);
