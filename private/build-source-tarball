@@ -15,10 +15,7 @@ export GZIP='-9 -n'
 mkdir -p "$sourceroot/$name-$version"
 hg archive -r "$revision" "$sourceroot/$name-$version"
 cd "$sourceroot"
-(
-  cd $name-*/doc
-  make
-)
+make -C $name-*/doc
 rm -rf $name-*/private/
 rm -rf */.hg*
 tar -czf "$pwd/$name-$version.tar.gz" */
