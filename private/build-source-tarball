@@ -1,8 +1,8 @@
 #!/bin/sh
 if [ $# -ge 2 ]
 then
-  printf '%s [revision]\n' "$0" >&2
-  exit 1
+    printf '%s [revision]\n' "$0" >&2
+    exit 1
 fi
 set -e -x
 pwd="$PWD"
@@ -21,3 +21,5 @@ rm -rf $name-*/private/
 rm -rf */.hg*
 tar -czf "$pwd/$name-$version.tar.gz" */
 rm -rf "$sourceroot"
+
+# vim:ts=4 sw=4 et
