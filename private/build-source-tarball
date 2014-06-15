@@ -22,6 +22,7 @@ make -C $name-*/doc
 make -C $name-*/legacy/doc
 rm -rf $name-*/private/
 rm -rf */.hg*
+find $name-*/ -empty -delete
 tar -czf "$pwd/$name-$version.tar.gz" */
 rm -rf "$sourceroot"
 
