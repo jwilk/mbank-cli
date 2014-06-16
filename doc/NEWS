@@ -1,3 +1,9 @@
+mbank-cli (1.0.1) UNRELEASED; urgency=low
+
+  * 
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 16 Jun 2014 12:23:42 +0200
+
 mbank-cli (1.0) unstable; urgency=low
 
   This version of mbank-cli has been rewritten (almost) from scratch.
