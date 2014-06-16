@@ -2184,6 +2184,7 @@ if (defined($ua)) {
     my $cookie_jar_path = $ua->cookie_jar->{file};
     eval {
         $ua->cookie_jar->save();
+        1;
     } // os_error("$cookie_jar_path: $ERRNO");
 }
 
