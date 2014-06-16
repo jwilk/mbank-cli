@@ -115,6 +115,12 @@ mbank-cli (20140505) unstable; urgency=low
 
  -- Jakub Wilk <jwilk@jwilk.net>  Mon, 05 May 2014 18:36:43 +0200
 
+mbank-cli (20140112) unstable; urgency=low
+
+  Account names are now compared in a case-insensitive manner.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Sun, 12 Jan 2014 18:15:30 +0100
+
 mbank-cli (20131014) unstable; urgency=low
 
   [ Jakub Wilk ]
