@@ -1,4 +1,4 @@
-mbank-cli (1.0) UNRELEASED; urgency=low
+mbank-cli (1.0) unstable; urgency=low
 
   This version of mbank-cli has been rewritten (almost) from scratch.
   It uses https://online.mbank.pl/ (or https://online.mbank.cz/, or
@@ -92,7 +92,7 @@ mbank-cli (1.0) UNRELEASED; urgency=low
 
   * The “--help” option is now documented.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 14 Jun 2014 20:28:48 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 16 Jun 2014 12:23:05 +0200
 
 mbank-cli (20140505) unstable; urgency=low
 
