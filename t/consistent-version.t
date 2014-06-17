@@ -34,7 +34,7 @@ use Test::More tests => 5;
 
 my $home = abs_path(dirname(__FILE__));
 
-my $cli_version_re = qr/\Ambank-cli (\S+)\n\z/;
+my $cli_version_re = qr/\Ambank-cli (\S+)\n/;
 my $news_version_re = qr/\Ambank-cli [(](\S+)[)] \S+; urgency=\S+\n\z/;
 
 my ($stdout, $stderr);

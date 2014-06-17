@@ -93,6 +93,7 @@ use HTTP::Message 5.802;
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL 1.31;
 use LWP::UserAgent ();
+use LWP::Protocol::https ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay ();
 
@@ -1981,6 +1982,11 @@ EOF
 sub show_version
 {
     print "mbank-cli $VERSION\n";
+    for my $module (qw(LWP::UserAgent LWP::Protocol::https IO::Socket::SSL Net::SSLeay)) {
+        my $version = eval("\$${module}::VERSION")  ## no critic (StringyEval)
+            // internal_error("cannot determine version for $module");
+        print("+ $module $version\n");
+    }
     exit();
 }
 
