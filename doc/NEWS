@@ -5,7 +5,11 @@ mbank-cli (1.0.1) UNRELEASED; urgency=low
 
   * The HTML form parsing is now stricter.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Thu, 19 Jun 2014 22:06:13 +0200
+  * mbank-cli 1.0, unlike the previous versions, didn't save cookies if the
+    program failed (e.g., because of an HTTP error).
+    This was undesirable, and it is now fixed.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Thu, 19 Jun 2014 22:27:24 +0200
 
 mbank-cli (1.0) unstable; urgency=low
 

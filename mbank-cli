@@ -2204,12 +2204,15 @@ if ($command_info->{dates}) {
 }
 $command->(@cmd_options);
 
-if (defined($ua)) {
-    my $cookie_jar_path = $ua->cookie_jar->{file};
-    eval {
-        $ua->cookie_jar->save();
-        1;
-    } // os_error("$cookie_jar_path: $ERRNO");
+END {
+    # save cookies:
+    if (defined($ua)) {
+        my $cookie_jar_path = $ua->cookie_jar->{file};
+        eval {
+            $ua->cookie_jar->save();
+            1;
+        } // os_error("$cookie_jar_path: $ERRNO");
+    }
 }
 
 END {
