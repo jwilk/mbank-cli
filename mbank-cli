@@ -974,7 +974,13 @@ sub _clean_history_form
         }
     }
     if (defined($parameters)) {
-        $form->value('__PARAMETERS', $parameters);
+        my $input = $form->find_input('__PARAMETERS')
+            // scraping_error('history.form.params');
+        $input->readonly
+            or scraping_error('history.form.params.ro');
+        $input->readonly(0);
+        $input->value($parameters);
+        $input->readonly(1);
     }
     return;
 }
@@ -1076,7 +1082,10 @@ sub _switch_history_account
     defined($parameters)
         or scraping_error("history.account.phantom: $number");
     if (length($parameters) > 0) {
-        my @forms = HTML::Form->parse($doc->{response});
+        my @forms = HTML::Form->parse(
+            $doc->{response},
+            strict => 1,
+        );
         my ($form) = scraping_count(\@forms, 1, 'history.form#');
         _clean_history_form($form, params => $parameters);
         $doc = download($form->click());
@@ -1102,7 +1111,10 @@ sub _do_history_account
         document => $doc,
         number => $number,
     );
-    my @forms = HTML::Form->parse($doc->{response});
+    my @forms = HTML::Form->parse(
+        $doc->{response},
+        strict => 1,
+    );
     my ($form) = scraping_count(\@forms, 1, 'history.form#');
     if (defined($start_date) or defined($end_date)) {
         my $min_date = '1901-01-01';
@@ -1180,7 +1192,10 @@ sub _do_history_account
                 or internal_error("unexpected character in regexp: $regexp");
             my ($parameters) = ($onclick =~ $regexp)
                 or scraping_error("history.prev.onclick: $onclick");
-            @forms = HTML::Form->parse($doc->{response});
+            @forms = HTML::Form->parse(
+                $doc->{response},
+                strict => 1,
+            );
             ($form) = scraping_count(\@forms, 1, 'history.prev.form#');
             _clean_history_form($form, params => $parameters);
             $doc = download($form->click());
@@ -1276,7 +1291,10 @@ sub _prepare_blocked
         onclick => qr/\A\QdoSubmit('$url','','POST','',false,true,false,null);\E/,
     )
         or scraping_error('blocked.module');
-    my @forms = HTML::Form->parse($doc->{response});
+    my @forms = HTML::Form->parse(
+        $doc->{response},
+        strict => 1,
+    );
     my ($form) = scraping_count(\@forms, 1, 'blocked.form#');
     _clean_history_form($form,
         params => '',
