@@ -1,4 +1,4 @@
-mbank-cli (1.0.1) UNRELEASED; urgency=low
+mbank-cli (1.1) UNRELEASED; urgency=low
 
   New features:
 
@@ -15,7 +15,7 @@ mbank-cli (1.0.1) UNRELEASED; urgency=low
     program failed (e.g., because of an HTTP error).
     This was undesirable, and it is now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 20 Jun 2014 21:56:27 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Fri, 20 Jun 2014 22:05:37 +0200
 
 mbank-cli (1.0) unstable; urgency=low
 
