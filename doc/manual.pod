@@ -12,7 +12,7 @@ mbank-cli - command-line interface to the on-line banking system of mBank
 B<mbank-cli> [B<list>] [I<option>...]
 
 =item *
-B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] {I<account> | B<-M> I<account>...  | B<-A>}
+B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
 
 =item *
 B<mbank-cli> B<future> [I<option>...] {I<account> | B<-M> I<account>...  | B<-A>}
@@ -199,6 +199,28 @@ Examples:
 
     $ mbank-cli history eKonto --from 2005-01-01 --to 2005-12-31
     [ history from 2006-06-01 to 2005-12-31 ]
+
+As an alternative to the tabular format,
+it is possible to export history as CSV, HTML or PDF:
+
+=over 4
+
+=item B<--export CSV>
+
+=item B<--export HTML>
+
+=item B<--export PDF>
+
+=back
+
+When the B<--export> option is in effect,
+exactly one account must be selected.
+Also, the standard output must not be a terminal,
+but it should be redirected to a file.
+
+Example:
+
+    $ mbank-cli history eKonto --from 2013-01-01 --to 2013-12-31 --export PDF eKonto > history-2013.pdf
 
 =head2 The “future” command
 

@@ -1,5 +1,11 @@
 mbank-cli (1.0.1) UNRELEASED; urgency=low
 
+  New features:
+
+  * It is now possible to export history as CSV, HTML or PDF.
+
+  Bug fixes and other improvements:
+
   * The --help option now also prints versions of some Perl modules
     (LWP::UserAgent, LWP::Protocol::https, IO::Socket::SSL Net::SSLeay).
 
@@ -9,7 +15,7 @@ mbank-cli (1.0.1) UNRELEASED; urgency=low
     program failed (e.g., because of an HTTP error).
     This was undesirable, and it is now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Thu, 19 Jun 2014 22:27:24 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Fri, 20 Jun 2014 21:56:27 +0200
 
 mbank-cli (1.0) unstable; urgency=low
 

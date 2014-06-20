@@ -1031,12 +1031,18 @@ sub do_history
         // internal_error('missing display_name');
     my $start_date = delete($options{start_date});
     my $end_date = delete($options{end_date});
+    my $export = delete($options{export});
     check_for_unexpected_options(%options);
     my $doc = _prepare_history($login_info);
     my %selected_accounts = select_accounts($account_info, @selection)
         or user_error('history: no matching accounts');
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
+    if (defined($export)) {
+        if (scalar(keys(%selected_accounts)) != 1) {
+            user_error('history: exactly one account required for --export');
+        }
+    }
     for my $number (sort keys %selected_accounts) {
         $doc = _do_history_account(
             document => $doc,
@@ -1045,6 +1051,7 @@ sub do_history
             display_name => $display_name,
             start_date => $start_date,
             end_date => $end_date,
+            export => $export,
         );
         defined($doc)
             or internal_error('missing document');
@@ -1104,6 +1111,7 @@ sub _do_history_account
         // internal_error('missing account number');
     my $start_date = delete($options{start_date});
     my $end_date = delete($options{end_date});
+    my $export = delete($options{export});
     my $display_name = delete($options{display_name})
         // internal_error('missing display_name');
     check_for_unexpected_options(%options);
@@ -1166,10 +1174,39 @@ sub _do_history_account
             or user_error('--to date before --from date');
         $set_date->('to', $end_date);
     }
+    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $e_submit = $html->look_down(
+        _tag => 'button',
+        id => 'Submit'
+    ) // scraping_error('history.submit');
+    my $onclick = $e_submit->attr('onclick') // '';
+    my $default_module = 'account_oper_list';
+    my $export_module = 'printout_oper_list';
+    $onclick eq "return OperationHistoryExport(export_oper_history_check, '/csite/$export_module.aspx', '/csite/$default_module.aspx')"
+        or scraping_error("history.submit.onclick: $onclick");
+    my $i_export = $form->find_input('export_oper_history_check')
+        // scraping_error('history.form.export');
+    if (defined($export)) {
+        $i_export->check();
+        my $i_export_format = $form->find_input('export_oper_history_format')
+            // scraping_error('history.form.export-format');
+        $i_export_format->value($export);
+        $form->action("$csite_url/$export_module.aspx");
+    } else {
+        $i_export->value(undef);
+        $form->action("$csite_url/$default_module.aspx");
+    }
     _clean_history_form($form);
+    if (defined($export)) {
+        my $response = simple_download($form->click());
+        # FIXME: The whole file is loaded into memory.
+        # Istead, we should read and write it in chunks.
+        print {*STDOUT} $response->content;
+        return 1;
+    }
     $doc = download($form->click());
     PAGE: while (1) {
-        my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+        $html = HTML::TreeBuilder->new_from_content($doc->{content});
         _do_history_page(
             html => $html,
             name => $name,
@@ -1180,7 +1217,7 @@ sub _do_history_account
             id => 'PrevPage',
         );
         if (defined($e_prevpage)) {
-            my $onclick = $e_prevpage->attr('onclick') // '';
+            $onclick = $e_prevpage->attr('onclick') // '';
             my $url = $doc->{response}->base;
             $url =~ s{\A.*?(?=/csite/)}{};
             my $regexp_template =
@@ -1970,6 +2007,7 @@ my $opt_start_date = undef;
 my $opt_end_date = undef;
 my $opt_all = 0;
 my $opt_multi = 0;
+my $opt_export = undef;
 my $cfg;
 
 sub show_help
@@ -1977,7 +2015,7 @@ sub show_help
     print <<'EOF' ;
 Usage:
   mbank-cli [list]
-  mbank-cli history [--from <start-date> [--to <end-date>]] {<account> | -M <account>... | -A}
+  mbank-cli history [--from <start-date> [--to <end-date>]] [--export <format>] {<account> | -M <account>... | -A}
   mbank-cli future {<account> | -M <account>... | -A}
   mbank-cli blocked {<account> | -M <account>... | -A}
   mbank-cli deposits
@@ -2016,6 +2054,18 @@ sub check_user_date
     str2time($date)
         // user_error("invalid --$option date: $date");
     return $date;
+}
+
+sub check_export_format
+{
+    my ($option, $format) = @_;
+    $format = uc($format);
+    my @valid_formats = qw(CSV HTML PDF);
+    if (not grep { $format eq $_ } @valid_formats) {  ## no critic (BooleanGrep)
+        local $LIST_SEPARATOR = ', ';
+        user_error("--$option format not in {@valid_formats}")
+    }
+    return $format;
 }
 
 sub initialize
@@ -2116,11 +2166,19 @@ sub initialize
             my ($option, $date) = @_;
             $opt_end_date = check_user_date($option, $date);
         },
+        'export=s' => sub {
+            my ($option, $format) = @_;
+            $opt_export = check_export_format($option, $format);
+        },
         'M|multiple-accounts' => \$opt_multi,
         'A|all-accounts' => \$opt_all,
         'h|help' => \&show_help,
         'version' => \&show_version,
     ) or user_error();
+}
+
+if (defined($opt_export) and -t STDOUT) {  ## no critic (InteractiveTest)
+    user_error('export data cannot be written to a terminal; please redirect stdout to a file');
 }
 
 my ($command_name, @args) = @ARGV;
@@ -2131,7 +2189,7 @@ my %commands = (
     'debug-noop' => {},
     'debug-https-get' => {},
     'list' => {},
-    'history' => { accounts => 1, dates => 1 },
+    'history' => { accounts => 1, dates => 1, export => 1 },
     'future' => { accounts => 1 },
     'blocked' => { accounts => 1 },
     'deposits' => {},
@@ -2201,6 +2259,9 @@ if ($command_info->{dates}) {
         start_date => $opt_start_date,
         end_date => $opt_end_date,
     );
+}
+if ($command_info->{export}) {
+    push(@cmd_options, export => $opt_export);
 }
 $command->(@cmd_options);
 
