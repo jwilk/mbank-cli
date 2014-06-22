@@ -169,7 +169,11 @@ sub http_error
         $extra =~ s/\n+$//;
         $extra =~ s/\n+/\n/g;
         if ($extra !~ /[(]/ and $IO::Socket::SSL::SSL_ERROR) {
+            # If IO::Socket::IP is installed, LWP produces unhelpful error
+            # messages for certificate verification failures:
             # https://bugs.debian.org/746686
+            # As a work-around, append $IO::Socket::SSL::SSL_ERROR to the error
+            # message.
             $extra .= "\n$IO::Socket::SSL::SSL_ERROR";
         }
         $extra =~ s/\n+$//;
@@ -271,7 +275,7 @@ eval {
     require Encode::Locale;
     $_locale_encoding = 'locale';
 } or do {
-    # Encode::Locale is a dependency of LWP ≥ 6.0,
+    # Encode::Locale is a dependency of LWP (>= 6.0),
     # but it might be unavailable on older systems.
     require I18N::Langinfo;
     I18N::Langinfo->import(qw(langinfo CODESET));
@@ -385,27 +389,38 @@ sub http_init
         // internal_error('missing ca');
     check_for_unexpected_options(%options);
     if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
-        # should not happen, but better safe than sorry
+        # This should not happen, but better safe than sorry.
+        # We absolutely do not want Net::SSL (from the Crypt-SSLeay
+        # distribution) as the SSL/TLS backend.
         internal_error("\$Net::HTTPS::SSL_SOCKET_CLASS == $Net::HTTPS::SSL_SOCKET_CLASS")
     };
     for my $key (grep { m/^HTTPS_/ } keys(%ENV)) {
+        # HTTPS_CA_DIR and HTTPS_CA_FILE environment variables may disable or
+        # cripple certificate validation:
         # https://bugs.debian.org/746579
         delete $ENV{$key};
     }
     my @ssl_options = (
         SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
         SSL_ca_file => $ca_path,
-        SSL_ca_path => undef,  # https://bugs.debian.org/750642
+        SSL_ca_path => undef,
+            # If SSL_ca_path is not set explicitly to undef,
+            # IO::Socket::SSL::set_args_filter_hack('use_defaults') fails to
+            # correctly restore SSL_ca_* settings:
+            # https://bugs.debian.org/750642#
         SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_PEER,
         SSL_verifycn_scheme => {
             check_cn => 0,
             wildcards_in_alt => 0,
             wildcards_in_cn => 0,
             ip_in_cn => 0,
-            # FIXME: LWP::protocol::https (>= 6.0) stomps on SSL_verifycn_scheme
-            # https://bugs.debian.org/747225
         },
     );
+    # The most straight-forward way to set SSL options is to use
+    # LWP::UserAgent::ssl_opts. But this is only supported by LWP (>= 6.0).
+    # Use IO::Socket::SSL::set_ctx_defaults() instead.
+    # [set_ctx_defaults() is a deprected alias for set_defaults().
+    # The latter function is not available in IO::Socket::SSL (<< 1.81).]
     IO::Socket::SSL::set_ctx_defaults(@ssl_options);
     my @cookie_jar_options = (
         ignore_discard => 1,
@@ -428,7 +443,11 @@ sub http_init
         keep_alive => 1,
     );
     if ($IO::Socket::SSL::VERSION >= 1.969) {
+        # LWP::protocol::https (>= 6.0) stomps on SSL_verifycn_scheme, and
+        # possibly also other settings: https://bugs.debian.org/747225
         IO::Socket::SSL::set_args_filter_hack('use_defaults');
+        # TODO: Work around the bug also for earlier versions of
+        # IO::Socket::SSL, which don't support set_args_filter_hack().
     } elsif ($LWP::UserAgent::VERSION >= 6) {
         $ua->ssl_opts(
             @ssl_options,
