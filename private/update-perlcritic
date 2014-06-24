@@ -3,17 +3,23 @@ set -e -u
 here=$(basename "$0")
 cd "$here/.."
 target=doc/todo.perlcritic
-if perlcritic --verbose '%p\n' mbank-cli > "${target}.tmp"
-then
-    :
-else
+
+run_perlcritic()
+{
+    perlcritic --verbose '%p\n' "$@" >> "${target}.tmp" && return
     rc=$?
     if [ $rc -ne 2 ]
     then
         rm -f "${target}.tmp"
         exit $rc
     fi
-fi
+}
+
+: > "$target.tmp"
+run_perlcritic mbank-cli
+run_perlcritic \
+    --exclude '::(RequireCarping|ProhibitAutomaticExportation|RequireVersionVar)' \
+    t/*.t t/*.pm
 sort "${target}.tmp" \
 | grep -v ' source OK$' \
 | uniq -c > "${target}.new"
