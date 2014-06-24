@@ -27,62 +27,37 @@ use v5.10;
 
 use Test::More tests => 3;
 
-use Cwd qw(abs_path);
-use English qw(-no_match_vars);
-use File::Basename qw(dirname);
-use File::Temp qw(tempdir);
 use IPC::Run qw();
 
-sub check_ld
-{
-    my ($stdout, $stderr);
-    my $cli = IPC::Run::start(
-        ['true'],
-        '>', \$stdout,
-        '2>', \$stderr,
-    );
-    $cli->finish();
-    $cli->result == 0
-        or die;
-    $stdout eq ''
-        or die;
-    $stderr eq ''
-        or die $stderr;
+BEGIN {
+    (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
+    unshift(@INC, $t);
 }
 
-my $tmpdir = tempdir(
-    template => 'mbank-cli.test.XXXXXX',
-    TMPDIR => 1,
-    CLEANUP => 1,
-) or die;
+use TestUtils;
 
-my $home = abs_path(dirname(__FILE__));
-
-my $config = <<"EOF";
+my $config_file = create_config(<<"EOF");
 Country pl
-CookieJar $tmpdir/cookies
+CookieJar <tmp>/cookies
 EOF
-open(my $fh, '>', "$tmpdir/mbank-cli.conf") or die $ERRNO;
-print {$fh} $config;
-close($fh) or die $ERRNO;
 
 local $ENV{LD_PRELOAD} = 'libsocket_wrapper.so:libnss_wrapper.so';
-local $ENV{SOCKET_WRAPPER_DIR} = "$tmpdir";
-local $ENV{NSS_WRAPPER_HOSTS} = "$home/hosts.local";
+local $ENV{SOCKET_WRAPPER_DIR} = tmp_dir();
+local $ENV{NSS_WRAPPER_HOSTS} = test_file('hosts.local');
 
 check_ld();
 
 my $server = IPC::Run::start(
     'openssl', 's_server',
     '-accept', '443',
-    '-cert', "$home/server.pem",
+    '-cert', test_file('server.pem'),
     '-quiet',
     '-www',
 );
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", '--config', "$tmpdir/mbank-cli.conf", 'debug-https-get'],
+    [code_file(), '--config', $config_file, 'debug-https-get'],
     '>', \$stdout,
     '2>', \$stderr,
 );

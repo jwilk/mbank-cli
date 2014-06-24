@@ -25,21 +25,24 @@ use warnings;
 
 use v5.10;
 
-use Cwd qw(abs_path);
-use English qw(-no_match_vars);
-use File::Basename qw(dirname);
-use IPC::Run qw();
-
 use Test::More tests => 5;
 
-my $home = abs_path(dirname(__FILE__));
+use English qw(-no_match_vars);
+
+use IPC::Run qw();
+
+BEGIN {
+    (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
+    unshift(@INC, $t);
+}
+use TestUtils;
 
 my $cli_version_re = qr/\Ambank-cli (\S+)\n/;
 my $news_version_re = qr/\Ambank-cli [(](\S+)[)] \S+; urgency=\S+\n\z/;
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", '--version'],
+    [code_file(), '--version'],
     '>', \$stdout,
     '2>', \$stderr,
 );
@@ -48,7 +51,7 @@ cmp_ok($cli->result, '==', 0, 'no error');
 cmp_ok($stderr, 'eq', '', 'empty stderr');
 like($stdout, $cli_version_re , 'well-formed version information');
 my ($cli_version) = $stdout =~ $cli_version_re;
-open(my $fh, '<', "$home/../doc/NEWS") or die $ERRNO;
+open(my $fh, '<', code_file('doc/NEWS')) or die $ERRNO;
 my $news = <$fh> // die $ERRNO;
 close($fh) or die $ERRNO;
 like($news, $news_version_re, 'well-formed NEWS title line');

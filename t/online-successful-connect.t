@@ -27,31 +27,22 @@ use v5.10;
 
 use Test::More tests => 3;
 
-use Cwd qw(abs_path);
-use English qw(-no_match_vars);
-use File::Basename qw(dirname);
-use File::Temp qw(tempdir);
 use IPC::Run qw();
 
-my $tmpdir = tempdir(
-    template => 'mbank-cli.test.XXXXXX',
-    TMPDIR => 1,
-    CLEANUP => 1,
-) or die;
+BEGIN {
+    (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
+    unshift(@INC, $t);
+}
+use TestUtils;
 
-my $home = abs_path(dirname(__FILE__));
-
-my $config = <<"EOF";
+my $config_file = create_config(<<"EOF");
 Country pl
-CookieJar $tmpdir/cookies
+CookieJar <tmp>/cookies
 EOF
-open(my $fh, '>', "$tmpdir/mbank-cli.conf") or die $ERRNO;
-print {$fh} $config;
-close($fh) or die $ERRNO;
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
-    ["$home/../mbank-cli", '--config', "$tmpdir/mbank-cli.conf", 'debug-https-get'],
+    [code_file(), '--config', $config_file, 'debug-https-get'],
     '>', \$stdout,
     '2>', \$stderr,
 );
