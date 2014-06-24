@@ -11,7 +11,7 @@ server.rsa:
 server.crt: server.rsa
 	openssl req -x509 -new -key server.rsa -out server.crt \
 		-days 3650 \
-		-set_serial 0x68f1933f8692ed4b7f58335a073750ac \
+		-set_serial 0x400e6045f65210becb18a82eb6c1731e \
 		-config server.cnf -sha1
 
 # vim:ts=4 sw=4 noet

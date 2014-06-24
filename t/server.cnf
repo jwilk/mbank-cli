@@ -21,10 +21,10 @@ L = Warszawa
 street = Senatorska 18
 O = mBank S.A.
 OU = DIN
-CN = mbank
+CN = online.mbank.pl
 
 [req_ext]
-subjectAltName = DNS:mbank
+subjectAltName = DNS:online.mbank.pl
 basicConstraints = CA:false
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth, clientAuth
