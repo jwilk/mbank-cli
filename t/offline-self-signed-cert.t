@@ -33,6 +33,23 @@ use File::Basename qw(dirname);
 use File::Temp qw(tempdir);
 use IPC::Run qw();
 
+sub check_ld
+{
+    my ($stdout, $stderr);
+    my $cli = IPC::Run::start(
+        ['true'],
+        '>', \$stdout,
+        '2>', \$stderr,
+    );
+    $cli->finish();
+    $cli->result == 0
+        or die;
+    $stdout eq ''
+        or die;
+    $stderr eq ''
+        or die $stderr;
+}
+
 my $tmpdir = tempdir(
     template => 'mbank-cli.test.XXXXXX',
     TMPDIR => 1,
@@ -52,6 +69,8 @@ close($fh) or die $ERRNO;
 local $ENV{LD_PRELOAD} = 'libsocket_wrapper.so:libnss_wrapper.so';
 local $ENV{SOCKET_WRAPPER_DIR} = "$tmpdir";
 local $ENV{NSS_WRAPPER_HOSTS} = "$home/hosts.local";
+
+check_ld();
 
 my $server = IPC::Run::start(
     'openssl', 's_server',
