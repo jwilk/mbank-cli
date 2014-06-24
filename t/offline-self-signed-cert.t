@@ -64,7 +64,7 @@ my $cli = IPC::Run::start(
 $cli->finish();
 cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
 cmp_ok($stdout, 'eq', '', 'empty stdout');
-like($stderr, qr(\bcertificate verify failed\b), 'certificate verification failed');
+like($stderr, qr/\bcertificate verify failed\b/, 'certificate verification failed');
 
 IPC::Run::kill_kill($server);
 
