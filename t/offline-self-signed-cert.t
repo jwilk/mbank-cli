@@ -81,7 +81,6 @@ my $server = IPC::Run::start(
 );
 
 my ($stdout, $stderr);
-my $url = 'https://mbank/';
 my $cli = IPC::Run::start(
     ["$home/../mbank-cli", '--config', "$tmpdir/mbank-cli.conf", 'debug-https-get'],
     '>', \$stdout,
