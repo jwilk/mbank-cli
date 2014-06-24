@@ -10,6 +10,7 @@ server.rsa:
 
 server.crt: server.rsa
 	openssl req -x509 -new -key server.rsa -out server.crt \
+		-days 3650 \
 		-set_serial 0x68f1933f8692ed4b7f58335a073750ac \
 		-config server.cnf -sha1
 
