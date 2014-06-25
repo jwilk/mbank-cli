@@ -29,10 +29,10 @@ use base qw(Exporter);
 
 our @EXPORT = qw(
     cert_file
-    check_ld
     code_dir
     code_file
     create_config
+    setup_network_wrappers
     test_dir
     test_file
     tmp_dir
@@ -43,7 +43,7 @@ use File::Temp ();
 
 use IPC::Run ();
 
-sub check_ld
+sub _check_ld
 {
     my ($stdout, $stderr);
     my $cli = IPC::Run::start(
@@ -58,6 +58,17 @@ sub check_ld
         or die;
     $stderr eq ''
         or die $stderr;
+    return;
+}
+
+sub setup_network_wrappers
+{
+    ## no critic (LocalizedPunctuationVars)
+    $ENV{LD_PRELOAD} = 'libsocket_wrapper.so:libnss_wrapper.so';
+    $ENV{SOCKET_WRAPPER_DIR} = tmp_dir();
+    $ENV{NSS_WRAPPER_HOSTS} = test_file('hosts.local');
+    ## use critic
+    _check_ld();
     return;
 }
 

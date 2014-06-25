@@ -41,11 +41,7 @@ Country pl
 CookieJar <tmp>/cookies
 EOF
 
-local $ENV{LD_PRELOAD} = 'libsocket_wrapper.so:libnss_wrapper.so';
-local $ENV{SOCKET_WRAPPER_DIR} = tmp_dir();
-local $ENV{NSS_WRAPPER_HOSTS} = test_file('hosts.local');
-
-check_ld();
+setup_network_wrappers();
 
 my $server = IPC::Run::start(
     'openssl', 's_server',
