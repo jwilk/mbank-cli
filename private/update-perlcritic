@@ -16,8 +16,8 @@ run_perlcritic()
 }
 
 : > "$target.tmp"
-run_perlcritic mbank-cli
-run_perlcritic \
+run_perlcritic "$@" mbank-cli
+run_perlcritic "$@" \
     --exclude '::(RequireCarping|ProhibitAutomaticExportation|RequireVersionVar)' \
     t/*.t t/*.pm
 sort "${target}.tmp" \
