@@ -38,8 +38,10 @@ use TestUtils;
 my $config_file = create_config(<<"EOF");
 Country pl
 CookieJar <tmp>/cookies
-CAfile <test>/ca.crt
 EOF
+
+setup_network_wrappers();
+my $server = start_https_server('server-default.pem'),
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
@@ -51,5 +53,7 @@ $cli->finish();
 cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
 cmp_ok($stdout, 'eq', '', 'empty stdout');
 like($stderr, qr/\bcertificate verify failed\b/, 'certificate verification failed');
+
+IPC::Run::kill_kill($server);
 
 # vim:ts=4 sw=4 et

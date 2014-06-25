@@ -28,7 +28,6 @@ use v5.10;
 use Test::More tests => 3;
 
 use IPC::Run qw();
-use JSON qw(decode_json to_json);
 
 BEGIN {
     (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
@@ -39,23 +38,23 @@ use TestUtils;
 my $config_file = create_config(<<"EOF");
 Country pl
 CookieJar <tmp>/cookies
-CAfile <test>/howsmyssl-ca.crt
+CAfile <certs>/ca.crt
 EOF
 
+setup_network_wrappers();
+my $server = start_https_server('server-default.pem'),
+
 my ($stdout, $stderr);
-my $url = 'https://www.howsmyssl.com/a/check';
 my $cli = IPC::Run::start(
-    [code_file(), '--config', $config_file, 'debug-https-get', $url],
+    [code_file(), '--config', $config_file, 'debug-https-get'],
     '>', \$stdout,
     '2>', \$stderr,
 );
 $cli->finish();
-cmp_ok($cli->result, '==', 0, 'successful download');
+cmp_ok($cli->result, '==', 0, 'no error');
+like($stdout, qr/<html>/i, 'HTML output');
 cmp_ok($stderr, 'eq', '', 'empty stderr');
-my $result = decode_json $stdout;
-if (not cmp_ok($result->{'rating'}, 'eq', 'Probably Okay', 'www.howsmyssl.com rating')) {
-    delete $result->{'given_cipher_suites'};
-    note(to_json($result, { ascii => 1, pretty => 1 }));
-}
+
+IPC::Run::kill_kill($server);
 
 # vim:ts=4 sw=4 et

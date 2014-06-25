@@ -143,6 +143,7 @@ sub create_config
     my ($config) = @_;
     $config =~ s/<tmp>/$_tmp_dir/g;
     $config =~ s/<test>/$_test_dir/g;
+    $config =~ s{<certs>}{$_test_dir/certs}g;
     my $path = "$_tmp_dir/mbank-cli.conf";
     open(my $fh, '>', $path) or die $ERRNO;
     print {$fh} $config;
