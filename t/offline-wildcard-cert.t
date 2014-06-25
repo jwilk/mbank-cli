@@ -29,6 +29,9 @@ use Test::More tests => 3;
 
 use IPC::Run qw();
 
+use LWP ();
+use IO::Socket::SSL ();
+
 BEGIN {
     (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
     unshift(@INC, $t);
@@ -51,9 +54,15 @@ my $cli = IPC::Run::start(
     '2>', \$stderr,
 );
 $cli->finish();
-cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
-cmp_ok($stdout, 'eq', '', 'empty stdout');
-like($stderr, qr/\bcertificate verify failed\b/, 'certificate verification failed');
+TODO: {
+    local $TODO = 'LWP::protocol::https stomps on SSL_verifycn_scheme'
+        # https://bugs.debian.org/747225
+        if $LWP::VERSION >= 6  ## no critic (PostfixControl)
+        and $IO::Socket::SSL::VERSION < 1.969;
+    cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
+    cmp_ok($stdout, 'eq', '', 'empty stdout');
+    like($stderr, qr/\bcertificate verify failed\b/, 'certificate verification failed');
+}
 
 IPC::Run::kill_kill($server);
 
