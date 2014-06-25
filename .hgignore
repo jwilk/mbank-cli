@@ -3,6 +3,11 @@ syntax: glob
 legacy/*.conf
 legacy/cookie-jar.txt
 doc/*.1
-server.crt
-server.pem
-server.rsa
+legacy/t/server.crt
+legacy/t/server.pem
+legacy/t/server.rsa
+t/certs/*.crt
+t/certs/*.pem
+t/certs/*.req
+t/certs/*.rsa
+t/certs/*.tmp.cnf

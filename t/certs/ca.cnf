@@ -1,0 +1,19 @@
+# WARNING: -rand /dev/zero is completely insecure!
+# However, we don't need high-quality keys for testing purposes.
+RANDFILE = /dev/zero
+
+[req]
+oid_section = new_oids
+distinguished_name = req_dn
+prompt = no
+x509_extensions = req_ext
+
+[req_dn]
+C = US
+CN = Snake Oil Certification Authority
+
+[req_ext]
+basicConstraints = CA:true
+keyUsage = critical, digitalSignature, keyCertSign
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid

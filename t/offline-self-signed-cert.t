@@ -50,7 +50,7 @@ check_ld();
 my $server = IPC::Run::start(
     'openssl', 's_server',
     '-accept', '443',
-    '-cert', test_file('server.pem'),
+    '-cert', cert_file('server-self-signed.pem'),
     '-quiet',
     '-www',
 );

@@ -28,6 +28,7 @@ use v5.10;
 use base qw(Exporter);
 
 our @EXPORT = qw(
+    cert_file
     check_ld
     code_dir
     code_file
@@ -82,6 +83,12 @@ sub test_file
 {
     my ($path) = @_;
     return "$_test_dir/$path";
+}
+
+sub cert_file
+{
+    my ($path) = @_;
+    return "$_test_dir/certs/$path";
 }
 
 sub code_dir
