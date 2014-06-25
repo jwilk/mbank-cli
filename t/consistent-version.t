@@ -29,7 +29,7 @@ use Test::More tests => 5;
 
 use English qw(-no_match_vars);
 
-use IPC::Run qw();
+use IPC::Run ();
 
 BEGIN {
     (my $t =  __FILE__ ) =~ s{[^/]*\z}{};

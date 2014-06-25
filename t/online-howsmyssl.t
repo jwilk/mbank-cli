@@ -27,7 +27,7 @@ use v5.10;
 
 use Test::More tests => 3;
 
-use IPC::Run qw();
+use IPC::Run ();
 use JSON qw(decode_json to_json);
 
 BEGIN {
