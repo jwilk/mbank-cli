@@ -39,6 +39,7 @@ our @EXPORT = qw(
 );
 
 use English qw(-no_match_vars);
+use File::Basename ();
 use File::Temp ();
 
 use IPC::Run ();
@@ -83,7 +84,7 @@ sub tmp_dir
     return $_tmp_dir;
 }
 
-(my $_test_dir =  __FILE__ ) =~ s{/[^/]*\z}{};
+my $_test_dir = File::Basename::dirname(__FILE__);
 
 sub test_dir
 {
