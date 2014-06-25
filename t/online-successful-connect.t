@@ -25,7 +25,13 @@ use warnings;
 
 use v5.10;
 
-use Test::More tests => 3;
+use Test::More;
+
+if ($ENV{MBANK_CLI_ONLINE_TESTS}) {
+    plan tests => 3;
+} else {
+    plan skip_all => 'set MBANK_CLI_ONLINE_TESTS=1 to enable online tests';
+}
 
 use IPC::Run ();
 
