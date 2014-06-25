@@ -42,7 +42,6 @@ CookieJar <tmp>/cookies
 EOF
 
 setup_network_wrappers();
-
 my $server = start_https_server('server-self-signed.pem'),
 
 my ($stdout, $stderr);
