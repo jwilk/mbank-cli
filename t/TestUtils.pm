@@ -126,7 +126,6 @@ sub create_config
     return $path;
 }
 
-
 1;
 
 # vim:ts=4 sw=4 et
