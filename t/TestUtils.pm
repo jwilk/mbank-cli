@@ -33,6 +33,7 @@ our @EXPORT = qw(
     code_file
     create_config
     setup_network_wrappers
+    start_https_server
     test_dir
     test_file
     tmp_dir
@@ -43,6 +44,10 @@ use File::Basename ();
 use File::Temp ();
 
 use IPC::Run ();
+
+# ==========
+# networking
+# ==========
 
 sub _check_ld
 {
@@ -72,6 +77,24 @@ sub setup_network_wrappers
     _check_ld();
     return;
 }
+
+sub start_https_server
+{
+    my ($cert_file) = @_;
+    $cert_file = cert_file($cert_file);
+    my $server = IPC::Run::start(
+        'openssl', 's_server',
+        '-accept', '443',
+        '-cert', $cert_file,
+        '-quiet',
+        '-www',
+    );
+    return $server;
+}
+
+# ==========
+# filesystem
+# ==========
 
 my $_tmp_dir = File::Temp::tempdir(
     template => 'mbank-cli.test.XXXXXX',

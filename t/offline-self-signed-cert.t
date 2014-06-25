@@ -43,13 +43,7 @@ EOF
 
 setup_network_wrappers();
 
-my $server = IPC::Run::start(
-    'openssl', 's_server',
-    '-accept', '443',
-    '-cert', cert_file('server-self-signed.pem'),
-    '-quiet',
-    '-www',
-);
+my $server = start_https_server('server-self-signed.pem'),
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
