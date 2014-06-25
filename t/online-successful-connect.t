@@ -48,7 +48,7 @@ my $cli = IPC::Run::start(
 );
 $cli->finish();
 cmp_ok($cli->result, '==', 0, 'no error');
-like($stdout, qr/<html>/, 'HTML output');
+like($stdout, qr/<html>/i, 'HTML output');
 cmp_ok($stderr, 'eq', '', 'empty stderr');
 
 # vim:ts=4 sw=4 et
