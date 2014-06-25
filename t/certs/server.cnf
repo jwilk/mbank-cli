@@ -1,4 +1,6 @@
-RANDFILE = /dev/null
+# WARNING: -rand /dev/zero is completely insecure!
+# However, we don't need high-quality keys for testing purposes.
+RANDFILE = /dev/zero
 oid_section = new_oids
 
 [new_oids]
