@@ -33,7 +33,6 @@ BEGIN {
     (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
     unshift(@INC, $t);
 }
-
 use TestUtils;
 
 my $config_file = create_config(<<"EOF");
