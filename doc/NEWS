@@ -7,7 +7,8 @@ mbank-cli (1.1) UNRELEASED; urgency=low
   Bug fixes and other improvements:
 
   * The --help option now also prints versions of some Perl modules
-    (LWP::UserAgent, LWP::Protocol::https, IO::Socket::SSL Net::SSLeay).
+    (LWP::UserAgent, LWP::Protocol::https, IO::Socket::SSL Net::SSLeay)
+    and OpenSSL.
 
   * The HTML form parsing is now stricter.
 
@@ -15,7 +16,7 @@ mbank-cli (1.1) UNRELEASED; urgency=low
     program failed (e.g., because of an HTTP error).
     This was undesirable, and it is now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 20 Jun 2014 22:05:37 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Thu, 26 Jun 2014 12:57:12 +0200
 
 mbank-cli (1.0) unstable; urgency=low
 

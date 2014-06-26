@@ -2065,6 +2065,11 @@ sub show_version
         }
         print("+ $module $version\n");
     }
+    if ($Net::SSLeay::VERSION >= 1.43) {
+        my $openssl = Net::SSLeay::SSLeay_version();
+        $openssl =~ s/ xx XXX xxxx\z//;
+        print("  * $openssl\n");
+    }
     exit();
 }
 
