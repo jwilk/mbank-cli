@@ -2058,8 +2058,11 @@ sub show_version
 {
     print "mbank-cli $VERSION\n";
     for my $module (qw(LWP::UserAgent LWP::Protocol::https IO::Socket::SSL Net::SSLeay)) {
-        my $version = eval("\$${module}::VERSION")  ## no critic (StringyEval)
+        my $version = eval("use $module; \$${module}::VERSION // \\undef")  ## no critic (StringyEval)
             // internal_error("cannot determine version for $module");
+        if (ref($version)) {
+            $version = '(no version information)';
+        }
         print("+ $module $version\n");
     }
     exit();
