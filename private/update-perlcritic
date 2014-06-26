@@ -3,6 +3,8 @@ set -e -u
 
 global_exclude='::RequireRcsKeywords'
 tests_exclude='::(RequireCarping|ProhibitAutomaticExportation|RequireVersionVar)'
+private_exclude='::(RequireCarping|RequireVersionVar)'
+private_perl=$(grep -l '^#.*/perl' private/*)
 
 here=$(basename "$0")
 cd "$here/.."
@@ -24,6 +26,9 @@ run_perlcritic "$@" mbank-cli
 run_perlcritic "$@" \
     --exclude "$tests_exclude" \
     t/*.t t/*.pm
+run_perlcritic "$@" \
+    --exclude "$private_exclude" \
+    $private_perl
 sort "${target}.tmp" \
 | grep -v ' source OK$' \
 | uniq -c > "${target}.new"
