@@ -6,7 +6,7 @@ mbank-cli (1.1) UNRELEASED; urgency=low
 
   Bug fixes and other improvements:
 
-  * The --help option now also prints versions of some Perl modules
+  * The --version option now also prints versions of some Perl modules
     (LWP::UserAgent, LWP::Protocol::https, IO::Socket::SSL Net::SSLeay)
     and OpenSSL.
 
