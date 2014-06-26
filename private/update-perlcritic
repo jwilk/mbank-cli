@@ -2,8 +2,8 @@
 set -e -u
 
 global_exclude='::RequireRcsKeywords'
-tests_exclude='::(RequireCarping|ProhibitAutomaticExportation|RequireVersionVar)'
-private_exclude='::(RequireCarping|RequireVersionVar)'
+tests_exclude='::(RequireCarping|ProhibitAutomaticExportation)'
+private_exclude='::RequireCarping'
 private_perl=$(grep -l '^#.*/perl' private/*)
 
 here=$(basename "$0")

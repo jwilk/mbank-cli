@@ -13,6 +13,10 @@ functions = :builtins
 # umask() can only fail if umask(2) is not implemented
 exclude_functions = print umask
 
+[-Modules::RequireVersionVar]
+# all our modules are private
+# see also https://bugs.debian.org/706266
+
 [-RegularExpressions::RequireExtendedFormatting]
 [-RegularExpressions::RequireDotMatchAnything]
 [-RegularExpressions::RequireLineBoundaryMatching]
