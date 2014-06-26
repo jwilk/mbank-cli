@@ -58,10 +58,15 @@ my $cli = IPC::Run::start(
 $cli->finish();
 cmp_ok($cli->result, '==', 0, 'successful download');
 cmp_ok($stderr, 'eq', '', 'empty stderr');
-my $result = decode_json $stdout;
-if (not cmp_ok($result->{'rating'}, 'eq', 'Probably Okay', 'www.howsmyssl.com rating')) {
-    delete $result->{'given_cipher_suites'};
-    note(to_json($result, { ascii => 1, pretty => 1 }));
+SKIP: {
+    if (($cli->result != 0) and ($stdout eq '')) {
+        skip('no JSON to parse', 1)
+    }
+    my $result = decode_json $stdout;
+    if (not cmp_ok($result->{'rating'}, 'eq', 'Probably Okay', 'www.howsmyssl.com rating')) {
+        delete $result->{'given_cipher_suites'};
+        note(to_json($result, { ascii => 1, pretty => 1 }));
+    }
 }
 
 # vim:ts=4 sw=4 et
