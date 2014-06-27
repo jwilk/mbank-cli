@@ -17,16 +17,18 @@ exclude_functions = print umask
 # all our modules are private
 # see also https://bugs.debian.org/706266
 
-[-RegularExpressions::RequireExtendedFormatting]
 [-RegularExpressions::RequireDotMatchAnything]
+[-RegularExpressions::RequireExtendedFormatting]
 [-RegularExpressions::RequireLineBoundaryMatching]
 # no, thanks
 
-[-ValuesAndExpressions::ProhibitNoisyQuotes]
 [-ValuesAndExpressions::ProhibitEmptyQuotes]
 # no, thanks
 
 [-ValuesAndExpressions::ProhibitMagicNumbers]
+# no, thanks
+
+[-ValuesAndExpressions::ProhibitNoisyQuotes]
 # no, thanks
 
 [-ValuesAndExpressions::ProhibitVersionStrings]

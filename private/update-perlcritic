@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e -u
 
+export LC_ALL=C
+
 global_exclude='::RequireRcsKeywords'
 tests_exclude='::(RequireCarping|ProhibitAutomaticExportation)'
 private_exclude='::RequireCarping'
@@ -8,6 +10,10 @@ private_perl=$(grep -l '^#.*/perl' private/*)
 
 here=$(basename "$0")
 cd "$here/.."
+
+sed -n -r -e '/^\[-?/ { s///; s/\]$//; p }' .perlcriticrc \
+| sort -c
+
 target=doc/todo.perlcritic
 
 run_perlcritic()
