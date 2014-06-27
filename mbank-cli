@@ -44,6 +44,7 @@ use English qw(-no_match_vars);
 use File::Basename qw(dirname);
 use File::Path ();
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
+use Module::Loaded ();
 use POSIX ();
 use Symbol ();
 use Text::ParseWords ();
@@ -2058,11 +2059,9 @@ sub show_version
 {
     print "mbank-cli $VERSION\n";
     for my $module (qw(LWP::UserAgent LWP::Protocol::https IO::Socket::SSL Net::SSLeay)) {
-        my $version = eval("use $module; \$${module}::VERSION // \\undef")  ## no critic (StringyEval)
-            // internal_error("cannot determine version for $module");
-        if (ref($version)) {
-            $version = '(no version information)';
-        }
+        Module::Loaded::is_loaded($module)
+            // internal_error("$module not loaded");
+        my $version = $module->VERSION // '(no version information)';
         print("+ $module $version\n");
     }
     if ($Net::SSLeay::VERSION >= 1.43) {
