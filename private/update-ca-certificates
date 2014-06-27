@@ -37,16 +37,26 @@ my %hosts = (
     'www.howsmyssl.com' => 't/howsmyssl-ca.crt',
 );
 
-my $done;
+my $rc = 0;
 while (my ($host, $file) = each %hosts) {
     print {*STDERR} "$host ... ";
-    $done = 0;
+    my $pem = undef;
     my $callback = sub {
         my ($ok, undef, undef, undef, $cert) = @_;
-        if (not $ok) {
-            return $ok;
-        }
-        my $pem = Net::SSLeay::PEM_get_string_X509($cert);
+        $pem //= Net::SSLeay::PEM_get_string_X509($cert);
+        $pem //= '';
+        return $ok;
+    };
+    eval {
+        IO::Socket::SSL->new(
+            PeerHost => $host,
+            PeerPort => 'https',
+            SSL_verify_mode => SSL_VERIFY_PEER,
+            SSL_verifycn_scheme => 'http',
+            SSL_verify_callback => $callback,
+        ) or die $IO::Socket::SSL::SSL_ERROR;
+        $pem
+            or die 'unable to determine CA';
         open(my $fh, '>', "$file.new")
             or die $ERRNO;
         print {$fh} $pem;
@@ -54,25 +64,17 @@ while (my ($host, $file) = each %hosts) {
             or die $ERRNO;
         rename("$file.new", $file)
             or die $ERRNO;
-        $done = 1;
-        die;
+    } or do {
+        my $error = "$EVAL_ERROR";
+        my $cruft = 'IO::Socket::IP configuration failed SSL connect attempt failed with unknown error';
+        $error =~s /\A\Q$cruft error/error/;
+        $error =~ s/\n+\z//;
+        print {*STDERR} "FAIL: $error\n";
+        $rc = 1;
+        next;
     };
-    eval {  ## no critic (ReturnValueOfEval)
-        IO::Socket::SSL->new(
-            PeerHost => $host,
-            PeerPort => 'https',
-            SSL_verify_mode => SSL_VERIFY_PEER,
-            SSL_verifycn_scheme => 'http',
-            SSL_verify_callback => $callback,
-        );
-    };
-    if ($done) {
-        print {*STDERR} "ok\n";
-    } else {
-        my $message = "$EVAL_ERROR";
-        $message =~ s/\n+\z//;
-        print {*STDERR} "FAIL: $message\n";
-    }
+    print {*STDERR} "ok\n";
 }
+exit($rc);
 
 # vim:ts=4 sw=4 et
