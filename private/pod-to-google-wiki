@@ -50,6 +50,7 @@ $html =~
 
 binmode(STDOUT, ':encoding(UTF-8)')
     or die $ERRNO;
+print("#labels Featured\n\n");
 print($html);
 close(STDOUT)
     or die $ERRNO;
