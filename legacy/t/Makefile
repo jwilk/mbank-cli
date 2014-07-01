@@ -1,3 +1,5 @@
+export RANDFILE = /dev/null
+
 .PHONY: test check
 test check: server.pem
 	cd .. && prove -v
@@ -6,7 +8,7 @@ server.pem: server.rsa server.crt
 	cat $(^) > server.pem
 
 server.rsa:
-	openssl genrsa -rand /dev/null 2048 > server.rsa
+	openssl genrsa 2048 > server.rsa
 
 server.crt: server.rsa
 	openssl req -x509 -new -key server.rsa -out server.crt \

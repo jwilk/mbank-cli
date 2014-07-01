@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+export RANDFILE = /dev/null
+
 .PHONY: all
 all: server-self-signed.pem server-default.pem server-wildcard.pem
 
@@ -29,9 +31,7 @@ clean:
 	cat $(^) > $(@)
 
 %.rsa:
-	# WARNING: -rand /dev/zero is completely insecure!
-	# However, we don't need high-quality keys for testing purposes.
-	openssl genrsa -rand /dev/zero -out $(@) 2048
+	openssl genrsa -out $(@) 2048
 
 x509_options = -sha1 -days 3650
 x509_serial = -set_serial 0x400e6045f65210becb18a82eb6c1731e
