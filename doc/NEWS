@@ -1,4 +1,4 @@
-mbank-cli (1.1) UNRELEASED; urgency=low
+mbank-cli (1.1) unstable; urgency=low
 
   New features:
 
@@ -19,7 +19,7 @@ mbank-cli (1.1) UNRELEASED; urgency=low
   * The “configure” command didn't expand tilde when creating directories for
     session cookie stores. This bug is now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 01 Jul 2014 12:50:36 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 01 Jul 2014 13:07:42 +0200
 
 mbank-cli (1.0) unstable; urgency=low
 
