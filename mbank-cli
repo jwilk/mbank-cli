@@ -1810,7 +1810,7 @@ sub _configure_overwrite
 sub _configure_country
 {
     my ($term) = @_;
-    my $guessed_cc = guess_country();
+    my $guessed_cc = guess_country() // '';
     my $cc = '';
     until (exists($country_to_language{$cc})) {  ## no critic (Until)
         $cc = $term->readline('Country (CZ, or SK, or PL): ', uc($guessed_cc));
