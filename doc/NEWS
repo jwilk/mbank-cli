@@ -16,7 +16,10 @@ mbank-cli (1.1) UNRELEASED; urgency=low
     program failed (e.g., because of an HTTP error).
     This was undesirable, and it is now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Thu, 26 Jun 2014 12:57:12 +0200
+  * The “configure” command didn't expand tilde when creating directories for
+    session cookie stores. This bug is now fixed.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 01 Jul 2014 12:50:36 +0200
 
 mbank-cli (1.0) unstable; urgency=low
 
