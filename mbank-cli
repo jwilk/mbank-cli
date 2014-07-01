@@ -1955,7 +1955,11 @@ sub do_configure
     close($fh)
         or os_error("$config_path.new: $ERRNO");
     if (rename($config_path, "$config_path.bak")) {
-        print("Backup copy: $config_path.bak\n");
+        print(
+            'Backup copy: ',
+            unexpand_tilde("$config_path.bak"),
+            "\n"
+        );
     } elsif ($ERRNO{ENOENT}) {
         # okay
     } else {
