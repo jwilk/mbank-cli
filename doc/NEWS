@@ -16,8 +16,6 @@ mbank-cli (1.1) unstable; urgency=low
     (LWP::UserAgent, LWP::Protocol::https, IO::Socket::SSL Net::SSLeay)
     and OpenSSL.
 
-  * The HTML form parsing is now stricter.
-
   * mbank-cli 1.0, unlike the previous versions, didn't save cookies if the
     program failed (e.g., because of an HTTP error).
     This was undesirable, and it is now fixed.
