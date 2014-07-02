@@ -38,6 +38,16 @@ $psx->html_charset('UTF-8');
 $psx->html_encode_chars('&<>">');
 $psx->parse_file("$here/../doc/manual.pod");
 
+sub quote_b
+{
+    local ($_) = @_;
+    if (m{[_/]} or ($_ eq 'LANG') or ($_ eq '*')) {
+        s/\A([^<]+)/`$1`/;
+        s/>\K([^<]+)/`$1`/g;
+    }
+    return $_;
+}
+
 $html =~ s{.*<body>\s*}{}s or die 'Failed to strip leading curft';
 $html =~ s{</body>.*}{}s or die 'Failed to strip trailing cruft';
 $html =~ s{</?code>}{}g or die 'Failed to strip <code>';
@@ -50,6 +60,7 @@ $html =~
     s{\b\Qhttp://man.he.net/man7/locale\E\b}
     {http://man7.org/linux/man-pages/man7/locale.7.html}
     or die 'Failed to fix the locale(7) manpage link';
+$html =~ s{<b>\K(.*?)(?=</b>)}{quote_b($1)}eg;
 
 binmode(STDOUT, ':encoding(UTF-8)')
     or die $ERRNO;
