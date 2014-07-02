@@ -26,14 +26,17 @@ use strict;
 use warnings;
 
 use English qw(-no_match_vars);
+use File::Basename ();
 use Pod::Simple::XHTML ();
+
+my $here = File::Basename::dirname(__FILE__);
 
 my $html;
 my $psx = Pod::Simple::XHTML->new;
 $psx->output_string(\$html);
 $psx->html_charset('UTF-8');
 $psx->html_encode_chars('&<>">');
-$psx->parse_file(*STDIN);
+$psx->parse_file("$here/../doc/manual.pod");
 
 $html =~ s{.*<body>\s*}{}s or die 'Failed to strip leading curft';
 $html =~ s{</body>.*}{}s or die 'Failed to strip trailing cruft';
