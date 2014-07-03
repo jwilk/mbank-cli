@@ -25,7 +25,7 @@ use warnings;
 
 use v5.10;
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 use English qw(-no_match_vars);
 
@@ -38,7 +38,7 @@ BEGIN {
 use TestUtils;
 
 my $cli_version_re = qr/\Ambank-cli (\S+)\n/;
-my $news_version_re = qr/\Ambank-cli [(](\S+)[)] \S+; urgency=\S+\n\z/;
+my $news_version_re = qr/\Ambank-cli [(](\S+)[)] (\S+); urgency=\S+\n\z/;
 
 my ($stdout, $stderr);
 my $cli = IPC::Run::start(
@@ -55,7 +55,18 @@ open(my $fh, '<', code_file('doc/NEWS')) or die $ERRNO;
 my $news = <$fh> // die $ERRNO;
 close($fh) or die $ERRNO;
 like($news, $news_version_re, 'well-formed NEWS title line');
-my ($news_version) = $news =~ $news_version_re;
+my ($news_version, $distribution) = $news =~ $news_version_re;
+SKIP: {
+    if (-d code_file('.hg')) {
+        skip('hg checkout', 1);
+    }
+    cmp_ok(
+        $distribution,
+        'ne',
+        'UNRELEASED',
+        'distribution != UNRELEASED',
+    );
+}
 cmp_ok(
     ($cli_version // ''),
     'eq',
