@@ -1,6 +1,10 @@
 mbank-cli (1.1.1) UNRELEASED; urgency=low
 
-  * 
+  Minor bug fixes:
+
+  * In mbank-cli 1.0, the “configure” command would issue a warning about
+    uninitialized value when it couldn't guess the language. This bug is now
+    fixed.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Tue, 01 Jul 2014 13:16:30 +0200
 
