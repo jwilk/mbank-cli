@@ -371,9 +371,9 @@ sub guess_country
     return;
 }
 
-# =============
-# HTTP, SSL/TLS
-# =============
+# =========
+# HTTP, TLS
+# =========
 
 my $ua = undef;
 
@@ -392,7 +392,7 @@ sub http_init
     if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
         # This should not happen, but better safe than sorry.
         # We absolutely do not want Net::SSL (from the Crypt-SSLeay
-        # distribution) as the SSL/TLS backend.
+        # distribution) as the TLS backend.
         internal_error("\$Net::HTTPS::SSL_SOCKET_CLASS == $Net::HTTPS::SSL_SOCKET_CLASS")
     };
     for my $key (grep { m/^HTTPS_/ } keys(%ENV)) {
@@ -401,7 +401,16 @@ sub http_init
         # https://bugs.debian.org/746579
         delete $ENV{$key};
     }
+    my $ssl_version;
+    if ($IO::Socket::SSL::VERSION >= 1.70) {
+        # TLS v1.0 or later
+        $ssl_version = 'SSLv23:!SSLv2:!SSLv3';
+    } else {
+        # TLS v1.0
+        $ssl_version = 'TLSv1';
+    }
     my @ssl_options = (
+        SSL_version => $ssl_version,
         SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
         SSL_ca_file => $ca_path,
         SSL_ca_path => undef,
