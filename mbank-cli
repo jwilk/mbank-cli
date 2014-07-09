@@ -417,7 +417,7 @@ sub http_init
             # If SSL_ca_path is not set explicitly to undef,
             # IO::Socket::SSL::set_args_filter_hack('use_defaults') fails to
             # correctly restore SSL_ca_* settings:
-            # https://bugs.debian.org/750642#
+            # https://bugs.debian.org/750642
         SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_PEER,
         SSL_verifycn_scheme => {
             check_cn => 0,
