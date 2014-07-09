@@ -80,7 +80,7 @@ sub setup_network_wrappers
 
 sub start_https_server
 {
-    my ($cert_file) = @_;
+    my ($cert_file, @options) = @_;
     $cert_file = cert_file($cert_file);
     my $server = IPC::Run::start(
         'openssl', 's_server',
@@ -88,6 +88,7 @@ sub start_https_server
         '-cert', $cert_file,
         '-quiet',
         '-www',
+        @options,
     );
     return $server;
 }
