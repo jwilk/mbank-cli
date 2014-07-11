@@ -40,8 +40,8 @@ our @EXPORT = qw(
 );
 
 use English qw(-no_match_vars);
-use File::Basename ();
 use File::Temp ();
+use FindBin ();
 
 use IPC::Run ();
 
@@ -108,7 +108,7 @@ sub tmp_dir
     return $_tmp_dir;
 }
 
-my $_test_dir = File::Basename::dirname(__FILE__);
+my $_test_dir = $FindBin::Bin;
 
 sub test_dir
 {

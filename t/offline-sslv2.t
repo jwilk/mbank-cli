@@ -32,10 +32,8 @@ use Test::More;
 use IPC::Run ();
 use Net::SSLeay ();
 
-BEGIN {
-    (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
-    unshift(@INC, $t);
-}
+use FindBin ();
+use lib "$FindBin::Bin";
 use TestUtils;
 
 eval {

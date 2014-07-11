@@ -33,10 +33,8 @@ use English qw(-no_match_vars);
 
 use IPC::Run ();
 
-BEGIN {
-    (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
-    unshift(@INC, $t);
-}
+use FindBin ();
+use lib "$FindBin::Bin";
 use TestUtils;
 
 my $cli_version_re = qr/\Ambank-cli (\S+)\n/;

@@ -31,10 +31,8 @@ use Test::More tests => 3;
 
 use IPC::Run ();
 
-BEGIN {
-    (my $t =  __FILE__ ) =~ s{[^/]*\z}{};
-    unshift(@INC, $t);
-}
+use FindBin ();
+use lib "$FindBin::Bin";
 use TestUtils;
 
 my $config_file = create_config(<<"EOF");
