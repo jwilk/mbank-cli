@@ -25,6 +25,8 @@ use warnings;
 
 use v5.10;
 
+no lib '.';
+
 use Test::More;
 
 if ($ENV{MBANK_CLI_ONLINE_TESTS}) {

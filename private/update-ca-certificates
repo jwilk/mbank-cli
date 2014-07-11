@@ -23,6 +23,8 @@
 use strict;
 use warnings;
 
+no lib '.';
+
 use English qw(-no_match_vars);
 use File::Basename ();
 

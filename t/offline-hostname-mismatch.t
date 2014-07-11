@@ -25,6 +25,8 @@ use warnings;
 
 use v5.10;
 
+no lib '.';
+
 use Test::More tests => 3;
 
 use IPC::Run ();

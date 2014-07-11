@@ -25,6 +25,8 @@ use warnings;
 
 use v5.10;
 
+no lib '.';
+
 use Test::More tests => 6;
 
 use English qw(-no_match_vars);

@@ -1,6 +1,23 @@
 Security advisories for *mbank-cli* and the dependent libraries
 ===============================================================
 
+2014-07-11: insecure module search path
+---------------------------------------
+
+Perl includes the current directory as the last element in the module search
+path (``@INC``). If a Perl script is run in an untrusted directory (such as
+``/tmp``), and it attempts to load a module that is not installed
+system-wide, the script will try to load it from the untrusted directory,
+potentially executing code that was planted there by a malicious local user.
+
+This is a bug in Perl, but a work-around has been implemented in mbank-cli.
+
+It is recommended that users upgrade to mbank-cli 1.2 (or a later version).
+
+References:
+
+   - http://www.nntp.perl.org/group/perl.perl5.porters/2010/08/msg162729.html
+
 2014-05-01: missing certificate validation
 ------------------------------------------
 
