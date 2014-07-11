@@ -28,17 +28,15 @@ use warnings;
 no lib '.';
 
 use English qw(-no_match_vars);
-use File::Basename ();
+use FindBin ();
 use Pod::Simple::XHTML ();
-
-my $here = File::Basename::dirname(__FILE__);
 
 my $html;
 my $psx = Pod::Simple::XHTML->new;
 $psx->output_string(\$html);
 $psx->html_charset('UTF-8');
 $psx->html_encode_chars('&<>">');
-$psx->parse_file("$here/../doc/manual.pod");
+$psx->parse_file("$FindBin::Bin/../doc/manual.pod");
 
 sub quote_b
 {

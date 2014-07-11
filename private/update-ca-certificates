@@ -28,12 +28,11 @@ use warnings;
 no lib '.';
 
 use English qw(-no_match_vars);
-use File::Basename ();
+use FindBin ();
 
 use IO::Socket::SSL;
 
-my $here = File::Basename::dirname(__FILE__);
-chdir("$here/..")
+chdir("$FindBin::Bin/..")
     or die $ERRNO;
 
 my %hosts = (
