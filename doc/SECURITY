@@ -17,6 +17,8 @@ It is recommended that users upgrade to mbank-cli 1.2 (or a later version).
 References:
 
    - http://www.nntp.perl.org/group/perl.perl5.porters/2010/08/msg162729.html
+   - https://bitbucket.org/jwilk/mbank-cli/commits/8704addd4e12
+
 
 2014-05-01: missing certificate validation
 ------------------------------------------
