@@ -3,14 +3,15 @@ mbank-cli (1.2) UNRELEASED; urgency=low
   Security improvements:
 
   * Current working directory (“.”) has been removed from the Perl module
-    search path (@INC).
+    search path (@INC). Previous versions from mbank-cli could inadvertently
+    load code from this directory.
 
     Please consult the SECURITY file for details.
 
   * SSLv2 and SSLv3 support has been disabled.
     The TLS protocol is now always used.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 11 Jul 2014 13:36:54 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Fri, 11 Jul 2014 18:44:58 +0200
 
 mbank-cli (1.1.1) unstable; urgency=low
 
