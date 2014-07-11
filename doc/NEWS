@@ -3,7 +3,7 @@ mbank-cli (1.2) UNRELEASED; urgency=low
   Security improvements:
 
   * Current working directory (“.”) has been removed from the Perl module
-    search path (@INC). Previous versions from mbank-cli could inadvertently
+    search path (@INC). Previous versions of mbank-cli could inadvertently
     load code from this directory.
 
     Please consult the SECURITY file for details.
