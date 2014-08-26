@@ -1,8 +1,8 @@
-mbank-cli (1.2.1) UNRELEASED; urgency=low
+mbank-cli (1.2.1) unstable; urgency=low
 
-  * 
+  * Fix logging in and the “funds” command.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 11 Jul 2014 19:07:54 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 26 Aug 2014 13:01:25 +0200
 
 mbank-cli (1.2) unstable; urgency=low
 
