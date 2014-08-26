@@ -1645,7 +1645,7 @@ sub do_funds
         'X-Request-Verification-Token' => $login_info->{arvt},
         @ajax_html_headers,
         'Referer' => $login_info->{url},
-        Content => '',
+        Content => 'type=Normal',
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
