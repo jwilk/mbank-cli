@@ -681,6 +681,8 @@ sub get_config_var
 
 my $account_number_re = qr{
   \d{2}(?:[ ]\d{4}){6}  # Polish IBAN (without the country code)
+| CZ\d{2}(?:[ ]\d{4}){5}  # Czech IBAN: https://www.cnb.cz/en/payment_systems/iban/IBAN_international_account_number.html
+| SK\d{2}(?:[ ]\d{4}){5}  # Slovak IBAN: http://www.nbs.sk/en/payment-systems/iban/iban-slovak-republic
 | (?:\d{1,6}-)?\d{2,10}/\d{4}  # Slovak national format: http://www.nbs.sk/en/payment-systems/iban/iban-slovak-republic
 }x;
 
