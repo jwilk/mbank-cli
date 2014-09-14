@@ -775,7 +775,7 @@ sub wildcards_to_regexp
 {
     my (@wildcards) = @_;
     my $re = join('|',
-        map { quotemeta($_) } @wildcards
+        map { quotemeta } @wildcards
     );
     $re =~ s/\\[*]/.*/g;
     $re = qr{^(?i:($re))$};
