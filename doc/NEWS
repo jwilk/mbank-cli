@@ -1,3 +1,11 @@
+mbank-cli (1.2.2) unstable; urgency=low
+
+  * Add support for accounts numbers in Slovak (and hopefully also Czech) IBAN
+    format.
+    https://code.google.com/p/mbank-cli/issues/detail?id=53
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 15 Sep 2014 22:13:02 +0200
+
 mbank-cli (1.2.1) unstable; urgency=low
 
   * Fix logging in and the “funds” command.
