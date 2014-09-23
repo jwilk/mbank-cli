@@ -1847,8 +1847,11 @@ sub _configure_login
 sub _configure_password
 {
     my ($term) = @_;
-    defined($term->Attribs->{shadow_redisplay})
-        or internal_error('shadow_redisplay not defined');
+    my $readline_gnu = Module::Loaded::is_loaded('Term::ReadLine::Gnu');
+    if ($readline_gnu) {
+        defined($term->Attribs->{shadow_redisplay})
+            or internal_error('shadow_redisplay not defined');
+    }
     my $password = '';
     until (length($password) > 0) {  ## no critic (Until)
         local $term->Attribs->{redisplay_function} =  ## no critic (LocalVars)
@@ -1932,7 +1935,12 @@ sub do_configure
     check_for_unexpected_options(%options);
     eval {
         require Term::ReadLine;
-        require Term::ReadLine::Gnu;
+        if ($OSNAME ne 'MSWin32') {
+            # We normally require Term::ReadLine::Gnu, so that it's possible to
+            # ask for password without displaying it on the screen. But this
+            # module is difficult to port to Windows. Oh well.
+            require Term::ReadLine::Gnu;
+        }
     } // user_error('Term::ReadLine::Gnu is required to run configure');
     my $term = Term::ReadLine->new('mbank-cli');
     _configure_overwrite($term, $config_path);
