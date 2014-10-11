@@ -1,8 +1,10 @@
 mbank-cli (1.2.3) UNRELEASED; urgency=low
 
-  * 
+  * Add package dependency cheat sheet for selected free software
+    distributions to the README file.
+    Thanks to Robert Gonciarz for the Arch Linux package list.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 23 Sep 2014 19:51:23 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 11 Oct 2014 17:31:12 +0200
 
 mbank-cli (1.2.2) unstable; urgency=low
 
