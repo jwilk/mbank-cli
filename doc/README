@@ -67,7 +67,7 @@ CA certificate
 --------------
 
 *mbank-cli* has to verify that the server certificate has been signed by a
-trusted CA (certificate authority). Unlike many other SSL/TLS clients, it
+trusted CA (certificate authority). Unlike many other TLS clients, it
 doesn't trust all the CAs whose certificates are installed system-wide, but
 only **VeriSign Class 3 Public Primary Certification Authority**, which is
 know to be the root CA for mBank.
