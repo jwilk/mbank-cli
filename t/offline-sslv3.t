@@ -27,13 +27,20 @@ use v5.10;
 
 no lib '.';
 
-use Test::More tests => 3;
+use Test::More;
 
 use IPC::Run ();
 
 use FindBin ();
 use lib "$FindBin::Bin";
 use TestUtils;
+
+eval {
+    Net::SSLeay::SSLv3_method()
+} or do {
+    plan(skip_all => 'SSLv3 not supported');
+};
+plan(tests => 3);
 
 my $config_file = create_config(<<"EOF");
 Country pl
