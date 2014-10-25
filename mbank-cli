@@ -463,7 +463,8 @@ sub http_init
         IO::Socket::SSL::set_args_filter_hack('use_defaults');
         # TODO: Work around the bug also for earlier versions of
         # IO::Socket::SSL, which don't support set_args_filter_hack().
-    } elsif ($LWP::UserAgent::VERSION >= 6) {
+    }
+    if ($LWP::UserAgent::VERSION >= 6) {
         $ua->ssl_opts(
             @ssl_options,
         )
