@@ -1,10 +1,17 @@
 mbank-cli (1.2.3) UNRELEASED; urgency=low
 
-  Minor bug fixes:
+  Bug fixes:
 
-  * The “IPC::Run is required to decrypt the configuration file” error message
-    is now only shown if there are actually OpenPGP fragments in the
-    configuration file.
+  * Previous versions of mbank-cli did not correctly pass CA file information
+    to the LWP module, which could result in the following error:
+       Can't verify SSL peers without knowing which Certificate Authorities
+       to trust
+    This bug is now fixed.
+    https://code.google.com/p/mbank-cli/issues/detail?id=55
+
+  * Previous versions of mbank-cli could complain about missing IPC::Run,
+    which was said to be needed to decrypt the configuration file, even when
+    there was no encrypted data in the file. This bug is now fixed.
 
   Documentation improvements:
 
@@ -12,7 +19,7 @@ mbank-cli (1.2.3) UNRELEASED; urgency=low
     has been added to the README file.
     Thanks to Robert Gonciarz for the Arch Linux package list.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 25 Oct 2014 19:52:20 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 25 Oct 2014 20:13:51 +0200
 
 mbank-cli (1.2.2) unstable; urgency=low
 
