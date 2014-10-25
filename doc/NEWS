@@ -2,8 +2,9 @@ mbank-cli (1.2.3) UNRELEASED; urgency=low
 
   Minor bug fixes:
 
-  * The “IPC::Run is required to decrypt the configuration file” is now only
-    show if there are actually OpenPGP fragments in the configuration file.
+  * The “IPC::Run is required to decrypt the configuration file” error message
+    is now only shown if there are actually OpenPGP fragments in the
+    configuration file.
 
   Documentation improvements:
 
@@ -11,7 +12,7 @@ mbank-cli (1.2.3) UNRELEASED; urgency=low
     has been added to the README file.
     Thanks to Robert Gonciarz for the Arch Linux package list.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 25 Oct 2014 19:19:58 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 25 Oct 2014 19:52:20 +0200
 
 mbank-cli (1.2.2) unstable; urgency=low
 
