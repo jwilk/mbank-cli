@@ -630,7 +630,7 @@ sub _decrypt_config
 {
     my ($config) = @_;
     my $pgp_chunks = delete $config->{__pgp__};
-    defined($pgp_chunks) or return;
+    scalar(@{$pgp_chunks}) > 0 or return;
     eval {
         require IPC::Run;
     } // user_error('IPC::Run is required to decrypt the configuration file');

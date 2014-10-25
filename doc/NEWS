@@ -3,8 +3,11 @@ mbank-cli (1.2.3) UNRELEASED; urgency=low
   * Add package dependency cheat sheet for selected free software
     distributions to the README file.
     Thanks to Robert Gonciarz for the Arch Linux package list.
+  * Make sure that the “IPC::Run is required to decrypt the configuration
+    file” error appears only if there are actually OpenPGP fragments in the
+    configuration file.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 11 Oct 2014 17:31:12 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 25 Oct 2014 19:17:39 +0200
 
 mbank-cli (1.2.2) unstable; urgency=low
 
