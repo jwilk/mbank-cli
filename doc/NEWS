@@ -1,25 +1,33 @@
 mbank-cli (1.2.3) UNRELEASED; urgency=low
 
-  * Add package dependency cheat sheet for selected free software
-    distributions to the README file.
-    Thanks to Robert Gonciarz for the Arch Linux package list.
-  * Make sure that the “IPC::Run is required to decrypt the configuration
-    file” error appears only if there are actually OpenPGP fragments in the
-    configuration file.
+  Minor bug fixes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 25 Oct 2014 19:17:39 +0200
+  * The “IPC::Run is required to decrypt the configuration file” is now only
+    show if there are actually OpenPGP fragments in the configuration file.
+
+  Documentation improvements:
+
+  * Package dependency cheat sheet for selected free software distributions
+    has been added to the README file.
+    Thanks to Robert Gonciarz for the Arch Linux package list.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 25 Oct 2014 19:19:58 +0200
 
 mbank-cli (1.2.2) unstable; urgency=low
 
-  * Add support for accounts numbers in Slovak (and hopefully also Czech) IBAN
-    format.
+  Bug fixes:
+
+  * Support for accounts numbers in Slovak (and hopefully also Czech) IBAN
+    format has been added.
     https://code.google.com/p/mbank-cli/issues/detail?id=53
 
  -- Jakub Wilk <jwilk@jwilk.net>  Mon, 15 Sep 2014 22:13:02 +0200
 
 mbank-cli (1.2.1) unstable; urgency=low
 
-  * Fix logging in and the “funds” command.
+  Bug fixes:
+
+  * Logging in and the “funds” command have been fixed.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Tue, 26 Aug 2014 13:01:25 +0200
 
