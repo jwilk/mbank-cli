@@ -13,13 +13,16 @@ mbank-cli (1.2.3) UNRELEASED; urgency=low
     which was said to be needed to decrypt the configuration file, even when
     there was no encrypted data in the file. This bug is now fixed.
 
+  * The Term::ReadLine::Gnu module is no longer required for the “configure”
+    command on Windows systems, where it is not readily available.
+
   Documentation improvements:
 
   * Package dependency cheat sheet for selected free software distributions
     has been added to the README file.
     Thanks to Robert Gonciarz for the Arch Linux package list.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 25 Oct 2014 20:13:51 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 28 Oct 2014 11:19:31 +0100
 
 mbank-cli (1.2.2) unstable; urgency=low
 
