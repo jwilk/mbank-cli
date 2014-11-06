@@ -66,4 +66,4 @@ if (not cmp_ok($result->{'rating'}, 'eq', 'Probably Okay', 'www.howsmyssl.com ra
 
 chdir '/';
 
-# vim:ts=4 sw=4 et
+# vim:ts=4 sts=4 sw=4 et

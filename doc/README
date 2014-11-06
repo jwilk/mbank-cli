@@ -81,4 +81,4 @@ system-wide on some operating systems. Packagers/administrators might want
 to patch the ``get_default_ca_path()`` subroutine in such case.
 
 
-.. vim:ft=rst tw=76 ts=3 sw=3 et
+.. vim:ft=rst tw=76 ts=3 sts=3 sw=3 et

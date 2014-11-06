@@ -101,4 +101,4 @@ server-wildcard.crt: server-wildcard.req server-wildcard.tmp.cnf ca.pem
 		-in $(<) \
 		-out $(@)
 
-# vim:ts=4 sw=4 noet
+# vim:ts=4 sts=4 sw=4 noet

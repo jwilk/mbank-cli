@@ -65,4 +65,4 @@ like($stderr, qr/\b(unsupported protocol|wrong version number|00000000)\b/, 'uns
 
 IPC::Run::kill_kill($server);
 
-# vim:ts=4 sw=4 et
+# vim:ts=4 sts=4 sw=4 et

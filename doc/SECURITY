@@ -107,4 +107,4 @@ References:
    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-0633
    - https://bitbucket.org/jwilk/mbank-cli/commits/aae4eaa3d5ad
 
-.. vim:ft=rst tw=76 ts=3 sw=3 et
+.. vim:ft=rst tw=76 ts=3 sts=3 sw=3 et
