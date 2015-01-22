@@ -1,3 +1,10 @@
+mbank-cli (1.2.4) UNRELEASED; urgency=low
+
+  Drop the old (legacy) version of mbank-cli, which used the old interface at
+  https://www.mbank.com.pl/.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Thu, 22 Jan 2015 12:46:02 +0100
+
 mbank-cli (1.2.3) unstable; urgency=low
 
   Bug fixes:
