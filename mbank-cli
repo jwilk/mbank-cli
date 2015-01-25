@@ -1790,7 +1790,7 @@ sub do_debug_https_get
     for my $url (@urls) {
         my $request = GET($url);
         my $doc = simple_download($request);
-        print($doc->content());
+        print($doc->dump());
     }
     return;
 }
