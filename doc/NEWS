@@ -1,4 +1,4 @@
-mbank-cli (1.2.4) UNRELEASED; urgency=low
+mbank-cli (1.2.4) unstable; urgency=low
 
   The legacy version of mbank-cli, which used the old interface at
   https://www.mbank.com.pl/, is no longer included.
@@ -13,7 +13,7 @@ mbank-cli (1.2.4) UNRELEASED; urgency=low
 
   * The --debug option saves more information than previously.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 03 Feb 2015 12:07:21 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 03 Feb 2015 12:15:10 +0100
 
 mbank-cli (1.2.3) unstable; urgency=low
 
