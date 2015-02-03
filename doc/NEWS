@@ -3,7 +3,17 @@ mbank-cli (1.2.4) UNRELEASED; urgency=low
   The legacy version of mbank-cli, which used the old interface at
   https://www.mbank.com.pl/, is no longer included.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Thu, 22 Jan 2015 13:06:42 +0100
+  Bug fixes:
+
+  * The root CA certificate has been updated. It is now:
+    VeriSign Class 3 Public Primary Certification Authority.
+    https://code.google.com/p/mbank-cli/issues/detail?id=57
+
+  Minor improvements:
+
+  * The --debug option saves more information than previously.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 03 Feb 2015 12:07:21 +0100
 
 mbank-cli (1.2.3) unstable; urgency=low
 
