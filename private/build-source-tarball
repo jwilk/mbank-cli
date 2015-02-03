@@ -19,9 +19,7 @@ mkdir -p "$sourceroot/$name-$version"
 hg archive -r "$revision" "$sourceroot/$name-$version"
 cd "$sourceroot"
 make -C $name-*/doc
-make -C $name-*/legacy/doc
 make -C $name-*/t/certs/
-make -C $name-*/legacy/t/ server.pem
 rm -rf $name-*/private/
 rm -rf */.hg*
 find $name-*/ -empty -delete
