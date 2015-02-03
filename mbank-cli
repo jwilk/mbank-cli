@@ -2156,11 +2156,11 @@ sub initialize
         $ca_path = expand_tilde($ca_path);
     } else {
         $ca_path = get_default_ca_path(
-            'Verisign Class 3 Public Primary Certification Authority',
+            'VeriSign Class 3 Public Primary Certification Authority - G5',
             # openssl x509 -subject_hash -noout
-            '415660c1',
+            'b204d74a',
             # openssl x509 -subject_hash_old -noout
-            '7651b327',
+            'facacbc6',
         );
     }
     if (not -r $ca_path) {
