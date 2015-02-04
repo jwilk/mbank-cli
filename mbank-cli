@@ -1752,11 +1752,11 @@ sub do_notices
 
 sub do_activate_profile
 {
+    my %options = @_;
     my %profile_codes = (
         personal => 'I',
         business => 'F',
     );
-    my %options = @_;
     my $login_info = delete($options{login})
         // internal_error('missing login info');
     my @args = @{delete($options{args})};
