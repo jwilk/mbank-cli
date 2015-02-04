@@ -1,11 +1,17 @@
 mbank-cli (1.2.5) UNRELEASED; urgency=low
 
+  New features:
+
+  * Add the activate-profile command. This is a stop-gap solution until
+    mbank-cli is taught to activate profiles automatically.
+    https://code.google.com/p/mbank-cli/issues/detail?id=58
+
   Bug fixes:
 
   * Previous versions of mbank-cli emitted “Wide character in print …”
     warnings if login failed. This bug is now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 03 Feb 2015 13:54:08 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 04 Feb 2015 12:39:11 +0100
 
 mbank-cli (1.2.4) unstable; urgency=low
 

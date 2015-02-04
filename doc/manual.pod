@@ -36,6 +36,9 @@ B<mbank-cli> B<notices> [I<option>...]
 B<mbank-cli> B<logout> [I<option>...]
 
 =item *
+B<mbank-cli> B<activate-profile> {B<personal> | B<business>}
+
+=item *
 B<mbank-cli> B<configure> [I<option>...]
 
 =back
@@ -360,6 +363,22 @@ Syntax:
 B<mbank-cli> B<logout> [I<option>...]
 
 Log out from the web interface.
+
+=head2 The “activate-profile” command
+
+Syntax:
+B<mbank-cli> B<activate-profile> {B<personal> | B<business>}
+
+Activate the personal profile, or the business profile.
+
+This is an experimental command.
+It is provided only a stop-gap solution
+until mbank-cli is taught to activate profiles automatically.
+
+Examples:
+
+	$ mbank-cli activate-profile personal  # activate the personal profile
+	$ mbank-cli activate-profile business  # activate the business profile
 
 =head2 The “configure” command
 

@@ -826,6 +826,12 @@ my @json_headers = (
     'X-Requested-With' => 'XMLHttpRequest',
 );
 
+my @ajax_headers = (
+    'Accept' => '*/*',
+    'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
+    'X-Requested-With' => 'XMLHttpRequest',
+);
+
 my @ajax_html_headers = (
     'Accept' => 'text/html, */*; q=0.01',
     'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -1744,6 +1750,64 @@ sub do_notices
     return;
 }
 
+sub do_activate_profile
+{
+    my %profile_codes = (
+        personal => 'I',
+        business => 'F',
+    );
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    my @args = @{delete($options{args})};
+    scalar(@args) > 0
+        or user_error('activate-profile: no profile selected');
+    scalar(@args) <= 1
+        or user_error('activate-profile: too many arguments');
+    my ($name) = @args;
+    my $code = $profile_codes{$name};
+    if (not defined($code)) {
+        my $profiles = join(', or ', map { "\"$_\"" } sort(keys(%profile_codes)));
+        user_error("activate-profile: invalid profile name (should be $profiles)");
+    }
+    debug("activating profile $code...");
+    check_for_unexpected_options(%options);
+    my $request = POST(
+        "$base_url/LoginMain/Account/JsonActivateProfile",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @ajax_headers,
+        'Referer' => $login_info->{url},
+        'Content' => "profileCode=$code",
+    );
+    my $doc = download($request);
+    # It's tempting to do decode_json() here, but actually,
+    # despite the Content-Type, the response is not valid JSON.
+    # Yay...
+    _do_lazy_logout(login => $login_info);
+    return;
+}
+
+sub _do_lazy_logout
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    check_for_unexpected_options(%options);
+    my $request = POST(
+        "$base_url/LoginMain/Account/LazyLogout",
+        'X-Tab-Id' => $login_info->{tabid},
+        'X-Request-Verification-Token' => $login_info->{arvt},
+        @json_headers,
+        'Referer' => $login_info->{url},
+    );
+    my $doc = download($request);
+    my $json = decode_json($doc->{content})
+        // scraping_error("logout.json: $EVAL_ERROR");
+    $json->{lazy}
+        or scraping_error('logout.lazy');
+}
+
 sub do_logout
 {
     my %options = @_;
@@ -1754,19 +1818,8 @@ sub do_logout
         user_error('logout: the user was not logged in')
     } else {
         debug('logging out...');
-        my $request = POST(
-            "$base_url/LoginMain/Account/LazyLogout",
-            'X-Tab-Id' => $login_info->{tabid},
-            'X-Request-Verification-Token' => $login_info->{arvt},
-            @json_headers,
-            'Referer' => $login_info->{url},
-        );
-        my $doc = download($request);
-        my $json = decode_json($doc->{content})
-            // scraping_error("logout.json: $EVAL_ERROR");
-        $json->{lazy}
-            or scraping_error('logout.lazy');
-        $request = GET(
+        _do_lazy_logout(login => $login_info);
+        my $request = GET(
             "$base_url/LoginMain/Account/Logout",
             'Referer' => $login_info->{url},
         );
@@ -2083,6 +2136,7 @@ Usage:
   mbank-cli cards
   mbank-cli notices
   mbank-cli logout
+  mbank-cli activate-profile {personal | business}
   mbank-cli configure
 
 Common options:
@@ -2253,7 +2307,7 @@ debug("selected command: $command_name");
 
 my %commands = (
     'debug-noop' => {},
-    'debug-https-get' => {},
+    'debug-https-get' => { args => 1 },
     'list' => {},
     'history' => { accounts => 1, dates => 1, export => 1 },
     'future' => { accounts => 1 },
@@ -2263,6 +2317,7 @@ my %commands = (
     'funds' => {},
     'notices' => {},
     'logout' => { login => 0 },
+    'activate-profile' => { args => 1 },
     'configure' => { login => 0, config => 0 },
 );
 
@@ -2281,9 +2336,6 @@ my $need_login = $command_info->{login} // 1;
 my @cmd_options;
 if ($command_name =~ m/^debug-/) {
     $need_login = 0;
-    push(@cmd_options,
-        args => [@args],
-    );
 }
 if ($command_info->{config} // 1) {
     initialize();
@@ -2307,6 +2359,11 @@ if ($command_info->{accounts}) {
     push(@cmd_options,
         selection => [@selection],
         display_name => $opt_all || $opt_multi,
+    );
+}
+if ($command_info->{args}) {
+    push(@cmd_options,
+        args => [@args],
     );
 }
 if ($need_login) {
