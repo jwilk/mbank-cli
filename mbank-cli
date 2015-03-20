@@ -897,9 +897,9 @@ sub _extract_login_profiles
             } else {
                 scraping_error("login.profiles.key: $key");
             }
-            my @js_profiles = @{$value->{'profiles'}};
+            my @js_profiles = @{$value->{profiles}};
             for my $js_profile (@js_profiles) {
-                my $code = $js_profile->{'profileCode'};
+                my $code = $js_profile->{profileCode};
                 push(@{$profiles{$key}}, $code);
             }
         }
@@ -1809,7 +1809,7 @@ sub do_activate_profile
     scalar(@args) <= 1
         or user_error('activate-profile: too many arguments');
     my ($name) = @args;
-    my %profiles = %{$login_info->{'profiles'}};
+    my %profiles = %{$login_info->{profiles}};
     if (not exists($profiles{$name})) {
         my $profiles = join(', or ', map { "\"$_\"" } sort(keys(%profiles)));
         user_error("activate-profile: invalid profile name (should be $profiles)");
