@@ -911,7 +911,7 @@ sub do_login
         if (ref $content) {
             next;
         }
-        my ($js) = ($content =~ m/\A\s*nmbMenu\s*=\s*({.+})\s*\z/s)
+        my ($js) = ($content =~ m/\A\s*nmbMenu\s*=\s*([{].+[}])\s*\z/s)
             or next;
         $js =~ s/'/"/g;
         $js =~ s/(\w+):/"$1":/g;
