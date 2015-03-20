@@ -928,11 +928,44 @@ sub do_login
         }
         last;
     }
+    my %profiles = (
+        personal => [],
+        business => [],
+    );
+    for my $e_script ($html->look_down(_tag => 'script')) {
+        my @content = $e_script->content_list;
+        scalar(@content) == 1
+            or next;
+        my ($content) = @content;
+        if (ref $content) {
+            next;
+        }
+        my ($js) = ($content =~ m/^\s*Ebre[.]Venezia[.]ProfileData\s*=\s*([{].+[}]);\s*$/m)
+            or next;
+        my $json = decode_json($js)
+            or scraping_error("login.profiles.json: $EVAL_ERROR");
+        while (my ($key, $value) = each %{$json}) {
+            if ($key eq 'iProfiles') {
+                $key = 'personal';
+            } elsif ($key eq 'fProfiles') {
+                $key = 'business';
+            } else {
+                scraping_error("login.profiles.key: $key");
+            }
+            my @js_profiles = @{$value->{'profiles'}};
+            for my $js_profile (@js_profiles) {
+                my $code = $js_profile->{'profileCode'};
+                push(@{$profiles{$key}}, $code);
+            }
+        }
+        last;
+    }
     debug('logged in');
     return {
         tabid => $tabid,
         arvt => $arvt,
         menu => \%menu,
+        profiles => \%profiles,
         url => $doc->{url},
     };
 }
@@ -1753,25 +1786,33 @@ sub do_notices
 sub do_activate_profile
 {
     my %options = @_;
-    my %profile_codes = (
-        personal => 'I',
-        business => 'F',
-    );
     my $login_info = delete($options{login})
         // internal_error('missing login info');
     my @args = @{delete($options{args})};
+    check_for_unexpected_options(%options);
     scalar(@args) > 0
         or user_error('activate-profile: no profile selected');
     scalar(@args) <= 1
         or user_error('activate-profile: too many arguments');
     my ($name) = @args;
-    my $code = $profile_codes{$name};
-    if (not defined($code)) {
-        my $profiles = join(', or ', map { "\"$_\"" } sort(keys(%profile_codes)));
+    my %profiles = %{$login_info->{'profiles'}};
+    if (not exists($profiles{$name})) {
+        my $profiles = join(', or ', map { "\"$_\"" } sort(keys(%profiles)));
         user_error("activate-profile: invalid profile name (should be $profiles)");
     }
+    my @codes = @{$profiles{$name}};
+    if (scalar @codes == 0) {
+        user_error("activate-profile: $name profile not available");
+    } elsif (scalar @codes > 1) {
+        internal_error('activate-profile: support for multiple profiles of the same type is not implemented yet');
+    };
+    my ($code) = @codes;
+    if ($code eq 'T') {
+        # ‘I’ (“individual profile”) is a superset of ‘T’ ("own products"),
+        # so let's use the latter:
+        $code = 'I';
+    }
     debug("activating profile $code...");
-    check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/LoginMain/Account/JsonActivateProfile",
         'X-Tab-Id' => $login_info->{tabid},
