@@ -838,6 +838,76 @@ my @ajax_html_headers = (
     'X-Requested-With' => 'XMLHttpRequest',
 );
 
+sub _extract_login_menu
+{
+    my ($html) = @_;
+    my %menu = ();
+    for my $e_script ($html->look_down(_tag => 'script')) {
+        my @content = $e_script->content_list;
+        scalar(@content) == 1
+            or next;
+        my ($content) = @content;
+        if (ref $content) {
+            next;
+        }
+        my ($js) = ($content =~ m/\A\s*nmbMenu\s*=\s*([{].+[}])\s*\z/s)
+            or next;
+        $js =~ s/'/"/g;
+        $js =~ s/(\w+):/"$1":/g;
+        $js =~ s/,\s*}/}/g;
+        my $json = decode_json($js)
+            or scraping_error("login.menu.json: $EVAL_ERROR");
+        while (my ($key, $value) = each %{$json}) {
+            $key =~ m/\A\w+\z/
+                or scraping_error("login.menu.key: $key");
+            my $url = $value->{url} // '';
+            $url =~ m{\A/\S+\z}
+                or scraping_error("login.menu.url: $url");
+            $menu{$key} = $url;
+        }
+        last;
+    }
+    return %menu;
+}
+
+sub _extract_login_profiles
+{
+    my ($html) = @_;
+    my %profiles = (
+        personal => [],
+        business => [],
+    );
+    for my $e_script ($html->look_down(_tag => 'script')) {
+        my @content = $e_script->content_list;
+        scalar(@content) == 1
+            or next;
+        my ($content) = @content;
+        if (ref $content) {
+            next;
+        }
+        my ($js) = ($content =~ m/^\s*Ebre[.]Venezia[.]ProfileData\s*=\s*([{].+[}]);\s*$/m)
+            or next;
+        my $json = decode_json($js)
+            or scraping_error("login.profiles.json: $EVAL_ERROR");
+        while (my ($key, $value) = each %{$json}) {
+            if ($key eq 'iProfiles') {
+                $key = 'personal';
+            } elsif ($key eq 'fProfiles') {
+                $key = 'business';
+            } else {
+                scraping_error("login.profiles.key: $key");
+            }
+            my @js_profiles = @{$value->{'profiles'}};
+            for my $js_profile (@js_profiles) {
+                my $code = $js_profile->{'profileCode'};
+                push(@{$profiles{$key}}, $code);
+            }
+        }
+        last;
+    }
+    return %profiles;
+}
+
 sub do_login
 {
     my %options = @_;
@@ -902,64 +972,8 @@ sub do_login
     my $arvt = $e_meta->attr('content') // '';
     $arvt =~ m{\A[\w/+=]{100,}\z}
         or scraping_error("login.arvt: $arvt");
-    my %menu = ();
-    for my $e_script ($html->look_down(_tag => 'script')) {
-        my @content = $e_script->content_list;
-        scalar(@content) == 1
-            or next;
-        my ($content) = @content;
-        if (ref $content) {
-            next;
-        }
-        my ($js) = ($content =~ m/\A\s*nmbMenu\s*=\s*([{].+[}])\s*\z/s)
-            or next;
-        $js =~ s/'/"/g;
-        $js =~ s/(\w+):/"$1":/g;
-        $js =~ s/,\s*}/}/g;
-        my $json = decode_json($js)
-            or scraping_error("login.menu.json: $EVAL_ERROR");
-        while (my ($key, $value) = each %{$json}) {
-            $key =~ m/\A\w+\z/
-                or scraping_error("login.menu.key: $key");
-            my $url = $value->{url} // '';
-            $url =~ m{\A/\S+\z}
-                or scraping_error("login.menu.url: $url");
-            $menu{$key} = $url;
-        }
-        last;
-    }
-    my %profiles = (
-        personal => [],
-        business => [],
-    );
-    for my $e_script ($html->look_down(_tag => 'script')) {
-        my @content = $e_script->content_list;
-        scalar(@content) == 1
-            or next;
-        my ($content) = @content;
-        if (ref $content) {
-            next;
-        }
-        my ($js) = ($content =~ m/^\s*Ebre[.]Venezia[.]ProfileData\s*=\s*([{].+[}]);\s*$/m)
-            or next;
-        my $json = decode_json($js)
-            or scraping_error("login.profiles.json: $EVAL_ERROR");
-        while (my ($key, $value) = each %{$json}) {
-            if ($key eq 'iProfiles') {
-                $key = 'personal';
-            } elsif ($key eq 'fProfiles') {
-                $key = 'business';
-            } else {
-                scraping_error("login.profiles.key: $key");
-            }
-            my @js_profiles = @{$value->{'profiles'}};
-            for my $js_profile (@js_profiles) {
-                my $code = $js_profile->{'profileCode'};
-                push(@{$profiles{$key}}, $code);
-            }
-        }
-        last;
-    }
+    my %menu = _extract_login_menu($html);
+    my %profiles = _extract_login_profiles($html);
     debug('logged in');
     return {
         tabid => $tabid,
