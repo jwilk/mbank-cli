@@ -887,6 +887,7 @@ sub _extract_login_profiles
         }
         my ($js) = ($content =~ m/^\s*Ebre[.]Venezia[.]ProfileData\s*=\s*([{].+[}]);\s*$/m)
             or next;
+        $js = unicode_to_bytes($js, 'UTF-8');
         my $json = decode_json($js)
             or scraping_error("login.profiles.json: $EVAL_ERROR");
         while (my ($key, $value) = each %{$json}) {
