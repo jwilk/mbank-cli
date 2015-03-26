@@ -1,4 +1,4 @@
-mbank-cli (1.3) UNRELEASED; urgency=low
+mbank-cli (1.3) unstable; urgency=low
 
   New features:
 
@@ -11,7 +11,7 @@ mbank-cli (1.3) UNRELEASED; urgency=low
   * Previous versions of mbank-cli emitted “Wide character in print …”
     warnings if login failed. This bug is now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Thu, 26 Mar 2015 21:51:17 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Thu, 26 Mar 2015 21:51:31 +0100
 
 mbank-cli (1.2.4) unstable; urgency=low
 
