@@ -2,8 +2,8 @@ mbank-cli (1.2.5) UNRELEASED; urgency=low
 
   New features:
 
-  * Add the activate-profile command. This is a stop-gap solution until
-    mbank-cli is taught to activate profiles automatically.
+  * The “activate-profile” command has been added. This is a stop-gap solution
+    until mbank-cli is taught to activate profiles automatically.
     https://code.google.com/p/mbank-cli/issues/detail?id=58
 
   Bug fixes:
