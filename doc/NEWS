@@ -1,11 +1,11 @@
-mbank-cli (1.3.1) UNRELEASED; urgency=low
+mbank-cli (1.3.1) unstable; urgency=low
 
   Documentation fixes:
 
   * The bug tracker URL has been updated.
     http://google-opensource.blogspot.com/2015/03/farewell-to-google-code.html
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 01 May 2015 18:00:42 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Fri, 01 May 2015 18:15:35 +0200
 
 mbank-cli (1.3) unstable; urgency=low
 
