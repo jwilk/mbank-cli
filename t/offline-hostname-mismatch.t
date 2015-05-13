@@ -54,7 +54,7 @@ $cli->finish();
 cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
 cmp_ok($stdout, 'eq', '', 'empty stdout');
 like($stderr,
-    qr/\b(certificate verify|IO::Socket::IP configuration) failed\b/,
+    qr/\b(hostname verification|certificate verify|IO::Socket::IP configuration) failed\b/,
     'certificate verification failed'
 );
 
