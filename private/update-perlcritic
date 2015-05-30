@@ -4,9 +4,10 @@ set -e -u
 export LC_ALL=C
 
 global_exclude='::RequireRcsKeywords'
-tests_exclude='::(RequireCarping|ProhibitAutomaticExportation|ProhibitComplexRegexes)'
-private_exclude='::RequireCarping'
-private_perl=$(grep -l '^#.*/perl' private/*)
+tests_exclude='::(RequireCarping|ProhibitAutomaticExportation|ProhibitComplexRegexes|RequireEndWithOne|RequireExplicitPackage)'
+
+private_exclude='::(RequireCarping|RequireEndWithOne|RequireExplicitPackage)'
+private_perl=$(grep -l '^#.*[ /]perl' private/*)
 
 here=$(basename "$0")
 cd "$here/.."
