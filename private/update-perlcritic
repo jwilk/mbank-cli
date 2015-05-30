@@ -4,7 +4,7 @@ set -e -u
 export LC_ALL=C
 
 global_exclude='::RequireRcsKeywords'
-tests_exclude='::(RequireCarping|ProhibitAutomaticExportation)'
+tests_exclude='::(RequireCarping|ProhibitAutomaticExportation|ProhibitComplexRegexes)'
 private_exclude='::RequireCarping'
 private_perl=$(grep -l '^#.*/perl' private/*)
 
