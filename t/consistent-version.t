@@ -60,6 +60,9 @@ SKIP: {
     if (-d code_file('.hg')) {
         skip('hg checkout', 1);
     }
+    if (-d code_file('.git')) {
+        skip('git checkout', 1);
+    }
     cmp_ok(
         $distribution,
         'ne',
