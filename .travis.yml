@@ -1,0 +1,21 @@
+language: perl
+perl:
+  - "5.10"
+  - "5.20"
+before_install:
+ - sudo apt-get update
+ - sudo apt-get install --no-install-recommends build-essential libssl-dev
+ - echo 'deb http://httpredir.debian.org/debian experimental main' | sudo tee -a /etc/apt/sources.list
+ - echo 'deb http://httpredir.debian.org/debian unstable main' | sudo tee -a /etc/apt/sources.list
+ - sudo apt-get update
+ - sudo apt-get install --no-install-recommends --allow-unauthenticated -y libnss-wrapper libsocket-wrapper
+install:
+ - cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay 
+ - cpanm Perl::MinimumVersion
+ - cpanm Perl::Critic
+before_script:
+ - make -C t/certs/
+script:
+ - private/update-perlcritic
+ - '! [ -s doc/todo.perlcritic ]'
+ - prove --verbose
