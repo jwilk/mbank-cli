@@ -5,6 +5,7 @@ perl:
 before_install:
  - sudo apt-get update
  - sudo apt-get install --no-install-recommends build-essential libssl-dev
+ - sudo apt-get install python-docutils
  - echo 'deb http://httpredir.debian.org/debian experimental main' | sudo tee -a /etc/apt/sources.list
  - echo 'deb http://httpredir.debian.org/debian unstable main' | sudo tee -a /etc/apt/sources.list
  - sudo apt-get update
@@ -16,6 +17,8 @@ install:
 before_script:
  - make -C t/certs/
 script:
+ - make -C doc/
+ - grep -r -l ft=rst doc/ | xargs -t -n1 -I{} rst2pseudoxml --strict {} /dev/null
  - private/update-perlcritic
  - '! [ -s doc/todo.perlcritic ]'
  - prove --verbose
