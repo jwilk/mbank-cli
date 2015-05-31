@@ -63,6 +63,14 @@ Debian 7.0 (wheezy) and later::
    apt-get install libipc-run-perl gnupg  # for password encryption
    apt-get install libterm-readline-gnu-perl  # for the “configure” command
 
+Cheat sheet for cpanm(1)
+~~~~~~~~~~~~~~~~~~~~~~~~
+::
+
+   cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
+   cpanm IPC::Run  # for password encryption
+   cpanm Term::ReadLine::Gnu  # for the “configure” command
+
 CA certificate
 --------------
 
