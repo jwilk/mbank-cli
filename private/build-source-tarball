@@ -18,6 +18,7 @@ export GZIP='-9 -n'
 mkdir -p "$sourceroot/$name-$version"
 hg archive -r "$revision" "$sourceroot/$name-$version"
 cd "$sourceroot"
+prename -v 's/[.]rst$//' $name-*/doc/*.rst
 make -C $name-*/doc
 make -C $name-*/t/certs/
 rm -rf $name-*/private/
