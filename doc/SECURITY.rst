@@ -38,6 +38,7 @@ It is highly recommended that affected users:
 References:
 
    - https://bugs.debian.org/746579
+   - https://bugs.debian.org/788698
    - https://bitbucket.org/jwilk/mbank-cli/commits/9ed861f1d9c7
 
 

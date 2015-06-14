@@ -404,6 +404,7 @@ sub http_init
         # HTTPS_CA_DIR and HTTPS_CA_FILE environment variables may disable or
         # cripple certificate validation:
         # https://bugs.debian.org/746579
+        # https://bugs.debian.org/788698
         delete $ENV{$key};
     }
     my $ssl_version;
