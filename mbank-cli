@@ -592,7 +592,7 @@ sub get_default_ca_path
 
 my @gpg_cmdline =
     Text::ParseWords::shellwords($ENV{MBANK_CLI_GPG} // 'gpg') or
-    user_error('cannot parse $MBANK_CLI_GPG');
+    user_error('cannot parse $MBANK_CLI_GPG');  ## no critic (InterpolationOfMetachars)
 
 sub read_config
 {
