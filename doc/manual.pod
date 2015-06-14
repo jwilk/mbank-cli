@@ -445,6 +445,12 @@ Failure because of an internal error.
 
 =over 4
 
+=item B<MBANK_CLI_GPG>
+
+This variable defines the GnuPG command (possibly with arguments)
+that is used to encrypt or decrypt the configuration file.
+The default is “B<gpg>”.
+
 =item B<XDG_CONFIG_HOME>
 
 The variable defines the base directory relative to which user specific configuration files should be stored.

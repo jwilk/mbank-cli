@@ -590,6 +590,10 @@ sub get_default_ca_path
 # configuration file handling
 # ===========================
 
+my @gpg_cmdline =
+    Text::ParseWords::shellwords($ENV{MBANK_CLI_GPG} // 'gpg') or
+    user_error('cannot parse $MBANK_CLI_GPG');
+
 sub read_config
 {
     my ($path) = @_;
@@ -645,10 +649,10 @@ sub _decrypt_config
         my $decrypted_data;
         eval {
             IPC::Run::run(
-                ['gpg', '-d'],
+                [@gpg_cmdline, '-d'],
                 '<', \$encrypted_data,
                 '>', \$decrypted_data,
-            ) or os_error('gpg -d failed');
+            ) or os_error("@gpg_cmdline -d failed");
         } // do {
             os_error($EVAL_ERROR);
         };
@@ -1992,17 +1996,17 @@ sub _configure_password
             require IPC::Run;
             my $secret_keys;
 	        IPC::Run::run(
-                [qw(gpg --batch --list-secret-keys)],
+                [@gpg_cmdline, qw(--batch --list-secret-keys)],
                 '>', \$secret_keys,
             );
             if (not scalar($secret_keys)) {
                 die(  ## no critic (Carping)
                     "No secret keys in the GnuPG keyring.\n" .
-                    'Use "gpg --gen-key" to generate a key pair.'
+                    "Use \"@gpg_cmdline --gen-key\" to generate a key pair."
                 );
             }
             IPC::Run::run(
-                [qw(gpg --armor --encrypt --default-recipient-self)],
+                [@gpg_cmdline, qw(--armor --encrypt --default-recipient-self)],
                 '<', \$password_line,
                 '>', \$encrypted_password,
             )
