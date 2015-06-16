@@ -1,23 +1,25 @@
 language: perl
 perl:
-  - "5.10"
-  - "5.20"
+- "5.10"
+- "5.20"
 before_install:
- - sudo apt-get update
- - sudo apt-get install --no-install-recommends build-essential libssl-dev
- - sudo apt-get install --no-install-recommends python-docutils
- - echo 'deb http://httpredir.debian.org/debian unstable main' | sudo tee -a /etc/apt/sources.list
- - sudo apt-get update
- - sudo apt-get install --no-install-recommends --allow-unauthenticated -y libnss-wrapper libsocket-wrapper
+- sudo apt-get update
+- sudo apt-get install --no-install-recommends build-essential libssl-dev
+- sudo apt-get install --no-install-recommends python-docutils
+- echo 'deb http://httpredir.debian.org/debian unstable main' | sudo tee -a /etc/apt/sources.list
+- sudo apt-get update
+- sudo apt-get install --no-install-recommends --allow-unauthenticated -y libnss-wrapper libsocket-wrapper
 install:
- - cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay 
- - cpanm Perl::MinimumVersion
- - cpanm Perl::Critic
+- cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
+- cpanm Perl::MinimumVersion
+- cpanm Perl::Critic
 before_script:
- - make -C t/certs/
+- make -C t/certs/
 script:
- - make -C doc/
- - ls doc/*.rst | xargs -t -n1 -I{} rst2pseudoxml --strict {} /dev/null
- - private/update-perlcritic
- - '! [ -s doc/todo.perlcritic ]'
- - prove --verbose
+- make -C doc/
+- ls doc/*.rst | xargs -t -n1 -I{} rst2pseudoxml --strict {} /dev/null
+- private/update-perlcritic
+- '! [ -s doc/todo.perlcritic ]'
+- prove --verbose
+
+# vim:ts=2 sts=2 sw=2 et
