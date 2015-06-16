@@ -2,6 +2,7 @@ language: perl
 perl:
 - "5.10"
 - "5.20"
+- "5.21"
 before_install:
 - sudo apt-get update
 - sudo apt-get install --no-install-recommends build-essential libssl-dev
