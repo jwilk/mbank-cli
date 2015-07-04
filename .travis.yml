@@ -18,7 +18,7 @@ before_script:
 - make -C t/certs/
 script:
 - make -C doc/
-- ls doc/*.rst | xargs -t -n1 -I{} rst2pseudoxml --strict {} /dev/null
+- ls doc/*.rst | xargs -t -n1 -I{} rst2xml --strict {} /dev/null
 - private/update-perlcritic
 - '! [ -s doc/todo.perlcritic ]'
 - prove --verbose
