@@ -23,6 +23,7 @@ make -C $name-*/doc
 make -C $name-*/t/certs/
 rm -rf $name-*/private/
 rm -rf */.hg*
+rm -rf */.travis*
 find $name-*/ -empty -delete
 tar -czf "$pwd/$name-$version.tar.gz" */
 rm -rf "$sourceroot"
