@@ -43,7 +43,6 @@ set -x
 sourceroot=$(mktemp -d -t "$name-source-XXXXXX")
 export TAR_OPTIONS='--owner root --group root --mode a+rX --format ustar'
 export GZIP='-9 -n'
-mkdir -p "$sourceroot/$name-$version"
 hg archive -r "$revision" "$sourceroot/$name-$version"
 cd "$sourceroot"/*
 prename -v 's/[.]rst$//' doc/*.rst
