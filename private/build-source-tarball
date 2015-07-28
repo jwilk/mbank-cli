@@ -25,6 +25,11 @@ then
     printf '%s [revision]\n' "$0" >&2
     exit 1
 fi
+if ! [ -d .hg ]
+then
+    printf '%s requires hg checkout\n' "$0" >&2
+    exit 1
+fi
 set -e -x
 pwd="$PWD"
 revision="${1:-tip}"
