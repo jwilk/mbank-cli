@@ -13,7 +13,7 @@ version=$(hg cat -r "$revision" doc/NEWS | head -n1 | cut -d ' ' -f2 | tr -d '()
 released=$(hg cat  -r "$revision" doc/NEWS | head -n1 | grep -v -w UNRELEASED || true)
 [ -n "$released" ] || version="${version}rc${date}"
 sourceroot=$(mktemp -d -t "$name-source-XXXXXX")
-export TAR_OPTIONS="--owner root --group root --mode a+rX --format ustar"
+export TAR_OPTIONS='--owner root --group root --mode a+rX --format ustar'
 export GZIP='-9 -n'
 mkdir -p "$sourceroot/$name-$version"
 hg archive -r "$revision" "$sourceroot/$name-$version"
