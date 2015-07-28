@@ -49,9 +49,9 @@ cd "$sourceroot"/*
 prename -v 's/[.]rst$//' doc/*.rst
 make -C doc/
 make -C t/certs/
-rm -rf private/
 rm -rf .hg*
 rm -rf .travis*
+rm -f private/build-source-tarball
 find . -empty -delete
 cd ..
 tar -czf "$pwd/$name-$version.tar.gz" */
