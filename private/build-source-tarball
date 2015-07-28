@@ -50,7 +50,7 @@ prename -v 's/[.]rst$//' doc/*.rst
 make -C doc/
 make -C t/certs/
 rm -rf .hg*
-rm -rf .travis*
+rm -f .travis*
 rm -f private/build-source-tarball
 find . -empty -delete
 cd ..
