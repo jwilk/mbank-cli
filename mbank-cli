@@ -802,6 +802,13 @@ sub html_class_regexp
     return qr/(?:\A|\s)\Q$class\E(?:\s|\z)/;
 }
 
+sub has_html_class
+{
+    my ($element, $class) = @_;
+    my $element_class = $element->attr('class') // '';
+    return $element_class =~ html_class_regexp($class);
+}
+
 sub find_html_class
 {
     my ($element, $class) = @_;
@@ -1366,9 +1373,9 @@ sub _do_history_page {
         my $e_op = $e_op_desc->parent;
         $e_op->tag eq 'li'
             or scraping_error('history.table');
-        my $class = $e_op->attr('class') // '';
-        $class !~ html_class_regexp('header')
-            or next;
+        if (has_html_class($e_op, 'header')) {
+            next;
+        }
         # dates:
         my @e_dates = find_html_class($e_op, 'Date');
         my ($e_dates) = scraping_count(\@e_dates, 1, 'history.date.1#');
@@ -1398,8 +1405,7 @@ sub _do_history_page {
             or scraping_error("history.details#: expected >= 3 instances, got $n_details");
         my @details;
         for my $e_detail (@e_details) {
-            $class = $e_detail->attr('class') // '';
-            if ($class =~ html_class_regexp('FilterType')) {
+            if (has_html_class($e_detail, 'FilterType')) {
                 next;
             }
             my $detail = $e_detail->as_trimmed_text();
@@ -1509,9 +1515,9 @@ sub _do_blocked_account
     @e_ops
         or scraping_error('blocked.table.items');
     for my $e_op (@e_ops) {
-        my $class = $e_op->attr('class') // '';
-        $class !~ html_class_regexp('header')
-            or next;
+        if (has_html_class($e_op, 'header')) {
+            next;
+        }
         # dates:
         my @e_dates = find_html_class($e_op, 'Date');
         scraping_count(\@e_dates, 2, 'blocked.date#');
@@ -1722,13 +1728,10 @@ sub do_funds
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
     my @e_funds = find_html_class($html, 'investment-properties');
     for my $e_fund (@e_funds) {
-        my $e_parent = $e_fund->parent;
-        my $class = $e_parent->attr('class') // '';
-        if ($class =~ html_class_regexp('bestFunds')) {
+        if (has_html_class($e_fund->parent, 'bestFunds')) {
             next;
         }
-        $class = $e_fund->attr('class') // '';
-        if ($class =~ html_class_regexp('wallet-properties')) {
+        if (has_html_class($e_fund, 'wallet-properties')) {
             next;
         }
         my $e_name = find_html_class($e_fund, 'investment-name-group')
@@ -1747,8 +1750,7 @@ sub do_funds
             or scraping_error("funds.amount.current: $current_amount");
         my $planned_amount = undef;
         if (defined($e_planned_amount)) {
-            $class = $e_planned_amount->attr('class') // '';
-            $class =~ html_class_regexp('gray')
+            has_html_class($e_planned_amount, 'gray')
                 or scraping_error('funds.amount.planned.gray');
             $planned_amount = $e_planned_amount->as_trimmed_text();
             $planned_amount = format_amount($planned_amount, plus => 1)
