@@ -1722,7 +1722,12 @@ sub do_funds
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
     my @e_funds = find_html_class($html, 'investment-properties');
     for my $e_fund (@e_funds) {
-        my $class = $e_fund->attr('class') // '';
+        my $e_parent = $e_fund->parent;
+        my $class = $e_parent->attr('class') // '';
+        if ($class =~ html_class_regexp('bestFunds')) {
+            next;
+        }
+        $class = $e_fund->attr('class') // '';
         if ($class =~ html_class_regexp('wallet-properties')) {
             next;
         }
