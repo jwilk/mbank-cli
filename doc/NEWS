@@ -1,10 +1,10 @@
-mbank-cli (1.4.1) UNRELEASED; urgency=low
+mbank-cli (1.4.1) unstable; urgency=low
 
   Bug fixes:
 
   * The program no longer tries to parse data from the “best funds” list.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Wed, 05 Aug 2015 12:08:13 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 12 Aug 2015 19:43:11 +0200
 
 mbank-cli (1.4) unstable; urgency=low
 
