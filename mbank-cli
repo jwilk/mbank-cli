@@ -435,7 +435,7 @@ sub http_init
     # The most straight-forward way to set SSL options is to use
     # LWP::UserAgent::ssl_opts. But this is only supported by LWP (>= 6.0).
     # Use IO::Socket::SSL::set_ctx_defaults() instead.
-    # [set_ctx_defaults() is a deprected alias for set_defaults().
+    # [set_ctx_defaults() is a deprecated alias for set_defaults().
     # The latter function is not available in IO::Socket::SSL (<< 1.81).]
     IO::Socket::SSL::set_ctx_defaults(@ssl_options);
     my @cookie_jar_options = (
@@ -709,7 +709,7 @@ sub format_amount
     check_for_unexpected_options(%options);
     if ($fp) {
         if (not defined($currency)) {
-            internal_error('floting-point number, but no currency');
+            internal_error('floating-point number, but no currency');
         }
         $s = format_number('%.2f', $s);
     }

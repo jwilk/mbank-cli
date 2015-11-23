@@ -42,8 +42,8 @@ References:
    - https://bitbucket.org/jwilk/mbank-cli/commits/9ed861f1d9c7
 
 
-2014-04-09: Heatblead
----------------------
+2014-04-09: Heartbleed
+----------------------
 
 The Heartbleed_ Bug (also known as CVE-2014-0160_) is a serious
 vulnerability in the OpenSSL library. When the weakness is exploited it
@@ -81,7 +81,7 @@ It is highly recommended that users:
 
    3) Truncate and unlink any files that were exposed to other local users.
 
-Note that pervious version of this advisory incorrectly stated that the bug
+Note that previous version of this advisory incorrectly stated that the bug
 was fixed in 20110215.
 
 References:
