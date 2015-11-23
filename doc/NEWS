@@ -1,7 +1,9 @@
 mbank-cli (1.4.2) UNRELEASED; urgency=low
 
-  * Update User-Agent string to match Firefox 38.
-  * Fix typos in the documentation and error messages.
+  Minor bug fixes:
+
+  * The User-Agent string was updated to match Firefox 38.
+  * A few typos were fixes.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Mon, 23 Nov 2015 17:14:18 +0100
 
