@@ -1,6 +1,6 @@
 # encoding=UTF-8
 
-# Copyright © 2014 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2014-2015 Jakub Wilk <jwilk@jwilk.net>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the “Software”), to deal
@@ -22,9 +22,9 @@
 
 '''
 logging script for mitmproxy
-usage: mitmproxy [options] --anticache -s httpdump.py
+usage: mitmproxy [options] --verify-upstream-cert --anticache -s httpdump.py
 
-Beware that mitmproxy itself doesn't verify peer certificates!
+Beware that mitmproxy doesn't fully verify peer certificates!
 '''
 
 import os
