@@ -934,7 +934,7 @@ sub do_login
             return;
         }
         debug('logging in...');
-        my ($seed) = ($doc->{content} =~ m/entrypoint[.]initialize[(]'([\w=-]+)'[,)]/)
+        my ($seed) = ($doc->{content} =~ m/\bapp[.]initialize[(]'([\w=-]+)'[,)]/)
             or scraping_error('login.seed');
         my $login_url = $doc->{url};
         my $login = get_config_var($cfg, 'login')
@@ -949,6 +949,8 @@ sub do_login
                 UserName => $login,
                 Password => $password,
                 Seed => $seed,
+                Scenario => 'Default',
+                UWAdditionalParams => {},
                 Lang => '',
             }),
         );

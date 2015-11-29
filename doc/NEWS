@@ -1,11 +1,15 @@
 mbank-cli (1.4.2) UNRELEASED; urgency=low
 
+  Major bug fixes:
+
+  * Logging in has been fixed.
+
   Minor bug fixes:
 
   * The User-Agent string was updated to match Firefox 38.
   * A few typos were fixes.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 23 Nov 2015 17:14:18 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Sun, 29 Nov 2015 12:43:59 +0100
 
 mbank-cli (1.4.1) unstable; urgency=low
 
