@@ -1012,7 +1012,7 @@ sub do_list
         'X-Request-Verification-Token' => $login_info->{arvt},
         @json_headers,
         'Referer' => $login_info->{url},
-        Content => '{}',
+        'Content' => '{}',
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content})
@@ -1575,7 +1575,7 @@ sub do_future
         'X-Request-Verification-Token' => $login_info->{arvt},
         @json_headers,
         'Referer' => $login_info->{url},
-        Content => '{"getFilter":true}',
+        'Content' => '{"getFilter":true}',
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content})
@@ -1634,7 +1634,7 @@ sub do_deposits
         'X-Request-Verification-Token' => $login_info->{arvt},
         @json_headers,
         'Referer' => $login_info->{url},
-        Content => '',
+        'Content' => '',
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content})
@@ -1687,7 +1687,7 @@ sub do_cards
         'X-Request-Verification-Token' => $login_info->{arvt},
         @ajax_html_headers,
         'Referer' => $login_info->{url},
-        Content => '',
+        'Content' => '',
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
@@ -1724,7 +1724,7 @@ sub do_funds
         'X-Request-Verification-Token' => $login_info->{arvt},
         @ajax_html_headers,
         'Referer' => $login_info->{url},
-        Content => 'type=Normal',
+        'Content' => 'type=Normal',
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
@@ -1779,7 +1779,7 @@ sub do_notices
         'X-Request-Verification-Token' => $login_info->{arvt},
         @json_headers,
         'Referer' => $login_info->{url},
-        Content => '{"placeholderIdList":null,"timestamp":-1}',
+        'Content' => '{"placeholderIdList":null,"timestamp":-1}',
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content})
