@@ -1,10 +1,10 @@
-mbank-cli (1.4.3) UNRELEASED; urgency=low
+mbank-cli (1.5) UNRELEASED; urgency=low
 
   Bug fixes:
 
   * Funds amounts larger than 1000 are now correctly parsed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 30 Nov 2015 13:17:11 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 30 Nov 2015 13:25:13 +0100
 
 mbank-cli (1.4.2) unstable; urgency=low
 
