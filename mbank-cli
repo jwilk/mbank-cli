@@ -714,7 +714,7 @@ sub format_amount
         $s = format_number('%.2f', $s);
     }
     my $sign_re;
-    $s =~ s/\s+(?=\d)//g;
+    $s =~ s/(\s|\xA0)+(?=\d)//g;
     if ($use_plus) {
         $sign_re = qr/[+-]?/;
     } else {
@@ -1747,9 +1747,9 @@ sub do_funds
         ($n_amounts == 1) or ($n_amounts == 2)
             or scraping_error("funds.amount#: expected 1 or 2 instances, got $n_amounts");
         my ($e_current_amount, $e_planned_amount) = @e_amounts;
-        my $current_amount = $e_current_amount->as_trimmed_text();
-        $current_amount = format_amount($current_amount)
-            or scraping_error("funds.amount.current: $current_amount");
+        my $current_amount_raw = $e_current_amount->as_trimmed_text();
+        my $current_amount = format_amount($current_amount_raw)
+            or scraping_error("funds.amount.current: $current_amount_raw");
         my $planned_amount = undef;
         if (defined($e_planned_amount)) {
             has_html_class($e_planned_amount, 'gray')
