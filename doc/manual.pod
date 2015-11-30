@@ -30,6 +30,9 @@ B<mbank-cli> B<cards> [I<option>...]
 B<mbank-cli> B<funds> [I<option>...]
 
 =item *
+B<mbank-cli> B<pension> [I<option>...]
+
+=item *
 B<mbank-cli> B<notices> [I<option>...]
 
 =item *
@@ -332,6 +335,27 @@ Example:
     $ mbank-cli funds
     SKARBIEC - III FILAR        2821.12 PLN
     Investor Zrównoważony FIO	   0.00 PLN  1000.00 PLN
+
+=head2 The “pension” command
+
+Syntax:
+B<mbank-cli> B<pension> [I<option>...]
+
+Print the list of pension funds,
+in the following format:
+
+=over 4
+
+=item Z<>
+
+I<fund-name> I<amount> I<[planned-amount]>
+
+=back
+
+Example:
+
+    $ mbank-cli pension
+    IKE mOchrony Kapitału  15636.17 PLN
 
 =head2 The “notices” command
 
