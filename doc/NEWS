@@ -8,7 +8,14 @@ mbank-cli (1.5) UNRELEASED; urgency=low
 
   * Funds amounts larger than 1000 are now correctly parsed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 30 Nov 2015 13:49:48 +0100
+  Documentation improvements:
+
+  * The “activate-profile” is now documented to accept common options, just
+    like any other command.
+
+  * The example for the “funds” command has been made more realistic.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 30 Nov 2015 14:07:10 +0100
 
 mbank-cli (1.4.2) unstable; urgency=low
 
