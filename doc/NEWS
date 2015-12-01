@@ -1,4 +1,4 @@
-mbank-cli (1.5) UNRELEASED; urgency=low
+mbank-cli (1.5) unstable; urgency=low
 
   New features:
 
@@ -15,7 +15,7 @@ mbank-cli (1.5) UNRELEASED; urgency=low
 
   * The example for the “funds” command has been made more realistic.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 30 Nov 2015 14:07:10 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 01 Dec 2015 17:44:47 +0100
 
 mbank-cli (1.4.2) unstable; urgency=low
 
