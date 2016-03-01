@@ -50,3 +50,5 @@ def response(context, flow, logindex=[0]):
                 log.write('\n\n')
     except Exception:
         traceback.print_exc(file=sys.stderr)
+
+# vim:ts=4 sts=4 sw=4 et
