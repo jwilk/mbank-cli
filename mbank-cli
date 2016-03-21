@@ -1312,7 +1312,7 @@ sub _do_history_account
     if (defined($export)) {
         my $response = simple_download($form->click());
         # FIXME: The whole file is loaded into memory.
-        # Istead, we should read and write it in chunks.
+        # Instead, we should read and write it in chunks.
         print {*STDOUT} $response->content;
         return 1;
     }
