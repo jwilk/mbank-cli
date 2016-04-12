@@ -13,6 +13,9 @@ functions = :builtins
 # umask() can only fail if umask(2) is not implemented
 exclude_functions = print umask
 
+[Modules::ProhibitExcessMainComplexity]
+max_mccabe = 30
+
 [-Modules::RequireVersionVar]
 # all our modules are private
 # see also https://bugs.debian.org/706266
