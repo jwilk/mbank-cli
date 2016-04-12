@@ -12,7 +12,7 @@ mbank-cli - command-line interface to the on-line banking system of mBank
 B<mbank-cli> [B<list>] [I<option>...]
 
 =item *
-B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
+B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--with-id>] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
 
 =item *
 B<mbank-cli> B<future> [I<option>...] {I<account> | B<-M> I<account>...  | B<-A>}
@@ -161,7 +161,7 @@ Example:
 =head2 The “history” command
 
 Syntax:
-B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
+B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--with-id>] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
 
 Print the history of the selected account(s),
 in the following format:
@@ -170,7 +170,7 @@ in the following format:
 
 =item Z<>
 
-I<[account-name]> I<date> I<accounting-date> I<amount> I<balance> I<description>
+I<[account-name]> I<[id]> I<date> I<accounting-date> I<amount> I<balance> I<description>
 
 =back
 
@@ -191,6 +191,16 @@ Show operations from I<start-date> to I<end-date>, inclusive.
 =back
 
 Dates should be specified in the in the I<YYYY>-I<MM>-I<DD> format.
+
+The following options control the output format:
+
+=over 4
+
+=item B<--with-id>
+
+Show operation identifiers (the I<id> field).
+
+=back
 
 Examples:
 

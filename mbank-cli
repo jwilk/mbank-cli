@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Copyright © 2006-2015 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2006-2016 Jakub Wilk <jwilk@jwilk.net>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the “Software”), to deal
@@ -1141,6 +1141,8 @@ sub do_history
     my @selection = @{$selection};
     my $display_name = delete($options{display_name})
         // internal_error('missing display_name');
+    my $display_id = delete($options{display_id})
+        // internal_error('missing display_id');
     my $start_date = delete($options{start_date});
     my $end_date = delete($options{end_date});
     my $export = delete($options{export});
@@ -1161,6 +1163,7 @@ sub do_history
             number => $number,
             name => $selected_accounts{$number},
             display_name => $display_name,
+            display_id => $display_id,
             start_date => $start_date,
             end_date => $end_date,
             export => $export,
@@ -1226,6 +1229,8 @@ sub _do_history_account
     my $export = delete($options{export});
     my $display_name = delete($options{display_name})
         // internal_error('missing display_name');
+    my $display_id = delete($options{display_id})
+        // internal_error('missing display_id');
     check_for_unexpected_options(%options);
     $doc = _switch_history_account(
         document => $doc,
@@ -1323,6 +1328,7 @@ sub _do_history_account
             html => $html,
             name => $name,
             display_name => $display_name,
+            display_id => $display_id,
         );
         my ($e_prevpage) = $html->look_down(
             _tag => 'button',
@@ -1364,6 +1370,8 @@ sub _do_history_page {
         // internal_error('missing name');
     my $display_name = delete($options{display_name})
         // internal_error('missing display_name');
+    my $display_id = delete($options{display_id})
+        // internal_error('missing display_id');
     check_for_unexpected_options(%options);
     my @e_op_descs = find_html_class($html, 'OperationDescription');
     if (not @e_op_descs) {
@@ -1377,6 +1385,18 @@ sub _do_history_page {
             or scraping_error('history.table');
         if (has_html_class($e_op, 'header')) {
             next;
+        }
+        # operation id:
+        my $id = '';
+        my @e_checkbox = $e_op->look_down(
+            _tag => 'input',
+            type => 'checkbox',
+        );
+        if (@e_checkbox) {
+            my ($e_checkbox) = scraping_count(\@e_checkbox, 1, 'history.checkbox.1#');
+            my $checkbox_id = $e_checkbox->attr('id') // '';
+            ($id) = $checkbox_id =~ qr/\Aaccount_operations_grid_ctl\d+_MCheckBox_\d+_\d+_(\d+)\z/
+                or scraping_error("history.checkbox.id: $checkbox_id");
         }
         # dates:
         my @e_dates = find_html_class($e_op, 'Date');
@@ -1420,6 +1440,9 @@ sub _do_history_page {
             local $LIST_SEPARATOR = "\t";
             if ($display_name) {
                 print("$name\t");
+            }
+            if ($display_id) {
+                print("$id\t");
             }
             print("@dates\t@amounts\t@details\n");
         }
@@ -2205,6 +2228,7 @@ my $opt_config = "$xdg_config_home/mbank-cli/config";
 my $opt_cookie_jar = undef;
 my $opt_start_date = undef;
 my $opt_end_date = undef;
+my $opt_with_id = 0;
 my $opt_all = 0;
 my $opt_multi = 0;
 my $opt_export = undef;
@@ -2215,7 +2239,7 @@ sub show_help
     print <<'EOF' ;
 Usage:
   mbank-cli [list]
-  mbank-cli history [--from <start-date> [--to <end-date>]] [--export <format>] {<account> | -M <account>... | -A}
+  mbank-cli history [--from <start-date> [--to <end-date>]] [--with-id] [--export <format>] {<account> | -M <account>... | -A}
   mbank-cli future {<account> | -M <account>... | -A}
   mbank-cli blocked {<account> | -M <account>... | -A}
   mbank-cli deposits
@@ -2374,6 +2398,7 @@ sub initialize
             my ($option, $date) = @_;
             $opt_end_date = check_user_date($option, $date);
         },
+        'with-id' => \$opt_with_id,
         'export=s' => sub {
             my ($option, $format) = @_;
             $opt_export = check_export_format($option, $format);
@@ -2397,7 +2422,7 @@ my %commands = (
     'debug-noop' => {},
     'debug-https-get' => { args => 1 },
     'list' => {},
-    'history' => { accounts => 1, dates => 1, export => 1 },
+    'history' => { accounts => 1, dates => 1, ids => 1, export => 1 },
     'future' => { accounts => 1 },
     'blocked' => { accounts => 1 },
     'deposits' => {},
@@ -2470,6 +2495,11 @@ if ($command_info->{dates}) {
     push(@cmd_options,
         start_date => $opt_start_date,
         end_date => $opt_end_date,
+    );
+}
+if ($command_info->{dates}) {
+    push(@cmd_options,
+        display_id => $opt_with_id,
     );
 }
 if ($command_info->{export}) {

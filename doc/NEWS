@@ -1,8 +1,11 @@
 mbank-cli (1.6) UNRELEASED; urgency=low
 
-  * 
+  New features:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 12 Apr 2016 18:12:09 +0200
+  * The “history” command has now an option to show operation identifiers
+    (--with-id).
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 12 Apr 2016 18:12:32 +0200
 
 mbank-cli (1.5) unstable; urgency=low
 
