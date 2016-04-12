@@ -161,7 +161,7 @@ Example:
 =head2 The “history” command
 
 Syntax:
-B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] {I<account> | B<-M> I<account>...  | B<-A>}
+B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
 
 Print the history of the selected account(s),
 in the following format:
