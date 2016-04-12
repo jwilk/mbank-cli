@@ -2194,7 +2194,7 @@ sub xdg_data_home
 # main program
 # ============
 
-our $VERSION = '1.5.1';
+our $VERSION = '1.6';
 
 umask(
     umask() | oct('077')
