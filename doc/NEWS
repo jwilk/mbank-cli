@@ -1,4 +1,4 @@
-mbank-cli (1.6) UNRELEASED; urgency=low
+mbank-cli (1.6) unstable; urgency=low
 
   New features:
 
@@ -9,7 +9,7 @@ mbank-cli (1.6) UNRELEASED; urgency=low
 
   * XDG Base Directory Specification URL has been updated.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 12 Apr 2016 18:12:32 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 13 Apr 2016 12:35:13 +0200
 
 mbank-cli (1.5) unstable; urgency=low
 
