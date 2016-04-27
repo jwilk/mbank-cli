@@ -348,7 +348,7 @@ mbank-cli (20120617) unstable; urgency=high
   * mbank-cli no longer creates debug files automatically by default. Use the
     --debug option to enable this feature.
 
-  * Due to a bug in the LWP module, if the IO::Socket::SSL module was
+  * Because of a bug in the LWP module, if the IO::Socket::SSL module was
     installed, mbank-cli did not verify the SSL certificate, making
     man-in-the-middle attacks feasible. This bug is now mitigated.
 

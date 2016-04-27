@@ -23,9 +23,9 @@ References:
 2014-05-01: missing certificate validation
 ------------------------------------------
 
-Due to a bug in the LWP module, if the IO::Socket::SSL module was installed,
-mbank-cli did not verify the SSL certificate, making man-in-the-middle
-attacks feasible.
+Because of a bug in the LWP module, if the IO::Socket::SSL module was
+installed, mbank-cli did not verify the SSL certificate, making
+man-in-the-middle attacks feasible.
 
 It is highly recommended that affected users:
 
