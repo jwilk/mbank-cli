@@ -454,24 +454,24 @@ Success.
 
 =item Z<>1
 
-Failure because of a user error.
+Failure caused by a user error.
 
 =item Z<>2
 
-Failure because of an HTTP error.
+Failure caused by an HTTP error.
 This may be due to a network error, but might as well be a result of a scraping error (see below).
 
 =item Z<>3
 
-Failure because of an unexpected behaviour of the web interface (so called “scraping error”).
+Failure caused by an unexpected behaviour of the web interface (so called “scraping error”).
 
 =item Z<>4
 
-Failure because of a system-related error or an I/O error.
+Failure caused by a system-related error or an I/O error.
 
 =item Z<>255
 
-Failure because of an internal error.
+Failure caused by an internal error.
 
 =back
 
