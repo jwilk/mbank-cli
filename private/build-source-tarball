@@ -46,11 +46,11 @@ export TAR_OPTIONS='--owner root --group root --mode a+rX --format ustar'
 export GZIP='-9 -n'
 git archive "$commit" --prefix="$name-$version/" | tar -C "$sourceroot" -xf -
 cd "$sourceroot"/*
+rm .git*
+rm .travis.yml
 prename -v 's/[.]rst$//' doc/*.rst
 make -C doc/
 make -C t/certs/
-rm .git*
-rm .travis.yml
 rm private/build-source-tarball
 find . -empty -delete
 cd ..
