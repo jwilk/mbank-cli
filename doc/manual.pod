@@ -577,7 +577,7 @@ set B<CookieJar> to B</dev/null> in the configuration file.
 
 =head1 BUGS
 
-Please report bugs at the L<issue tracker|https://bitbucket.org/jwilk/mbank-cli/issues>.
+Please report bugs at the L<issue tracker|https://github.com/jwilk/mbank-cli/issues>.
 
 =head1 SEE ALSO
 
