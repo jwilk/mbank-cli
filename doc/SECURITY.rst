@@ -17,7 +17,7 @@ It is recommended that users upgrade to mbank-cli 1.2 (or a later version).
 References:
 
    - http://www.nntp.perl.org/group/perl.perl5.porters/2010/08/msg162729.html
-   - https://bitbucket.org/jwilk/mbank-cli/commits/8704addd4e12
+   - https://github.com/jwilk/mbank-cli/commit/143b94b2c14a
 
 
 2014-05-01: missing certificate validation
@@ -39,7 +39,7 @@ References:
 
    - https://bugs.debian.org/746579
    - https://bugs.debian.org/788698
-   - https://bitbucket.org/jwilk/mbank-cli/commits/9ed861f1d9c7
+   - https://github.com/jwilk/mbank-cli/commit/7fa0c66d0e18
 
 
 2014-04-09: Heartbleed
@@ -86,7 +86,7 @@ was fixed in 20110215.
 
 References:
 
-   - https://bitbucket.org/jwilk/mbank-cli/commits/b0a6e542b33d
+   - https://github.com/jwilk/mbank-cli/commit/1e29af6c0fd3
 
 
 2009-12-08: insufficient certificate validation
@@ -106,6 +106,6 @@ It is highly recommended that users:
 References:
 
    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-0633
-   - https://bitbucket.org/jwilk/mbank-cli/commits/aae4eaa3d5ad
+   - https://github.com/jwilk/mbank-cli/commit/f67189bd242a
 
 .. vim:ft=rst tw=76 ts=3 sts=3 sw=3 et

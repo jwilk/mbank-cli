@@ -2,7 +2,7 @@ mbank-cli (1.6.1) UNRELEASED; urgency=low
 
   Documentation fixes:
 
-  * Bug tracker URLs have been updated.
+  * Bug tracker and VCS URLs have been updated.
     The project is now hosted at GitHub.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Sat, 11 Jun 2016 22:02:39 +0200
