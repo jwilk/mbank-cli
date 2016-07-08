@@ -503,7 +503,7 @@ The “B<configure>” command uses this variable to choose location of the sess
 
 =item B<LC_ALL>, B<LC_CTYPE>, B<LANG>
 
-These variables affect, amongst others, determine the interpretation of sequences of bytes as characters.
+These variables affect, amongst others, the interpretation of sequences of bytes as characters.
 B<LC_ALL> overrides B<LC_CTYPE>, which overrides B<LANG>.
 Please consult L<locale(7)> for details.
 
