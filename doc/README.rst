@@ -51,7 +51,7 @@ Arch Linux::
    pacman -S perl-ipc-run gnupg  # for password encryption
    pacman -S perl-term-readline-gnu  # for the “configure” command
 
-Debian 7.0 (wheezy) and later::
+Debian 7.0 (wheezy) or newer::
 
    apt-get install libwww-perl libhtml-form-perl
    apt-get install libipc-run-perl gnupg  # for password encryption
