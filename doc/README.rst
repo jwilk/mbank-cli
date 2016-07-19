@@ -51,12 +51,6 @@ Arch Linux::
    pacman -S perl-ipc-run gnupg  # for password encryption
    pacman -S perl-term-readline-gnu  # for the “configure” command
 
-Debian 6.0 (squeeze)::
-
-   apt-get install libwww-perl libio-socket-ssl-perl libjson-perl
-   apt-get install libipc-run-perl gnupg  # for password encryption
-   apt-get install libterm-readline-gnu-perl  # for the “configure” command
-
 Debian 7.0 (wheezy) and later::
 
    apt-get install libwww-perl libhtml-form-perl
