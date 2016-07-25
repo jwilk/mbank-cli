@@ -15,20 +15,15 @@ cd "$here/.."
 sed -n -r -e '/^\[-?/ { s///; s/\]$//; p }' .perlcriticrc \
 | sort -c
 
-target=doc/todo.perlcritic
+target=$(mktemp -t mbank-cli.perlcritic.XXXXXX)
 
 run_perlcritic()
 {
-    perlcritic --exclude "$global_exclude" --verbose '%p\n' "$@" >> "${target}.tmp" && return
+    perlcritic --exclude "$global_exclude" "$@" >> "$target" && return
     rc=$?
-    if [ $rc -ne 2 ]
-    then
-        rm -f "${target}.tmp"
-        exit $rc
-    fi
+    [ $rc -eq 2 ] || exit $rc
 }
 
-: > "$target.tmp"
 run_perlcritic "$@" mbank-cli
 run_perlcritic "$@" \
     --exclude "$tests_exclude" \
@@ -36,11 +31,9 @@ run_perlcritic "$@" \
 run_perlcritic "$@" \
     --exclude "$private_exclude" \
     $private_perl
-sort "${target}.tmp" \
-| grep -v ' source OK$' \
-| uniq -c > "${target}.new"
-rm -f "${target}.tmp"
-diff -u "${target}" "${target}.new" || true
-mv "${target}.new" "${target}"
+rc=0
+grep -v ' source OK$' "$target" && rc=1
+rm -f "$target"
+exit $rc
 
 # vim:ts=4 sts=4 sw=4 et
