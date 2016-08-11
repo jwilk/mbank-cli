@@ -35,6 +35,8 @@ if ($ENV{MBANK_CLI_ONLINE_TESTS}) {
     plan skip_all => 'set MBANK_CLI_ONLINE_TESTS=1 to enable online tests';
 }
 
+use English qw(-no_match_vars);
+
 use IPC::Run ();
 
 use FindBin ();
@@ -58,7 +60,7 @@ EOF
     cmp_ok($cli->result, '==', 0, 'no error');
     like($stdout, qr/<html>/i, 'HTML output');
     cmp_ok($stderr, 'eq', '', 'empty stderr');
-    unlink(tmp_dir . '/cookies')
+    unlink(tmp_dir . '/cookies') or die $ERRNO;
 
 }
 
