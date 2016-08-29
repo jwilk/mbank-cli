@@ -1,7 +1,7 @@
 mbank-cli (1.6.2) UNRELEASED; urgency=low
 
   Documentation fixes:
- 
+
   * Typo in the manual page has been fixed.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Sat, 09 Jul 2016 11:55:02 +0200
