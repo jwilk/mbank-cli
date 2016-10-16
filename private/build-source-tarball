@@ -49,6 +49,7 @@ cd "$sourceroot"/*
 rm .git*
 rm .travis.yml
 prename -v 's/[.]rst$//' doc/*.rst
+mv LICENSE doc/
 make -C doc/
 make -C t/certs/
 rm private/build-source-tarball
