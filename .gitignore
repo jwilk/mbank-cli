@@ -4,7 +4,6 @@ legacy/cookie-jar.txt
 legacy/t/server.crt
 legacy/t/server.pem
 legacy/t/server.rsa
-secret/*
 t/certs/*.crt
 t/certs/*.pem
 t/certs/*.req
