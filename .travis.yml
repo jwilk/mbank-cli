@@ -20,7 +20,7 @@ before_script:
 - make -C t/certs/
 script:
 - make -C doc/
-- ls doc/*.rst | xargs -t -n1 -I{} rst2xml --strict {} /dev/null
+- private/check-rst
 - private/run-perlcritic
 - prove --verbose
 
