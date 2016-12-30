@@ -2,13 +2,15 @@ language: perl
 perl:
 - "5.10"
 - "5.22"
+addons:
+  apt:
+    sources:
+    - debian-sid
 before_install:
 - sudo apt-get update
-- sudo apt-get install --no-install-recommends build-essential libssl-dev
-- sudo apt-get install --no-install-recommends python-docutils
-- echo 'deb http://deb.debian.org/debian unstable main' | sudo tee -a /etc/apt/sources.list
-- sudo apt-get update
-- sudo apt-get install --no-install-recommends --allow-unauthenticated -y libnss-wrapper libsocket-wrapper
+- sudo apt-get install -t precise --no-install-recommends build-essential libssl-dev
+- sudo apt-get install -t precise --no-install-recommends python-docutils
+- sudo apt-get install -t unstable --no-install-recommends libnss-wrapper libsocket-wrapper
 install:
 - cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
 - cpanm Perl::MinimumVersion
