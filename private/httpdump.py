@@ -23,11 +23,6 @@
 '''
 logging script for mitmproxy
 usage: mitmproxy [options] --anticache -s httpdump.py
-
-You will also need the --verify-upstream-cert for mitproxy before 0.18.
-
-Beware that before 0.14, mitmproxy didn't correctly verify peer certificates:
-https://github.com/mitmproxy/netlib/commit/5af9df326aef
 '''
 
 import os
@@ -35,7 +30,13 @@ import re
 import sys
 import traceback
 
-def response(context, flow, logindex=[0]):
+import mitmproxy  # mitmproxy >= 0.18 is required
+from netlib.http.http1.assemble import (
+    assemble_request_head,
+    assemble_response_head,
+)
+
+def response(flow, logindex=[0]):
     try:
         logindex[0] += 1
         path = 'log.{index:06}.{method}.{host}.{path}'.format(
@@ -46,10 +47,11 @@ def response(context, flow, logindex=[0]):
         )
         fd = os.open(path, os.O_TRUNC | os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0600)
         with os.fdopen(fd, 'w') as log:
-            for message in [flow.request, flow.response]:
-                log.write(message._assemble_head())
-                log.write(message.get_decoded_content())
-                log.write('\n\n')
+            log.write(assemble_request_head(flow.request))
+            log.write(flow.request.content)
+            log.write('\n\n')
+            log.write(assemble_response_head(flow.response))
+            log.write(flow.response.content)
     except Exception:
         traceback.print_exc(file=sys.stderr)
 
