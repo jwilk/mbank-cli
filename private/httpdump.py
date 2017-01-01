@@ -22,7 +22,9 @@
 
 '''
 logging script for mitmproxy
-usage: mitmproxy [options] --verify-upstream-cert --anticache -s httpdump.py
+usage: mitmproxy [options] --anticache -s httpdump.py
+
+You will also need the --verify-upstream-cert for mitproxy before 0.18.
 
 Beware that before 0.14, mitmproxy didn't correctly verify peer certificates:
 https://github.com/mitmproxy/netlib/commit/5af9df326aef
