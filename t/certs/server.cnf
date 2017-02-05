@@ -1,7 +1,7 @@
 oid_section = new_oids
 
 [new_oids]
-jurisdictionOfIncorporationCountryName = 1.3.6.1.4.1.311.60.2.1.3
+jurisdictionCountryName = 1.3.6.1.4.1.311.60.2.1.3
 
 [req]
 oid_section = new_oids
@@ -10,7 +10,7 @@ prompt = no
 x509_extensions = x509_ext
 
 [req_dn]
-jurisdictionOfIncorporationCountryName = PL
+jurisdictionCountryName = PL
 businessCategory = Private Organization
 serialNumber = 0000025237
 C = PL
