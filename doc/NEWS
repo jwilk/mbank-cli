@@ -10,8 +10,9 @@ mbank-cli (1.6.2) UNRELEASED; urgency=low
   * Typo in the manual page has been fixed.
   * Installation instruction for Debian 6.0 (squeeze) have been removed.
     This version is no longer supported.
+  * Add separate license file.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 06 Feb 2017 13:20:54 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 06 Feb 2017 15:43:18 +0100
 
 mbank-cli (1.6.1) unstable; urgency=low
 
