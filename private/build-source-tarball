@@ -52,6 +52,7 @@ prename -v 's/[.]rst$//' doc/*.rst
 mv LICENSE doc/
 make -C doc/
 make -C t/certs/
+rm t/certs/*.tmp.cnf
 rm private/build-source-tarball
 find . -empty -delete
 cd ..
