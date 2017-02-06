@@ -1,4 +1,4 @@
-mbank-cli (1.6.2) UNRELEASED; urgency=low
+mbank-cli (1.6.2) unstable; urgency=low
 
   Minor bug fixes:
 
@@ -12,7 +12,7 @@ mbank-cli (1.6.2) UNRELEASED; urgency=low
     This version is no longer supported.
   * Add separate license file.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 06 Feb 2017 15:43:18 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 06 Feb 2017 17:11:43 +0100
 
 mbank-cli (1.6.1) unstable; urgency=low
 
