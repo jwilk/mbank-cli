@@ -170,8 +170,9 @@ sub http_error
         $request->method,
         $request->uri
     );
-    if ($EVAL_ERROR) {
-        my $extra = $EVAL_ERROR;
+    my $client_warning = $response->header('Client-Warning') // '';
+    if (($response->code == 500) and ($client_warning eq 'Internal response')) {
+        my $extra = $response->content;
         $extra =~ s/\n+$//;
         $extra =~ s/\n+/\n/g;
         if ($extra !~ /[(]/ and $IO::Socket::SSL::SSL_ERROR) {
