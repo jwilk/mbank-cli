@@ -31,10 +31,18 @@ import sys
 import traceback
 
 import mitmproxy  # mitmproxy >= 0.18 is required
-from netlib.http.http1.assemble import (
-    assemble_request_head,
-    assemble_response_head,
-)
+try:
+    # mitmproxy >= 1.0
+    from mitmproxy.net.http.http1.assemble import (
+        assemble_request_head,
+        assemble_response_head,
+    )
+except ImportError:
+    # mitmproxy < 1.0
+    from netlib.http.http1.assemble import (
+        assemble_request_head,
+        assemble_response_head,
+    )
 
 def response(flow, logindex=[0]):
     try:
@@ -45,11 +53,11 @@ def response(flow, logindex=[0]):
             host=flow.request.host,
             path=re.sub(r'[^\w.]', '_', flow.request.path),
         )
-        fd = os.open(path, os.O_TRUNC | os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0600)
-        with os.fdopen(fd, 'w') as log:
+        fd = os.open(path, os.O_TRUNC | os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, 'wb') as log:
             log.write(assemble_request_head(flow.request))
             log.write(flow.request.content)
-            log.write('\n\n')
+            log.write(b'\n\n')
             log.write(assemble_response_head(flow.response))
             log.write(flow.response.content)
     except Exception:
