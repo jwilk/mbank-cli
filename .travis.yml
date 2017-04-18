@@ -1,3 +1,5 @@
+dist: trusty
+sudo: required
 language: perl
 perl:
 - "5.10"
@@ -9,8 +11,8 @@ addons:
 before_install:
 - sudo apt-get update
 - APT_INSTALL='sudo apt-get install --no-install-recommends'
-- $APT_INSTALL -t precise build-essential libssl-dev
-- $APT_INSTALL -t precise python-docutils
+- $APT_INSTALL -t trusty build-essential libssl-dev
+- $APT_INSTALL -t trusty python-docutils
 - $APT_INSTALL -t unstable libnss-wrapper libsocket-wrapper
 install:
 - cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
