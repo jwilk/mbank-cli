@@ -1,8 +1,13 @@
 mbank-cli (1.6.3) UNRELEASED; urgency=low
 
-  * 
+  Bug fixes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Wed, 08 Feb 2017 23:12:56 +0100
+  * The root CA certificate has been updated. It is now:
+    DigiCert High Assurance EV Root CA
+    https://github.com/jwilk/mbank-cli/issues/61
+    https://www.mbank.pl/informacje-dla-klienta/indywidualny/post,7744,zmiana-certyfikatow-bezpieczenstwa-mbanku.html
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 17 May 2017 14:06:15 +0200
 
 mbank-cli (1.6.2) unstable; urgency=low
 
