@@ -2324,11 +2324,11 @@ sub initialize
         $ca_path = expand_tilde($ca_path);
     } else {
         $ca_path = get_default_ca_path(
-            'VeriSign Class 3 Public Primary Certification Authority - G5',
+            'DigiCert High Assurance EV Root CA',
             # openssl x509 -subject_hash -noout
-            'b204d74a',
+            '244b5494',
             # openssl x509 -subject_hash_old -noout
-            'facacbc6',
+            '81b9768f',
         );
     }
     if (not -r $ca_path) {
