@@ -2242,7 +2242,8 @@ umask(
 );
 
 my $xdg_config_home = xdg_config_home();
-my $opt_config = "$xdg_config_home/mbank-cli/config";
+my $config_dir = "$xdg_config_home/mbank-cli";
+my $opt_config = "$config_dir/config";
 my $opt_cookie_jar = undef;
 my $opt_start_date = undef;
 my $opt_end_date = undef;
@@ -2321,6 +2322,7 @@ sub check_export_format
 
 sub initialize
 {
+    debug("config = $opt_config");
     if (not -e $opt_config) {
         user_error(
             "missing configuration file: $opt_config\n" .
@@ -2431,6 +2433,10 @@ sub initialize
 
 if (defined($opt_export) and -t STDOUT) {  ## no critic (InteractiveTest)
     user_error('export data cannot be written to a terminal; please redirect stdout to a file');
+}
+
+if ($opt_config !~ m{\A[.]{0,2}/}) {
+    $opt_config = "$config_dir/$opt_config";
 }
 
 my ($command_name, @args) = @ARGV;
