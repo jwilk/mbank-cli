@@ -144,8 +144,6 @@ For each account, print:
 
 =over 4
 
-=item Z<>
-
 I<account-name> I<account-number> I<balance> I<avail-resources>
 
 =back
@@ -167,8 +165,6 @@ Print the history of the selected account(s),
 in the following format:
 
 =over 4
-
-=item Z<>
 
 I<[account-name]> I<[id]> I<date> I<accounting-date> I<amount> I<balance> I<description>
 
@@ -248,8 +244,6 @@ in the following format:
 
 =over 4
 
-=item Z<>
-
 I<[account-name]> I<date> I<recipient> I<description> I<amount> I<status>
 
 =back
@@ -269,8 +263,6 @@ in the following format:
 
 =over 4
 
-=item Z<>
-
 I<[account-name]> I<registration-date> I<finalization-date> I<amount> I<description> I<type>
 
 =back
@@ -289,8 +281,6 @@ Print the list of time deposits,
 in the following format:
 
 =over 4
-
-=item Z<>
 
 I<deposit-name> I<deposit-type> I<establishment-date> I<maturity-date> I<term> I<interest> I<amount>
 
@@ -312,8 +302,6 @@ in the following format:
 
 =over 4
 
-=item Z<>
-
 I<card-name> I<card-number> I<owner> I<amount>
 
 =back
@@ -333,8 +321,6 @@ Print the list of investment funds,
 in the following format:
 
 =over 4
-
-=item Z<>
 
 I<fund-name> I<amount> I<[planned-amount]>
 
@@ -356,8 +342,6 @@ in the following format:
 
 =over 4
 
-=item Z<>
-
 I<fund-name> I<amount> I<[planned-amount]>
 
 =back
@@ -376,8 +360,6 @@ Print the list of notices,
 in the following format:
 
 =over 4
-
-=item Z<>
 
 I<flag> I<date> I<title>
 
