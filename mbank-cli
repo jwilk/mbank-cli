@@ -383,7 +383,7 @@ sub guess_country
 
 my $ua = undef;
 
-my $http_product_name = 'Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0';
+my $http_product_name = 'Mozilla/5.0 (Windows NT 6.1; rv:52.0) Gecko/20100101 Firefox/52.0';
 my $http_read_size_hint = 1 << 20;  # 1 MiB
 my $http_timeout = 30;
 
