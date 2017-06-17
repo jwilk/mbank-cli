@@ -12,7 +12,7 @@ private_perl=$(grep -l '^#.*[ /]perl' private/*)
 here=$(dirname "$0")
 cd "$here/.."
 
-sed -n -r -e '/^\[-?/ { s///; s/\]$//; p }' .perlcriticrc \
+sed -n -E -e '/^\[-?/ { s///; s/\]$//; p }' .perlcriticrc \
 | sort -c
 
 target=$(mktemp -t mbank-cli.perlcritic.XXXXXX)

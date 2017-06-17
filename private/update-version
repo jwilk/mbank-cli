@@ -2,4 +2,4 @@
 version=${1:?"no version number provided"}
 set -e -x
 dch -m -v "$version" -c doc/NEWS -u low
-sed -i -r -e "s/^(our [\$]VERSION) = '\S+'/\1 = '$version'/" mbank-cli
+sed -i -E -e "s/^(our [\$]VERSION) = '\S+'/\1 = '$version'/" mbank-cli
