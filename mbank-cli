@@ -855,6 +855,23 @@ sub _extract_login_menu
 {
     my ($html) = @_;
     my %menu = ();
+    my $load_menu;
+    $load_menu = sub {
+        my ($item) = @_;
+        my $key = $item->{'UniqueIdentifier'} // '';
+        $key =~ m/\A\w+\z/
+            or scraping_error("login.menu.key: $key");
+        my $url = $item->{'FullUrl'} // '';
+        $url =~ m{\A/\S+\z}
+            or scraping_error("login.menu.url: $url");
+        my $children = $item->{'Children'};
+        ref $children eq 'ARRAY'
+            or scraping_error('login.menu.children: not an array');
+        for my $subitem (@{$children}) {
+            $load_menu->($subitem);
+        }
+        $menu{$key} = $url;
+    };
     for my $e_script ($html->look_down(_tag => 'script')) {
         my @content = $e_script->content_list;
         scalar(@content) == 1
@@ -863,23 +880,20 @@ sub _extract_login_menu
         if (ref $content) {
             next;
         }
-        my ($js) = ($content =~ m/\A\s*nmbMenu\s*=\s*([{].+[}])\s*\z/s)
+        my ($json) = ($content =~ m/^\s*Ebre[.]Venezia[.]MenuItems\s*=\s*(\[.+\]);\s+$/m)
             or next;
-        $js =~ s/'/"/g;
-        $js =~ s/(\w+):/"$1":/g;
-        $js =~ s/,\s*}/}/g;
-        my $json = decode_json($js)
+        $json = Encode::encode('UTF-8', $json);
+        $json = decode_json($json)
             or scraping_error("login.menu.json: $EVAL_ERROR");
-        while (my ($key, $value) = each %{$json}) {
-            $key =~ m/\A\w+\z/
-                or scraping_error("login.menu.key: $key");
-            my $url = $value->{url} // '';
-            $url =~ m{\A/\S+\z}
-                or scraping_error("login.menu.url: $url");
-            $menu{$key} = $url;
+        ref $json eq 'ARRAY'
+            or scraping_error('login.menu.json: not an array');
+        for my $item (@{$json}) {
+            $load_menu->($item);
         }
         last;
     }
+    (keys %menu > 0)
+        or scraping_error('login.menu.missing');
     return %menu;
 }
 
