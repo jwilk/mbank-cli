@@ -1,3 +1,16 @@
+mbank-cli (1.6.4) UNRELEASED; urgency=low
+
+  Bug fixes:
+
+  * The “history” command has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/65
+
+  Minor improvements:
+
+  * The User-Agent string has been updated to match Firefox 52.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Thu, 13 Jul 2017 18:47:48 +0200
+
 mbank-cli (1.6.3) unstable; urgency=low
 
   Bug fixes:
