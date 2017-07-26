@@ -1,4 +1,4 @@
-mbank-cli (1.6.5) UNRELEASED; urgency=low
+mbank-cli (1.6.5) unstable; urgency=low
 
   Bug fixes:
 
@@ -6,7 +6,7 @@ mbank-cli (1.6.5) UNRELEASED; urgency=low
 
   * The “history” command for Czech (and Slovak?) mBank has been fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Wed, 26 Jul 2017 16:59:39 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 26 Jul 2017 17:01:46 +0200
 
 mbank-cli (1.6.4) unstable; urgency=low
 
