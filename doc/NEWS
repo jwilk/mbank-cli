@@ -10,7 +10,7 @@ mbank-cli (1.6.5) unstable; urgency=low
 
   * Logging in to Czech and Slovak mBank has been fixed.
 
-  * The “history” command for Czech (and Slovak?) mBank has been fixed.
+  * Menu parsing for Czech (and Slovak?) mBank has been fixed.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Wed, 26 Jul 2017 17:01:46 +0200
 
