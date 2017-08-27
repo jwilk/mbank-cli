@@ -3,7 +3,7 @@ all: mbank-cli.1
 
 .PHONY: clean
 clean:
-	rm -f *.1
+	rm -f *.1 *.tmp
 
 mbank-cli.1: manual.pod
 	sed -e 's/L<\([a-z_-]\+\)(\([0-9]\+\))>/B<\1>(\2)/g' $(<) \
