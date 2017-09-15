@@ -31,6 +31,7 @@ import sys
 import traceback
 
 import mitmproxy  # mitmproxy >= 0.18 is required
+del mitmproxy  # hi, pyflakes!
 try:
     # mitmproxy >= 1.0
     from mitmproxy.net.http.http1.assemble import (
