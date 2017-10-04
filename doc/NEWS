@@ -467,7 +467,7 @@ mbank-cli (20110725) unstable; urgency=low
     https://github.com/jwilk/mbank-cli/issues/39
 
   * In previous versions of mbank-cli, the “notices” command showed only
-    customer notices. Now account notices are showed, too.
+    customer notices. Now account notices are shown, too.
     https://github.com/jwilk/mbank-cli/issues/40
 
   * In previous versions of mbank-cli, the “future” and “withholdings”
