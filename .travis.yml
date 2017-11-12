@@ -4,16 +4,13 @@ language: perl
 perl:
 - "5.10"
 - "5.24"
-addons:
-  apt:
-    sources:
-    - debian-sid
 before_install:
-- sudo apt-get update
 - APT_INSTALL='sudo apt-get install --no-install-recommends'
+- echo 'deb http://archive.ubuntu.com/ubuntu/ xenial main universe' | sudo tee -a /etc/apt/sources.list
+- sudo apt-get update
 - $APT_INSTALL -t trusty build-essential libssl-dev
 - $APT_INSTALL -t trusty python-docutils
-- $APT_INSTALL -t unstable libnss-wrapper libsocket-wrapper
+- $APT_INSTALL -t xenial libnss-wrapper libsocket-wrapper
 install:
 - export PERL_CPANM_OPT='--no-interactive --no-man-pages --notest --skip-satisfied'
 - cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
