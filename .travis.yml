@@ -13,7 +13,7 @@ before_install:
 - $APT_INSTALL -t xenial libnss-wrapper libsocket-wrapper
 install:
 - export PERL_CPANM_OPT='--no-interactive --no-man-pages --notest --skip-satisfied'
-- cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
+- cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
 - cpanm Perl::MinimumVersion
 - cpanm Perl::Critic
 before_script:

@@ -14,10 +14,6 @@ Requirements
 
 - Perl (≥ 5.10) with the following Perl modules:
 
-  - Date::Format
-
-  - Date::Parse
-
   - HTML::Form
 
   - HTML::HeadParser
@@ -47,7 +43,7 @@ Cheat sheet for free software distributions
 
 Arch Linux::
 
-   pacman -S perl-timedate perl-html-form perl-html-tree perl-lwp-protocol-https
+   pacman -S perl-html-form perl-html-tree perl-lwp-protocol-https
    pacman -S perl-ipc-run gnupg  # for password encryption
    pacman -S perl-term-readline-gnu  # for the “configure” command
 
@@ -61,7 +57,7 @@ Cheat sheet for cpanm(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 ::
 
-   cpanm Date::Format Date::Parse HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
+   cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
    cpanm IPC::Run  # for password encryption
    cpanm Term::ReadLine::Gnu  # for the “configure” command
 

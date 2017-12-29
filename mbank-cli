@@ -53,6 +53,8 @@ use Module::Loaded ();
 use POSIX ();
 use Symbol ();
 use Text::ParseWords ();
+use Time::Piece ();
+use Time::Seconds ();
 
 # JSON:
 BEGIN {
@@ -89,8 +91,6 @@ BEGIN {
 }
 
 # 3rd-party modules:
-use Date::Format qw(time2str);
-use Date::Parse qw(str2time);
 use HTML::Form ();
 use HTML::HeadParser ();
 use HTML::TreeBuilder ();
@@ -756,8 +756,9 @@ sub parse_timestamp
         or return;
     $discard_time or ($time =~ m/\A[0:.]+\Z/)
         or return;
-    str2time("$date UTC")
-        or return;
+    eval {
+        Time::Piece->strptime($date, '%Y-%m-%d');
+    } or return;
     return $date;
 }
 
@@ -767,20 +768,21 @@ sub parse_le_date
     my ($d, $m, $y) = ($date =~ m/\A(\d\d)-(\d\d)-(\d\d\d\d)\z/)
         or return;
     $date = "$y-$m-$d";
-    str2time("$date UTC")
-        or return;
+    eval {
+        Time::Piece->strptime($date, '%Y-%m-%d');
+    } or return;
     return $date;
 }
 
 sub shift_date
 {
     my ($date, $offset) = @_;
-    my $unix_ts = str2time("$date UTC");
-    defined $unix_ts
-        or return;
-    my $seconds_in_day = 60 * 60 * 24;
-    $unix_ts += $offset * $seconds_in_day;
-    $date = time2str('%Y-%m-%d', $unix_ts, 'UTC');
+    my $tp;
+    eval {
+        $tp = Time::Piece->strptime($date, '%Y-%m-%d');
+    } or return;
+    $tp += $offset * Time::Seconds::ONE_DAY;
+    $date = $tp->ymd;
     $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
         or return;
     return $date;
@@ -2299,8 +2301,9 @@ sub check_user_date
     my ($option, $date) = @_;
     $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
         or user_error("--$option date not in the YYYY-MM-DD format: $date");
-    str2time($date)
-        // user_error("invalid --$option date: $date");
+    eval {
+        Time::Piece->strptime($date, '%Y-%m-%d');
+    } or user_error("invalid --$option date: $date");
     return $date;
 }
 
