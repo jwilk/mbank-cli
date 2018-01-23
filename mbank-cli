@@ -1829,7 +1829,7 @@ sub do_notices
         // internal_error('missing login info');
     check_for_unexpected_options(%options);
     my $request = POST(
-        "$base_url/WhirlWind/AdvPlaceholder/GetUpdates",
+        "$base_url/Adv/AdvPlaceholder/GetUpdates",
         'X-Tab-Id' => $login_info->{tabid},
         'X-Request-Verification-Token' => $login_info->{arvt},
         @json_headers,
