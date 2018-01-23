@@ -42,7 +42,7 @@ released=$(git cat-file blob "$commit:doc/NEWS" | head -n1 | grep -v -w UNRELEAS
 printf 'Commit: %s\nVersion: %s\n' "$commit" "$version" >&2
 set -x
 sourceroot=$(mktemp -d -t "$name-source-XXXXXX")
-export TAR_OPTIONS='--owner root --group root --mode a+rX --format ustar'
+tar_options='--owner=root --group=root --mode=a+rX --format=ustar'
 export GZIP='-9 -n'
 git archive "$commit" --prefix="$name-$version/" | tar -C "$sourceroot" -xf -
 cd "$sourceroot"/*
@@ -57,7 +57,7 @@ rm t/certs/*.tmp.cnf
 rm private/build-source-tarball
 find . -empty -delete
 cd ..
-tar -czf "$pwd/$name-$version.tar.gz" */
+tar $tar_options -czf "$pwd/$name-$version.tar.gz" */
 rm -r "$sourceroot"
 set +x
 cd "$pwd"
