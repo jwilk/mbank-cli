@@ -14,31 +14,31 @@ Requirements
 
 - Perl (≥ 5.10) with the following Perl modules:
 
-   - Date::Format
+  - Date::Format
 
-   - Date::Parse
+  - Date::Parse
 
-   - HTML::Form
+  - HTML::Form
 
-   - HTML::HeadParser
+  - HTML::HeadParser
 
-   - HTML::TreeBuilder
+  - HTML::TreeBuilder
 
-   - IO::Socket::SSL (≥ 1.31)
+  - IO::Socket::SSL (≥ 1.31)
 
-   - IPC::Run (optionally, for password encryption)
+  - IPC::Run (optionally, for password encryption)
 
-   - JSON or JSON::PP (the latter is a core module since Perl 5.14)
+  - JSON or JSON::PP (the latter is a core module since Perl 5.14)
 
-   - LWP::UserAgent (≥ 5.802)
+  - LWP::UserAgent (≥ 5.802)
 
-   - LWP::Protocol::https
+  - LWP::Protocol::https
 
-   - Net::HTTPS
+  - Net::HTTPS
 
-   - Net::SSLeay
+  - Net::SSLeay
 
-   - Term::ReadLine::Gnu (only required by the “configure” command)
+  - Term::ReadLine::Gnu (only required by the “configure” command)
 
 - GnuPG (optionally, for password encryption)
 
