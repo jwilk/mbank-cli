@@ -4,7 +4,13 @@ mbank-cli (1.6.6) UNRELEASED; urgency=low
 
   * The “notices” command has been fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 23 Jan 2018 18:52:18 +0100
+  Portability improvements:
+
+  * The Date::Format and Date::Parse modules are no longer required.
+
+  * Not-portable use of sed in a few helper script was replaced with Perl.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 23 Jan 2018 19:22:44 +0100
 
 mbank-cli (1.6.5) unstable; urgency=low
 
