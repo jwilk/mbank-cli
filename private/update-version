@@ -1,5 +1,5 @@
 #!/bin/sh
-version=${1:?"no version number provided"}
+export version=${1:?"no version number provided"}
 set -e -x
 dch -m -v "$version" -c doc/NEWS -u low
-sed -i -E -e "s/^(our [\$]VERSION) = '\S+'/\1 = '$version'/" mbank-cli
+perl -pi -e 's/^our \$VERSION = '"'"'\K[\w.]+/$ENV{version}/' mbank-cli
