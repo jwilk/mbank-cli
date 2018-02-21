@@ -49,7 +49,7 @@ cd "$sourceroot"/*
 rm .git*
 rm .mailmap
 rm .travis.yml
-rm README  # shipped as doc/README
+rm README.rst  # shipped as doc/README
 mv LICENSE doc/
 make -C doc/
 make -C t/certs/
