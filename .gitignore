@@ -1,3 +1,4 @@
+/dist
 /doc/*.1
 /legacy/*.conf
 /legacy/cookie-jar.txt
