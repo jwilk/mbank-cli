@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+set -e
+cd "${0%/*}/.."
 if [ $# -ge 2 ]
 then
     printf '%s [commit]\n' "$0" >&2
@@ -30,7 +32,6 @@ then
     printf '%s requires git checkout\n' "$0" >&2
     exit 1
 fi
-set -e
 pwd="$PWD"
 commit=${1:-HEAD}
 commit=$(git describe "$commit")
