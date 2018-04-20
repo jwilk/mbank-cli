@@ -1,0 +1,2 @@
+#!/bin/sh
+exec apt-get install libwww-perl libhtml-form-perl libipc-run-perl libperl-minimumversion-perl libjson-perl libsocket-wrapper libnss-wrapper
