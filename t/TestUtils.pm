@@ -81,9 +81,16 @@ sub setup_network_wrappers
 sub start_https_server
 {
     my ($cert_file, @options) = @_;
+    my @ipv4_opts = ();
     $cert_file = cert_file($cert_file);
+    my $help;
+    IPC::Run::run(['openssl', 's_server', '-help'], '>&', \$help);
+    if ($help =~ /\s-4\s/) {
+        push @ipv4_opts, '-4';
+    }
     my $server = IPC::Run::start(
         'openssl', 's_server',
+        @ipv4_opts,
         '-accept', '443',
         '-cert', $cert_file,
         '-quiet',
