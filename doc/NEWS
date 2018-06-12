@@ -287,7 +287,7 @@ mbank-cli (1.0) unstable; urgency=low
 
   This version of mbank-cli has been rewritten (almost) from scratch.
   It uses https://online.mbank.pl/ (or https://online.mbank.cz/, or
-  https://online.mbank.sk) as the web backend.
+  https://online.mbank.sk/) as the web backend.
 
   The new code is available under the permissive Expat (a.k.a. MIT) license.
 
