@@ -27,7 +27,7 @@ rst2xml=$(command -v rst2xml) \
 options='--input-encoding=UTF-8 --strict'
 if [ $# -eq 0 ]
 then
-    grep -rwl 'ft[=]rst' "$here/.."
+    grep -rwl 'ft=rst' "$here/../doc"
 else
     printf '%s\n' "$@"
 fi |
