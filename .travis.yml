@@ -19,6 +19,7 @@ install:
 before_script:
 - make -C t/certs/
 script:
+- dpkg-parsechangelog -ldoc/NEWS --all 2>&1 >/dev/null | { ! grep .; }
 - make -C doc/
 - private/check-rst
 - private/run-perlcritic
