@@ -11,4 +11,8 @@ mbank-cli.1: manual.pod
 	> $(@).tmp
 	mv $(@).tmp $(@)
 
+.PHONY: test check
+test check: manual.pod
+	podchecker -warnings -warnings $(<)
+
 # vim:ts=4 sts=4 sw=4 noet
