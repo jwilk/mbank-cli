@@ -34,7 +34,7 @@ use English qw(-no_match_vars);
 use IPC::Run ();
 
 use FindBin ();
-use lib "$FindBin::Bin";
+use lib $FindBin::Bin;
 use TestUtils;
 
 my $cli_version_re = qr/\Ambank-cli (\S+)\n/;

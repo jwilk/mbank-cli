@@ -40,7 +40,7 @@ use English qw(-no_match_vars);
 use IPC::Run ();
 
 use FindBin ();
-use lib "$FindBin::Bin";
+use lib $FindBin::Bin;
 use TestUtils;
 
 for my $country (qw(cz sk pl)) {

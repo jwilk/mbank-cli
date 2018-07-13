@@ -32,7 +32,7 @@ use Test::More tests => 3;
 use IPC::Run ();
 
 use FindBin ();
-use lib "$FindBin::Bin";
+use lib $FindBin::Bin;
 use TestUtils;
 
 my $config_file = create_config(<<"EOF");

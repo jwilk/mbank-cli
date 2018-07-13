@@ -39,7 +39,7 @@ use IPC::Run ();
 use JSON qw(decode_json to_json);
 
 use FindBin ();
-use lib "$FindBin::Bin";
+use lib $FindBin::Bin;
 use TestUtils;
 
 my $config_file = create_config(<<"EOF");

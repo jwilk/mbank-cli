@@ -32,7 +32,7 @@ use Test::More;
 use IPC::Run ();
 
 use FindBin ();
-use lib "$FindBin::Bin";
+use lib $FindBin::Bin;
 use TestUtils;
 
 eval {

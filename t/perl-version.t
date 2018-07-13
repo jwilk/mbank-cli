@@ -32,7 +32,7 @@ use Test::More tests => 1;
 use Perl::MinimumVersion ();
 
 use FindBin ();
-use lib "$FindBin::Bin";
+use lib $FindBin::Bin;
 use TestUtils;
 
 my $path = code_file();
