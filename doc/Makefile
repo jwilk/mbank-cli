@@ -37,4 +37,6 @@ mbank-cli.1: manual.pod
 test check: manual.pod
 	podchecker -warnings -warnings $(<)
 
+.error = GNU make is required
+
 # vim:ts=4 sts=4 sw=4 noet
