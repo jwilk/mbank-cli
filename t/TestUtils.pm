@@ -58,12 +58,12 @@ sub _check_ld
         '2>', \$stderr,
     );
     $cli->finish();
-    $cli->result == 0
-        or die;
     $stdout eq ''
         or die;
     $stderr eq ''
-        or die $stderr;
+        or die "preloading wrappers failed: $stderr";
+    $cli->result == 0
+        or die 'preloading wrappers failed';
     return;
 }
 
