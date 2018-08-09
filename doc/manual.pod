@@ -329,7 +329,7 @@ I<fund-name> I<amount> I<[planned-amount]>
 Example:
 
     $ mbank-cli funds
-    Noble Fund Mieszany	 2318.22 PLN
+    Noble Fund Mieszany  2318.22 PLN
     PKO Akcji            2000.00 PLN  318.00 PLN
 
 =head2 The “pension” command
@@ -393,8 +393,8 @@ until mbank-cli is taught to activate profiles automatically.
 
 Examples:
 
-	$ mbank-cli activate-profile personal  # activate the personal profile
-	$ mbank-cli activate-profile business  # activate the business profile
+    $ mbank-cli activate-profile personal  # activate the personal profile
+    $ mbank-cli activate-profile business  # activate the business profile
 
 =head2 The “configure” command
 
