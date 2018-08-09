@@ -2062,7 +2062,7 @@ sub _configure_password
         eval {
             require IPC::Run;
             my $secret_keys;
-	        IPC::Run::run(
+            IPC::Run::run(
                 [@gpg_cmdline, qw(--batch --list-secret-keys)],
                 '>', \$secret_keys,
             );
