@@ -934,6 +934,19 @@ sub _extract_login_profiles
                     // scraping_error('login.profies.profile-code');
                 push(@{$profiles{$key}}, $code);
             }
+            if ($key eq 'business') {
+                my $n = 0;
+                for my $js_profile (@js_profiles) {
+                    my $name = $js_profile->{firmName}
+                        // scraping_error('login.profiles.company-name');
+                    my $code = $js_profile->{profileCode};
+                    push(@{$profiles{$name}}, $code);
+                    $n += 1;
+                }
+                if ($n > 1) {
+                    delete $profiles{$key};
+                }
+            }
         }
         last;
     }
