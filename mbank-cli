@@ -1896,8 +1896,20 @@ sub do_activate_profile
         or user_error('activate-profile: too many arguments');
     my ($name) = @args;
     my %profiles = %{$login_info->{profiles}};
+    my $sortkey = sub {
+        my ($key) = @_;
+        my %map = (
+            personal => "\000",
+            business => "\001",
+        );
+        return $map{$key} // $key;
+    };
     if (not exists($profiles{$name})) {
-        my $profiles = join(', or ', map { "\"$_\"" } sort(keys(%profiles)));
+        my $profiles = join(', or ',
+            map { "\"$_\"" }
+            sort { $sortkey->($a) cmp $sortkey->($b) }
+            keys(%profiles)
+        );
         user_error("activate-profile: invalid profile name (should be $profiles)");
     }
     my @codes = @{$profiles{$name}};
