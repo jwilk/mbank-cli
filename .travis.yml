@@ -3,7 +3,7 @@ sudo: required
 language: perl
 perl:
 - "5.10"
-- "5.26"
+- "5.28"
 before_install:
 - APT_INSTALL='sudo apt-get install --no-install-recommends'
 - echo 'deb http://archive.ubuntu.com/ubuntu/ xenial main universe' | sudo tee -a /etc/apt/sources.list
