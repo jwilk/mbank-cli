@@ -1904,7 +1904,7 @@ sub do_activate_profile
     if (scalar @codes == 0) {
         user_error("activate-profile: $name profile not available");
     } elsif (scalar @codes > 1) {
-        internal_error('activate-profile: support for multiple profiles of the same type is not implemented yet');
+        internal_error('activate-profile: ambiguous profile name');
     };
     my ($code) = @codes;
     if ($code eq 'T') {
