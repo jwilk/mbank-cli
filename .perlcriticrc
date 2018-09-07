@@ -28,6 +28,9 @@ max_mccabe = 30
 [-ValuesAndExpressions::ProhibitEmptyQuotes]
 # no, thanks
 
+[-ValuesAndExpressions::ProhibitEscapedCharacters]
+# no, thanks
+
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 # no, thanks
 
