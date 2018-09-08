@@ -1895,6 +1895,7 @@ sub do_activate_profile
     scalar(@args) <= 1
         or user_error('activate-profile: too many arguments');
     my ($name) = @args;
+    $name = bytes_to_unicode($name);
     my %profiles = %{$login_info->{profiles}};
     my $sortkey = sub {
         my ($key) = @_;
@@ -1910,6 +1911,7 @@ sub do_activate_profile
             sort { $sortkey->($a) cmp $sortkey->($b) }
             keys(%profiles)
         );
+        $profiles = unicode_to_bytes($profiles);
         user_error("activate-profile: invalid profile name (should be $profiles)");
     }
     my @codes = @{$profiles{$name}};
