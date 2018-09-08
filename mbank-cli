@@ -2294,7 +2294,7 @@ Usage:
   mbank-cli cards
   mbank-cli notices
   mbank-cli logout
-  mbank-cli activate-profile {personal | business}
+  mbank-cli activate-profile {personal | business | <company-name>}
   mbank-cli configure
 
 Common options:
