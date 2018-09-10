@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -e -u
 export version=${1:?"no version number provided"}
 set -x
 dch -m -v "$version" -c doc/NEWS -u low
