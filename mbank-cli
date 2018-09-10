@@ -1922,7 +1922,7 @@ sub do_activate_profile
     };
     my ($code) = @codes;
     if ($code eq 'T') {
-        # ‘I’ (“individual profile”) is a superset of ‘T’ ("own products"),
+        # ‘I’ (“individual profile”) is a superset of ‘T’ (“own products”),
         # so let's use the latter:
         $code = 'I';
     }
