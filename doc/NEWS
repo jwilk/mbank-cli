@@ -1,6 +1,13 @@
 mbank-cli (1.7) UNRELEASED; urgency=low
 
-  * 
+  Bug fixes:
+
+  * It is now possible to switch to a business profile when more than one of
+    them is available.
+
+  Documentation fixes:
+
+  * Minor typographical issues in the manual page have been fixed.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Mon, 10 Sep 2018 09:49:39 +0200
 
