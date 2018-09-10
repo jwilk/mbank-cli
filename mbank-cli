@@ -931,7 +931,7 @@ sub _extract_login_profiles
             my @js_profiles = @{$value->{profiles}};
             for my $js_profile (@js_profiles) {
                 my $code = $js_profile->{profileCode}
-                    // scraping_error('login.profies.profile-code');
+                    // scraping_error('login.profiles.profile-code');
                 push(@{$profiles{$key}}, $code);
             }
             if ($key eq 'business') {
