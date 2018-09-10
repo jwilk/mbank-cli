@@ -35,7 +35,7 @@ clean:
 %.rsa:
 	openssl genrsa -out $(@) 2048
 
-x509_options = -sha1 -days 3650
+x509_options = -sha256 -days 3650
 x509_serial = -set_serial 0x400E6045
 x509_req_ext = -extensions x509_ext -extfile
 
