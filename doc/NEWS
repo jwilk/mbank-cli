@@ -1,4 +1,4 @@
-mbank-cli (1.7) UNRELEASED; urgency=low
+mbank-cli (1.7) unstable; urgency=low
 
   Bug fixes:
 
@@ -10,7 +10,7 @@ mbank-cli (1.7) UNRELEASED; urgency=low
   * Minor typographical issues in the manual page have been fixed.
   * Version number is now included in the manual page footer.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 10 Sep 2018 11:21:04 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 10 Sep 2018 11:49:39 +0200
 
 mbank-cli (1.6.6) unstable; urgency=low
 
