@@ -53,7 +53,7 @@ CentOS 6::
    yum install perl-IPC-Run gnupg2  # for password encryption
    yum install perl-Term-ReadLine-Gnu  # for the “configure” command
 
-Debian 7.0 (wheezy) or newer::
+Debian 7 (wheezy) or newer::
 
    apt-get install libwww-perl libhtml-form-perl
    apt-get install libipc-run-perl gnupg  # for password encryption
