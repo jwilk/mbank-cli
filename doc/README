@@ -47,6 +47,12 @@ Arch Linux::
    pacman -S perl-ipc-run gnupg  # for password encryption
    pacman -S perl-term-readline-gnu  # for the “configure” command
 
+CentOS 6::
+
+   yum install perl-core perl-libwww-perl perl-IO-Socket-SSL perl-HTML-Tree perl-JSON
+   yum install perl-IPC-Run gnupg2  # for password encryption
+   yum install perl-Term-ReadLine-Gnu  # for the “configure” command
+
 Debian 7.0 (wheezy) or newer::
 
    apt-get install libwww-perl libhtml-form-perl
