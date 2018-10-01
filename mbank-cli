@@ -412,9 +412,6 @@ sub http_init
     if ($IO::Socket::SSL::VERSION >= 1.70) {
         # TLS v1.0 or later
         $ssl_version = 'SSLv23:!SSLv2:!SSLv3';
-    } else {
-        # TLS v1.0
-        $ssl_version = 'TLSv1';
     }
     my @ssl_options = (
         SSL_version => $ssl_version,
