@@ -459,7 +459,7 @@ mbank-cli (20120215) unstable; urgency=medium
 
 mbank-cli (20111122) unstable; urgency=low
 
-  * Previous version of mbank-cli would silently ignore a request to select
+  * Previous versions of mbank-cli would silently ignore a request to select
     an account that does not exist. This is now fixed, and selecting a
     non-existent account is an error.
     https://github.com/jwilk/mbank-cli/issues/25
