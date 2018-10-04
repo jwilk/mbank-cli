@@ -9,6 +9,7 @@ mbank-cli (1.7.1) unstable; urgency=low
   Bug fixes:
 
   * Menu parsing has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/68
   * For IO::Socket::SSL < 1.70, previous versions of mbank-cli would force the
     use of the TLS 1.0 protocol. This bug is now fixed.
 
