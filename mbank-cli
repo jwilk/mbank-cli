@@ -858,8 +858,7 @@ sub _extract_login_menu
     $load_menu = sub {
         my ($item) = @_;
         my $key = $item->{'UniqueIdentifier'} // '';
-        $key =~ m/\A\w+\z/
-            or scraping_error("login.menu.key: $key");
+        $key or scraping_error('login.menu.key');
         my $url = $item->{'FullUrl'};
         defined($url) or next;
         $url =~ m{\A/\S+\z}
