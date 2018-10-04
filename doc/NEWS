@@ -1,8 +1,16 @@
 mbank-cli (1.7.1) UNRELEASED; urgency=low
 
-  * 
+  Bug fixes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 01 Oct 2018 19:13:39 +0200
+  * Menu parsing has been fixed.
+  * For IO::Socket::SSL < 1.70, previous versions of mbank-cli would force the
+    use of the TLS 1.0 protocol. This bug is now fixed.
+
+  Documentation improvements:
+
+  * Installation instruction for CentOS 6 has been added.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Thu, 04 Oct 2018 20:30:02 +0200
 
 mbank-cli (1.7) unstable; urgency=low
 
