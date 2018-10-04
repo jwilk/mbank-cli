@@ -1,4 +1,4 @@
-mbank-cli (1.7.1) UNRELEASED; urgency=low
+mbank-cli (1.7.1) unstable; urgency=low
 
   Bug fixes:
 
@@ -10,7 +10,7 @@ mbank-cli (1.7.1) UNRELEASED; urgency=low
 
   * Installation instruction for CentOS 6 has been added.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Thu, 04 Oct 2018 20:30:02 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Thu, 04 Oct 2018 20:34:12 +0200
 
 mbank-cli (1.7) unstable; urgency=low
 
