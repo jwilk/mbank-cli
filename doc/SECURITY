@@ -16,7 +16,7 @@ It is recommended that users upgrade to mbank-cli 1.2 (or a later version).
 
 References:
 
-   - http://www.nntp.perl.org/group/perl.perl5.porters/2010/08/msg162729.html
+   - https://www.nntp.perl.org/group/perl.perl5.porters/2010/08/msg162729.html
    - https://github.com/jwilk/mbank-cli/commit/143b94b2c14a
 
 
