@@ -1903,7 +1903,7 @@ sub do_list_profiles
                 or ($profile_type eq 'business' and $account_name ne 'personal')
                 or ($profile_type eq 'personal' and $account_name eq 'personal')
         ) {
-            print("$account_name\t$active_str\r\n");
+            print("$account_name\t$active_str\n");
         }
     }
 }
