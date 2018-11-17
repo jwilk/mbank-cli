@@ -2319,7 +2319,7 @@ Usage:
   mbank-cli cards
   mbank-cli notices
   mbank-cli logout
-  mbank-cli list-profiles [ personal | business | all ]
+  mbank-cli list-profiles [personal | business | all]
   mbank-cli activate-profile {personal | business | <company-name>}
   mbank-cli configure
 
