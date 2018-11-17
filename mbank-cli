@@ -1892,7 +1892,7 @@ sub do_list_profiles
     scalar(@args) <= 1
         or user_error('list-profiles: too many arguments');
     my @valid_types = qw(personal business all);
-    grep(/^$profile_type/, @valid_types)
+    grep { $profile_type eq $_ } @valid_types
         or user_error("list-profiles: unknown profile type $profile_type");
     my %profiles = %{$login_info->{profiles}};
     foreach my $account_name (keys %profiles) {
