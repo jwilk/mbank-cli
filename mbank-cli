@@ -1897,7 +1897,7 @@ sub do_list_profiles
     my %profiles = %{$login_info->{profiles}};
     foreach my $account_name (keys %profiles) {
         my @account_data = $profiles{$account_name};
-        my $active_str = '(inactive)';
+        my $active_str = '';
         $active_str = "active" if defined($account_data[0][0]);
         if ( $profile_type eq 'all'
                 or ($profile_type eq 'business' and $account_name ne 'personal')
