@@ -104,11 +104,11 @@ Please consult the B<FILES> section for details.
 
 =item B<--help>
 
-Display help and exit.
+Show help message and exit.
 
 =item B<--version>
 
-Display version information and exit.
+Show version information and exit.
 
 =back
 
