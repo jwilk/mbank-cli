@@ -2306,6 +2306,7 @@ EOF
 sub show_version
 {
     print "mbank-cli $VERSION\n";
+    print "+ Perl $PERL_VERSION\n";
     for my $module (qw(LWP::UserAgent LWP::Protocol::https IO::Socket::SSL Net::SSLeay)) {
         Module::Loaded::is_loaded($module)
             // internal_error("$module not loaded");
