@@ -23,6 +23,7 @@ script:
 - make -C doc/ check
 - private/check-rst
 - private/run-perlcritic
+- ./mbank-cli --version
 - prove --verbose
 
 # vim:ts=2 sts=2 sw=2 et
