@@ -34,7 +34,10 @@ mbank-cli.1: manual.pod
 	mv $(@).tmp $(@)
 
 .PHONY: check
-check: manual.pod
+check: check-pod
+
+.PHONY: check-pod
+check-pod: manual.pod
 	podchecker -warnings -warnings $(<)
 
 .error = GNU make is required
