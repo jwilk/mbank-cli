@@ -20,6 +20,10 @@
 
 version = $(shell head -n1 NEWS | cut -d ' ' -f2 | tr -d '()')
 
+rst2xml = $(notdir $(shell command -v rst2xml || echo rst2xml.py)) \
+	--input-encoding=UTF-8 \
+	--strict
+
 .PHONY: all
 all: mbank-cli.1
 
@@ -34,7 +38,7 @@ mbank-cli.1: manual.pod
 	mv $(@).tmp $(@)
 
 .PHONY: check
-check: check-news check-pod
+check: check-news check-pod check-rst
 
 .PHONY: check-news
 check-news: NEWS
@@ -43,6 +47,10 @@ check-news: NEWS
 .PHONY: check-pod
 check-pod: manual.pod
 	podchecker -warnings -warnings $(<)
+
+.PHONY: check-rst
+check-rst:
+	grep -rwl 'ft[=]rst' | xargs -t -I{} $(rst2xml) {} /dev/null
 
 .error = GNU make is required
 
