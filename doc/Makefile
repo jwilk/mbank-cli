@@ -34,7 +34,11 @@ mbank-cli.1: manual.pod
 	mv $(@).tmp $(@)
 
 .PHONY: check
-check: check-pod
+check: check-news check-pod
+
+.PHONY: check-news
+check-news: NEWS
+	dpkg-parsechangelog -l$(<) --all 2>&1 >/dev/null | { ! grep .; }
 
 .PHONY: check-pod
 check-pod: manual.pod
