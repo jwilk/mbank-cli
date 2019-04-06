@@ -20,7 +20,6 @@ before_script:
 script:
 - make -C doc/
 - make -C doc/ check
-- private/check-rst
 - private/run-perlcritic
 - ./mbank-cli --version
 - prove --verbose
