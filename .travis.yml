@@ -3,12 +3,16 @@ language: perl
 perl:
 - "5.10"
 - "5.28"
+addons:
+  apt:
+    packages:
+    - build-essential
+    - libssl-dev
+    - python-docutils
 before_install:
 - APT_INSTALL='sudo apt-get install --no-install-recommends'
 - echo 'deb http://archive.ubuntu.com/ubuntu/ xenial main universe' | sudo tee -a /etc/apt/sources.list
 - sudo apt-get update
-- $APT_INSTALL -t trusty build-essential libssl-dev
-- $APT_INSTALL -t trusty python-docutils
 - $APT_INSTALL -t xenial libnss-wrapper libsocket-wrapper
 install:
 - export PERL_CPANM_OPT='--no-interactive --no-man-pages --notest --skip-satisfied'
