@@ -1,8 +1,9 @@
-dist: trusty
+dist: xenial
 language: perl
 jobs:
   include:
   - perl: "5.10"
+    dist: trusty
   - perl: "5.28"
 addons:
   apt:
