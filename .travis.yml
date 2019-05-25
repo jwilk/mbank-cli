@@ -13,7 +13,7 @@ addons:
     - python-docutils
 before_install:
 - APT_INSTALL='sudo apt-get install --no-install-recommends'
-- echo 'deb http://archive.ubuntu.com/ubuntu/ xenial main universe' | sudo tee -a /etc/apt/sources.list
+- grep -w xenial /etc/apt/sources.list || echo 'deb http://archive.ubuntu.com/ubuntu/ xenial main universe' | sudo tee -a /etc/apt/sources.list
 - sudo apt-get update
 - $APT_INSTALL -t xenial libnss-wrapper libsocket-wrapper
 install:
