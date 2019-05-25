@@ -1,8 +1,9 @@
 dist: trusty
 language: perl
-perl:
-- "5.10"
-- "5.28"
+jobs:
+  include:
+  - perl: "5.10"
+  - perl: "5.28"
 addons:
   apt:
     packages:
