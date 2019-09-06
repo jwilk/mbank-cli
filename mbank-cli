@@ -989,7 +989,12 @@ sub do_login
             $request = GET($base_url);
             $doc = download($request);
         } else {
-            my $message = $login_json->{errorMessageTitle} // 'unknown error';
+            my $message = $login_json->{errorMessageTitle} // '';
+            $message =~ s/\s*$//;
+            if ($message eq '') {
+                $message = $login_json->{errorMessageBody} // 'unknown error';
+                $message =~ s{(?:<br\s*/>|\s)+}{ }g;
+            }
             $message = unicode_to_bytes($message);
             user_error("login failed: $message");
         }
