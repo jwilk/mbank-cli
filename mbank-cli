@@ -978,8 +978,10 @@ sub do_login
                 Password => $password,
                 Seed => $seed,
                 Scenario => 'Default',
-                UWAdditionalParams => {},
+                UWAdditionalParams => {InOut => undef, ReturnAddress => undef, Source => undef},
                 Lang => '',
+                HrefHasHash => decode_json('false'),
+                DfpData => {dfp => undef, scaOperationId => undef, errorMessage => undef},
             }),
         );
         $doc = download($request);
