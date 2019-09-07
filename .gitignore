@@ -10,3 +10,4 @@
 /t/certs/*.req
 /t/certs/*.rsa
 /t/certs/*.tmp.cnf
+/private/__pycache__/
