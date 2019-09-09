@@ -112,6 +112,7 @@ BEGIN { $::loading_modules = 0; }  ## no critic (PackageVars)
 my $opt_verbose = 0;
 my $opt_debug_dir = undef;
 my $bugtracker = 'https://github.com/jwilk/mbank-cli/issues';
+my $bugreport_url_tmpl = "$bugtracker/%d";
 my $bugreport_request = "Please file a bug at <$bugtracker>.\n";
 
 sub write_log
@@ -257,6 +258,16 @@ sub internal_error
     local $Carp::CarpLevel = $level + 1;
     Carp::cluck($message);
     print {*STDERR} $bugreport_request;
+    exit(-1);
+}
+
+sub known_bug
+{
+    my ($bugno, $message) = @_;
+    my $url = sprintf($bugreport_url_tmpl, $bugno);
+    $message .= "; see <$url>";
+    write_log($message);
+    print {*STDERR} "mbank-cli: $message\n";
     exit(-1);
 }
 
@@ -961,6 +972,10 @@ sub do_login
             debug('not logged in');
             return;
         }
+        my $psd2_gmtime = Time::Piece->strptime('2019-09-13 22:00', '%Y-%m-%d %H:%M');
+        if (Time::Piece->gmtime >= $psd2_gmtime) {
+            known_bug(70, '2FA is not supported yet');
+        };
         debug('logging in...');
         my ($seed) = ($doc->{content} =~ m/\b(?:app|entrypoint)[.]initialize[(]'([\w=-]+)'[,)]/)
             or scraping_error('login.seed');
