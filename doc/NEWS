@@ -9,6 +9,7 @@ mbank-cli (1.8) unstable; urgency=low
   Major bug fixes:
 
   * Logging in has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/71
 
   Improvements:
 
