@@ -6,7 +6,7 @@ mbank-cli (1.8) UNRELEASED; urgency=low
 
   Improvements:
 
-  * Two-factor authentication (2FA) will be required since 2019-09-14,
+  * Two-factor authentication (2FA) will be required as of 2019-09-14,
     but that's not implemented in mbank-cli yet.
     This version of mbank-cli won't attempt to log in when 2FA is enforced,
     so that people don't lock themselves out accidentally.
