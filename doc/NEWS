@@ -1,6 +1,21 @@
 mbank-cli (1.7.2) UNRELEASED; urgency=low
 
-  * 
+  Major bug fixes:
+
+  * Logging in has been fixed.
+
+  Improvements:
+
+  * Two-factor authentication (2FA) will be required since 2019-09-14,
+    but that's not implemented in mbank-cli yet.
+    This version of mbank-cli won't attempt to log in when 2FA is enforced,
+    so that people don't lock themselves out accidentally.
+
+  * The --version option now also prints version of the Perl interpreter.
+
+  Documentation improvements:
+
+  * Descriptions of the --help and --version options have been rephrased.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Thu, 04 Oct 2018 20:38:03 +0200
 
