@@ -1,4 +1,4 @@
-mbank-cli (1.8) UNRELEASED; urgency=low
+mbank-cli (1.8) unstable; urgency=low
 
   Major bug fixes:
 
@@ -17,7 +17,7 @@ mbank-cli (1.8) UNRELEASED; urgency=low
 
   * Descriptions of the --help and --version options have been rephrased.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 09 Sep 2019 11:07:08 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 09 Sep 2019 11:15:09 +0200
 
 mbank-cli (1.7.1) unstable; urgency=low
 
