@@ -835,6 +835,23 @@ sub decode_json
     } // return;
 }
 
+# ================
+# terminal support
+# ================
+
+sub term_readpasswd
+{
+    my ($term, $prompt) = @_;
+    state $readline_gnu = Module::Loaded::is_loaded('Term::ReadLine::Gnu');
+    if ($readline_gnu) {
+        defined($term->Attribs->{shadow_redisplay})
+            or internal_error('shadow_redisplay not defined');
+    }
+    local $term->Attribs->{redisplay_function} =  ## no critic (LocalVars)
+        $term->Attribs->{shadow_redisplay};
+    return $term->readline($prompt);
+}
+
 # =======================
 # command implementations
 # =======================
@@ -2084,16 +2101,9 @@ sub _configure_login
 sub _configure_password
 {
     my ($term) = @_;
-    my $readline_gnu = Module::Loaded::is_loaded('Term::ReadLine::Gnu');
-    if ($readline_gnu) {
-        defined($term->Attribs->{shadow_redisplay})
-            or internal_error('shadow_redisplay not defined');
-    }
     my $password = '';
     until (length($password) > 0) {  ## no critic (Until)
-        local $term->Attribs->{redisplay_function} =  ## no critic (LocalVars)
-            $term->Attribs->{shadow_redisplay};
-        $password = $term->readline('Password: ');
+        $password = term_readpasswd($term, 'Password: ');
         $password //= '';
     }
     my $use_gpg = '';
