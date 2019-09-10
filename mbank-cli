@@ -839,6 +839,24 @@ sub decode_json
 # terminal support
 # ================
 
+sub term_import
+{
+    my ($with_password) = @_;
+    require Term::ReadLine;
+    if ($with_password and $OSNAME ne 'MSWin32') {
+        # We normally require Term::ReadLine::Gnu, so that it's possible to
+        # ask for password without displaying it on the screen. But this
+        # module is difficult to port to Windows. Oh well.
+        require Term::ReadLine::Gnu;
+    }
+    return 1;
+}
+
+sub term_new
+{
+    return Term::ReadLine->new('mbank-cli');
+}
+
 sub term_readpasswd
 {
     my ($term, $prompt) = @_;
@@ -2181,15 +2199,9 @@ sub do_configure
     my $cookie_jar_path = delete($options{cookie_jar_path});
     check_for_unexpected_options(%options);
     eval {
-        require Term::ReadLine;
-        if ($OSNAME ne 'MSWin32') {
-            # We normally require Term::ReadLine::Gnu, so that it's possible to
-            # ask for password without displaying it on the screen. But this
-            # module is difficult to port to Windows. Oh well.
-            require Term::ReadLine::Gnu;
-        }
+        term_import(1);
     } // user_error('Term::ReadLine::Gnu is required to run configure');
-    my $term = Term::ReadLine->new('mbank-cli');
+    my $term = term_new();
     _configure_overwrite($term, $config_path);
     my $cc = _configure_country($term);
     my $login = _configure_login($term);
