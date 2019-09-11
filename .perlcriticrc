@@ -7,6 +7,9 @@ verbose = %f:%l: [%p] %m\n
 [-CodeLayout::RequireTidyCode]
 # perltidy is too limited for our purposes
 
+[-InputOutput::ProhibitInteractiveTest]
+# -t is good enough
+
 [InputOutput::RequireCheckedSyscalls]
 functions = :builtins
 # print failures are caught at the END

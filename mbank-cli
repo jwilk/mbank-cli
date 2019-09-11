@@ -2492,7 +2492,7 @@ sub initialize
     ) or user_error();
 }
 
-if (defined($opt_export) and -t STDOUT) {  ## no critic (InteractiveTest)
+if (defined($opt_export) and -t STDOUT) {
     user_error('export data cannot be written to a terminal; please redirect stdout to a file');
 }
 
