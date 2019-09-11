@@ -1017,16 +1017,33 @@ sub do_login
         my $login_url = $doc->{url};
         my $login = get_config_var($cfg, 'login')
             // config_error($cfg, 'missing login');
-        my $password = get_config_var($cfg, 'password');
-        if (not defined($password)) {
+        my $password;
+        my $password_manager = get_config_var($cfg, 'passwordmanager');
+        if (defined($password_manager)) {
             eval {
-                term_import(1);
-            } // user_error('Term::ReadLine::Gnu is required for password prompt');
-            if (-t STDIN) {
-                my $term = term_new();
-                $password = term_readpasswd($term, 'Password: ');
-            } else {
-                config_error($cfg, 'missing password');
+                require IPC::Run;
+            } // user_error('IPC::Run is required to retrieve password');
+            eval {
+                IPC::Run::run(
+                    ['sh', '-c', $password_manager],
+                    '>', \$password
+                ) or os_error('password manager failed');
+            } // do {
+                os_error($EVAL_ERROR);
+            };
+            chomp $password;
+        } else {
+            $password = get_config_var($cfg, 'password');
+            if (not defined($password)) {
+                eval {
+                    term_import(1);
+                } // user_error('Term::ReadLine::Gnu is required for password prompt');
+                if (-t STDIN) {
+                    my $term = term_new();
+                    $password = term_readpasswd($term, 'Password: ');
+                } else {
+                    config_error($cfg, 'missing password');
+                }
             }
         }
         $request = POST(
