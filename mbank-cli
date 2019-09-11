@@ -1017,8 +1017,18 @@ sub do_login
         my $login_url = $doc->{url};
         my $login = get_config_var($cfg, 'login')
             // config_error($cfg, 'missing login');
-        my $password = get_config_var($cfg, 'password')
-            // config_error($cfg, 'missing password');
+        my $password = get_config_var($cfg, 'password');
+        if (not defined($password)) {
+            eval {
+                term_import(1);
+            } // user_error('Term::ReadLine::Gnu is required for password prompt');
+            if (-t STDIN) {
+                my $term = term_new();
+                $password = term_readpasswd($term, 'Password: ');
+            } else {
+                config_error($cfg, 'missing password');
+            }
+        }
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
