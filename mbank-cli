@@ -2304,7 +2304,7 @@ sub unexpand_tilde
 sub _xdg_home
 {
     my ($key, $default) = @_;
-    my $home = $ENV{"XDG_$key\_HOME"} // '';
+    my $home = $ENV{"XDG_${key}_HOME"} // '';
     if ($home !~ m{\A/}) {
         # “All paths […] must be absolute.
         # If an implementation encounters a relative path […]
