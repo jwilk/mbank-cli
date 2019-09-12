@@ -2322,7 +2322,6 @@ sub xdg_config_home
 
 sub xdg_data_home
 {
-    my @args = @_;
     return _xdg_home('DATA', '.local/share');
 }
 
