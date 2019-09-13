@@ -23,6 +23,9 @@ max_mccabe = 30
 # all our modules are private
 # see also https://bugs.debian.org/706266
 
+[RegularExpressions::ProhibitComplexRegexes]
+max_characters = 100
+
 [-RegularExpressions::RequireDotMatchAnything]
 [-RegularExpressions::RequireExtendedFormatting]
 [-RegularExpressions::RequireLineBoundaryMatching]
