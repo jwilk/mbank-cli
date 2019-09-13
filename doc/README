@@ -69,7 +69,7 @@ Cheat sheet for cpanm(1)
 
    cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
    cpanm IPC::Run  # for password management
-   cpanm Term::ReadLine::Gnu  # for interactive use
+   cpanm Term::ReadLine::Gnu  # for password questions
 
 CA certificate
 --------------
