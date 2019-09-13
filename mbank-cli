@@ -650,7 +650,8 @@ sub _read_config
 sub _decrypt_config
 {
     my ($config) = @_;
-    my $pgp_chunks = delete $config->{__pgp__};
+    my $pgp_chunks = $config->{__pgp__};
+    $config->{__pgp__} = [];
     scalar(@{$pgp_chunks}) > 0 or return;
     eval {
         require IPC::Run;
