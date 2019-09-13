@@ -600,6 +600,8 @@ sub get_default_ca_path
 # configuration file handling
 # ===========================
 
+my $global_config = undef;
+
 my @gpg_cmdline =
     Text::ParseWords::shellwords($ENV{MBANK_CLI_GPG} // 'gpg') or
     user_error('cannot parse $MBANK_CLI_GPG');  ## no critic (InterpolationOfMetachars)
@@ -999,12 +1001,12 @@ sub _extract_login_profiles
 sub do_login
 {
     my %options = @_;
-    my $cfg = delete($options{config});
+    my $probe = delete($options{probe});
     check_for_unexpected_options(%options);
     my $request = GET($base_url);
     my $doc = download($request);
     if ($doc->{url} =~ m{/Login$}) {
-        if (not defined($cfg)) {
+        if ($probe) {
             debug('not logged in');
             return;
         }
@@ -1016,6 +1018,7 @@ sub do_login
         my ($seed) = ($doc->{content} =~ m/\b(?:app|entrypoint)[.]initialize[(]'([\w=-]+)'[,)]/)
             or scraping_error('login.seed');
         my $login_url = $doc->{url};
+        my $cfg = $global_config;
         my $login = get_config_var($cfg, 'login')
             // config_error($cfg, 'missing login');
         my $password;
@@ -2048,7 +2051,7 @@ sub _do_lazy_logout
 sub do_logout
 {
     my %options = @_;
-    my $login_info = do_login();
+    my $login_info = do_login(probe => 1);
     if (not defined($login_info)) {
         $ua->cookie_jar->clear();
         debug('cookies have been wiped out');
@@ -2345,7 +2348,6 @@ my $opt_with_id = 0;
 my $opt_all = 0;
 my $opt_multi = 0;
 my $opt_export = undef;
-my $cfg;
 
 sub show_help
 {
@@ -2423,7 +2425,7 @@ sub initialize
             'Run "mbank-cli configure" or create the configuration file manually.'
         );
     }
-    $cfg = read_config($opt_config);
+    my $cfg = $global_config = read_config($opt_config);
     my $cookie_jar_path;
     if (defined($opt_cookie_jar)) {
         $cookie_jar_path = $opt_cookie_jar;
@@ -2580,7 +2582,7 @@ if ($command_info->{args}) {
     );
 }
 if ($need_login) {
-    my $login_info = do_login(config => $cfg);
+    my $login_info = do_login();
     push(@cmd_options, login => $login_info);
     if ($command_info->{accounts}) {
         my $account_info = do_list(
