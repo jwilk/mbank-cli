@@ -22,7 +22,8 @@ Requirements
 
   - IO::Socket::SSL (≥ 1.31)
 
-  - IPC::Run (optionally, for password encryption)
+  - IPC::Run (optionally, for password encryption, or for password manager
+    support)
 
   - JSON or JSON::PP (the latter is a core module since Perl 5.14)
 
@@ -34,9 +35,9 @@ Requirements
 
   - Net::SSLeay
 
-  - Term::ReadLine::Gnu (only required by the “configure” command)
+  - Term::ReadLine::Gnu (optionally, for interactive password questions)
 
-- GnuPG (optionally, for password encryption)
+- GnuPG (optional: for password encryption)
 
 Cheat sheet for free software distributions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,28 +45,31 @@ Cheat sheet for free software distributions
 Arch Linux::
 
    pacman -S perl-html-form perl-html-tree perl-lwp-protocol-https
-   pacman -S perl-ipc-run gnupg  # for password encryption
-   pacman -S perl-term-readline-gnu  # for the “configure” command
+   pacman -S perl-ipc-run  # for password management
+   pacman -S gnupg  # for password encryption
+   pacman -S perl-term-readline-gnu  # for password questions
 
 CentOS 6::
 
    yum install perl-core perl-libwww-perl perl-IO-Socket-SSL perl-HTML-Tree perl-JSON
-   yum install perl-IPC-Run gnupg2  # for password encryption
-   yum install perl-Term-ReadLine-Gnu  # for the “configure” command
+   yum install perl-IPC-Run # for password management
+   yum install gnupg2  # for password encryption
+   yum install perl-Term-ReadLine-Gnu  # for password questions
 
 Debian 7 (wheezy) or newer::
 
    apt-get install libwww-perl libhtml-form-perl
-   apt-get install libipc-run-perl gnupg  # for password encryption
-   apt-get install libterm-readline-gnu-perl  # for the “configure” command
+   apt-get install libipc-run-perl # for password management
+   apt-get install gnupg  # for password encryption
+   apt-get install libterm-readline-gnu-perl  # for password questions
 
 Cheat sheet for cpanm(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 ::
 
    cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
-   cpanm IPC::Run  # for password encryption
-   cpanm Term::ReadLine::Gnu  # for the “configure” command
+   cpanm IPC::Run  # for password management
+   cpanm Term::ReadLine::Gnu  # for interactive use
 
 CA certificate
 --------------
