@@ -14,7 +14,7 @@ verbose = %f:%l: [%p] %m\n
 functions = :builtins
 # print failures are caught at the END
 # umask() can only fail if umask(2) is not implemented
-exclude_functions = print umask
+exclude_functions = print say umask
 
 [Modules::ProhibitExcessMainComplexity]
 max_mccabe = 30
