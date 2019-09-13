@@ -2294,7 +2294,7 @@ sub do_configure
 sub expand_tilde
 {
     my ($path) = @_;
-    $path =~ s{\A(~[^/]*)}{glob($1)}e;
+    $path =~ s{\A(~[^/]*)}{($_) = glob($1); $_}e;
     return $path;
 }
 
