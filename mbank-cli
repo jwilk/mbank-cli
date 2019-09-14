@@ -1048,6 +1048,8 @@ sub do_login
                 }
             }
         }
+        length($password) > 0
+            or user_error('login failed: empty password');
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
