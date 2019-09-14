@@ -538,6 +538,11 @@ Z<>
 
 Z<>
 
+=item PasswordManager I<command-line>
+
+Command that should be run to retrieve the password.
+This can be used instead of "Password" to avoid storing the password in the configuration file.
+
 =back
 
 =back
