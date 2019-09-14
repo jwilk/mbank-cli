@@ -1212,6 +1212,9 @@ sub do_login  ## no critic (ExcessComplexity)
         $error_code eq ''
             or scraping_error("login.2fa.init.error: $error_code");
         my $auth_mode = $data->{AuthMode} // '';
+        if ($auth_mode eq 'NAM') {
+            known_bug(72, '2FA via mobile app is not supported yet');
+        }
         $auth_mode eq 'SMS'
             or scraping_error("login.2fa.init.auth-mode: $auth_mode");
         my $sms_date = $data->{OperationDate} // '';
