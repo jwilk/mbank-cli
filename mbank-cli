@@ -1036,6 +1036,7 @@ sub _ask_for_sms_password
             return;
         }
         my $watcher = Filesys::Notify::Simple->new([$inbox]);
+        debug('waiting for SMS password');
         while (1) {
             $watcher->wait(sub {
                 for my $event (@_) {
