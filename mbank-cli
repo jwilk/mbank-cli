@@ -1013,7 +1013,73 @@ sub _get_tabid
     return $tabid;
 }
 
-sub do_login
+sub _ask_for_sms_password
+{
+    my ($date, $n) = @_;
+    my ($y, $m, $d);
+    my $probe = $date eq 'probe';
+    if (not $probe) {
+        ($y, $m, $d) = split /-/, $date;
+    }
+    my $cfg = $global_config;
+    my $sms_password;
+    my $inbox = get_config_var($cfg, 'smsinbox');
+    if (defined $inbox) {
+        $inbox = expand_tilde($inbox);
+        $inbox =~ s{[^/]\K/+\z}{};  # strip trailing slash
+        $inbox .= '/';
+        stat $inbox or os_error("$inbox: $ERRNO");
+        eval {
+            require Filesys::Notify::Simple;
+        } // user_error('Filesys::Notify::Simple is required to read SMS messages');
+        if ($probe) {
+            return;
+        }
+        my $watcher = Filesys::Notify::Simple->new([$inbox]);
+        while (1) {
+            $watcher->wait(sub {
+                for my $event (@_) {
+                    local $INPUT_RECORD_SEPARATOR = undef;
+                    my $path = $event->{path};
+                    open(my $fh, '<', $path) or do {
+                        if ($ERRNO{ENOENT}) {
+                            next;
+                        } else {
+                            os_error("$path: $ERRNO");
+                        }
+                    };
+                    my $text = <$fh>;
+                    close($fh) or os_error("$path: $ERRNO");
+                    # FIXME: this only works for Polish
+                    ($sms_password) = $text =~ m{! Operacja nr $n z dn[.] $d-$m-$y\b.*\bhaslo: (\d{8}) mBank\b};
+                    if (defined($sms_password)) {
+                        last;
+                    }
+                }
+            });
+            if (defined($sms_password)) {
+                last;
+            }
+        }
+    } elsif (-t STDIN) {
+        eval {
+            term_import();
+        } // user_error('Term::ReadLine::Gnu is required for password prompt');
+        if ($probe) {
+            return;
+        }
+        my $term = term_new();
+        while (1) {
+            $sms_password = $term->readline("SMS password ($y-$m-$d, #$n): ") // '';
+            $sms_password =~ m/\A\d{8}\z/ and last;
+        };
+    } else {
+        user_error('unable to ask for SMS password');
+    }
+    return $sms_password;
+}
+
+sub do_login  ## no critic (ExcessComplexity)
 {
     my %options = @_;
     my $probe = delete($options{probe});
@@ -1025,10 +1091,6 @@ sub do_login
             debug('not logged in');
             return;
         }
-        my $psd2_gmtime = Time::Piece->strptime('2019-09-13 22:00', '%Y-%m-%d %H:%M');
-        if (Time::Piece->gmtime >= $psd2_gmtime) {
-            known_bug(70, '2FA is not supported yet');
-        };
         debug('logging in...');
         my ($seed) = ($doc->{content} =~ m/\b(?:app|entrypoint)[.]initialize[(]'([\w=-]+)'[,)]/)
             or scraping_error('login.seed');
@@ -1067,6 +1129,7 @@ sub do_login
         }
         length($password) > 0
             or user_error('login failed: empty password');
+        _ask_for_sms_password(probe => 1);
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
@@ -1085,10 +1148,7 @@ sub do_login
         $doc = download($request);
         my $login_json = decode_json($doc->{content})
             // scraping_error("login.json: $EVAL_ERROR");
-        if ($login_json->{successful}) {
-            $request = GET($base_url);
-            $doc = download($request);
-        } else {
+        if (not $login_json->{successful}) {
             my $message = $login_json->{errorMessageTitle} // '';
             $message =~ s/\s*$//;
             if ($message eq '') {
@@ -1098,6 +1158,93 @@ sub do_login
             $message = unicode_to_bytes($message);
             user_error("login failed: $message");
         }
+        my $redirect_url = $login_json->{redirectUrl} // '';
+        $redirect_url eq '/authorization'
+            or scraping_error("login.redirect-url: $redirect_url");
+        my $tabid = _get_tabid();
+        $request = GET(
+            "$root_url/api/app/setup/data",
+            @json_headers,
+            'Referer' => "$root_url/authorization",
+        );
+        $doc = download($request);
+        my $data = decode_json($doc->{content})
+            // scraping_error("login.app-setup: $EVAL_ERROR");
+        my $token = $data->{antiForgeryToken} // '';
+        $token =~ m{\A[\w+/]+\z}
+            or scraping_error("login.app-setup.token: $token");
+        my @auth_headers = (
+            @json_headers,
+            'X-Request-Verification-Token' => $token,
+            'X-Tab-Id' => $tabid,
+            'Origin' => $root_url,
+        );
+        $request = POST(
+            "$base_url/Sca/GetScaAuthorizationData",
+            @auth_headers,
+            'Referer' => "$root_url/authorization",
+        );
+        push @auth_headers, (
+            'Referer' => "$root_url/authorization/onetime/set",
+        );
+        $doc = download($request);
+        $data = decode_json($doc->{content})
+            // scraping_error("login.sca: $EVAL_ERROR");
+        my $sca_auth_id = $data->{ScaAuthorizationId} // '';
+        $sca_auth_id =~ m{\A[\w+/]+\z}
+            or scraping_error("login.sca.auth-id: $sca_auth_id");
+        $request = POST(
+            "$root_url/api/auth/initprepare",
+            @auth_headers,
+            'data-type' => 'json',
+            'Content' => encode_json({
+                'Url' => 'sca/authorization/disposable',
+                'Method' => 'POST',
+                'Data' => {
+                    'ScaAuthorizationId' => $sca_auth_id
+                }
+            })
+        );
+        $doc = download($request);
+        $data = decode_json($doc->{content})
+            // scraping_error("login.2fa.init: $EVAL_ERROR");
+        my $error_code = $data->{ErrorCode} // '?';
+        $error_code eq ''
+            or scraping_error("login.2fa.init.error: $error_code");
+        my $auth_mode = $data->{AuthMode} // '';
+        $auth_mode eq 'SMS'
+            or scraping_error("login.2fa.init.auth-mode: $auth_mode");
+        my $sms_date = $data->{OperationDate} // '';
+        $sms_date = parse_timestamp($sms_date)
+            or scraping_error("login.2fa.init.sms-date: $sms_date");
+        my $sms_no = $data->{OperationNumber} // '';
+        $sms_no =~ m/\A\d+\z/
+            or scraping_error("login.2fa.init.sms-no: $sms_no");
+        my $sms_password = _ask_for_sms_password($sms_date, $sms_no);
+        $request = POST(
+            "$root_url/api/auth/execute",
+            @auth_headers,
+            'data-type' => 'json',
+            'Content' => encode_json({
+                'Auth' => $sms_password
+            })
+        );
+        $doc = download($request);
+        $data = decode_json($doc->{content})
+            // scraping_error("login.2fa.exec: $EVAL_ERROR");
+        $error_code = $data->{ErrorCode} // '?';
+        $error_code eq ''
+            or scraping_error("login.2fa.exec.error: $error_code");
+        $request = POST(
+            "$base_url/Sca/FinalizeAuthorization",
+            @auth_headers,
+            'Content' => encode_json({
+                'ScaAuthorizationId' => $sca_auth_id
+            })
+        );
+        $doc = download($request);
+        $request = GET($base_url);
+        $doc = download($request);
     }
     my $tabid = _get_tabid();
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
@@ -2102,6 +2249,26 @@ sub do_debug_https_get
     return;
 }
 
+sub do_debug_sms_password
+{
+    my %options = @_;
+    my $args = delete($options{args});
+    check_for_unexpected_options(%options);
+    my ($date, $n) = @{$args};
+    $date //= '';
+    my ($y, $m, $d) = $date =~ m/\A(\d\d\d\d)-(\d\d)-(\d\d)\z/
+        or user_error("SMS date not in the YYYY-MM-DD format: $date");
+    eval {
+        Time::Piece->strptime($date, '%Y-%m-%d');
+    } or user_error("invalid SMS date: $date");
+    $n //= '';
+    eval {
+        $n = 0 + $n;
+    } or user_error("invalid SMS number: $n");
+    say _ask_for_sms_password($date, $n);
+    return;
+}
+
 sub _make_config_line
 {
     my ($key, $value) = @_;
@@ -2530,6 +2697,7 @@ debug("selected command: $command_name");
 my %commands = (
     'debug-noop' => {},
     'debug-https-get' => { args => 1 },
+    'debug-sms-password' => { args => 1 },
     'list' => {},
     'history' => { accounts => 1, dates => 1, ids => 1, export => 1 },
     'future' => { accounts => 1 },
