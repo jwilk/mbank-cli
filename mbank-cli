@@ -997,6 +997,22 @@ sub _extract_login_profiles
     return %profiles;
 }
 
+sub _get_tabid
+{
+    my $tabid;
+    $ua->cookie_jar->scan(
+        sub {
+            my ($version, $key, $value, $path, $domain) = @_;
+            if (($domain eq $mbank_host) and ($key eq 'mBank_tabId')) {
+                $tabid = $value;
+            }
+        }
+    );
+    defined($tabid)
+        or scraping_error('login.tabid');
+    return $tabid;
+}
+
 sub do_login
 {
     my %options = @_;
@@ -1083,17 +1099,7 @@ sub do_login
             user_error("login failed: $message");
         }
     }
-    my $tabid = undef;
-    $ua->cookie_jar->scan(
-        sub {
-            my ($version, $key, $value, $path, $domain) = @_;
-            if (($domain eq $mbank_host) and ($key eq 'mBank_tabId')) {
-                $tabid = $value;
-            }
-        }
-    );
-    defined($tabid)
-        or scraping_error('login.tabid');
+    my $tabid = _get_tabid();
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
     my ($e_meta) = $html->look_down(
         _tag => 'meta',
