@@ -1033,7 +1033,7 @@ sub do_login
             } // do {
                 os_error($EVAL_ERROR);
             };
-            chomp $password;
+            $password =~ s/\n.*//s;
         } else {
             $password = get_config_var($cfg, 'password');
             if (not defined($password)) {
