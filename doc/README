@@ -50,14 +50,14 @@ Arch Linux::
 
 CentOS 6::
 
-   yum install perl-core perl-libwww-perl perl-IO-Socket-SSL perl-HTML-Tree perl-JSON perl-Term-ReadLine-Gnu  
-   yum install perl-IPC-Run # for password management
+   yum install perl-core perl-libwww-perl perl-IO-Socket-SSL perl-HTML-Tree perl-JSON perl-Term-ReadLine-Gnu
+   yum install perl-IPC-Run  # for password management
    yum install gnupg2  # for password encryption
 
 Debian 7 (wheezy) or newer::
 
    apt-get install libwww-perl libhtml-form-perl libterm-readline-gnu-perl
-   apt-get install libipc-run-perl # for password management
+   apt-get install libipc-run-perl  # for password management
    apt-get install gnupg  # for password encryption
 
 Cheat sheet for cpanm(1)
