@@ -22,7 +22,7 @@
 
 '''
 logging script for mitmproxy
-usage: mitmproxy [options] --listen-host 127.0.0.1 --anticache -s httpdump.py
+usage: mitmproxy --listen-host 127.0.0.1 --anticache -s httpdump.py
 '''
 
 import os
