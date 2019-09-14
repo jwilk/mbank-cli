@@ -876,6 +876,7 @@ sub term_readpasswd
 # =======================
 
 my $mbank_host = undef;
+my $root_url = undef;
 my $base_url = undef;
 my $csite_url = undef;
 
@@ -2461,6 +2462,7 @@ sub initialize
         config_error($cfg, "unknown country \U$tld\E, not in \U$known_countries\E");
     }
     $mbank_host = "online.mbank.$tld";
+    $root_url = "https://$mbank_host";
     $base_url = "https://$mbank_host/$lang";
     $csite_url = "https://$mbank_host/csite";
     $ua = http_init(
