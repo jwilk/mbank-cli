@@ -1233,8 +1233,12 @@ sub do_login  ## no critic (ExcessComplexity)
                 $error_code = $data->{ErrorCode} // '?';
                 $error_code eq ''
                     or scraping_error("login.2fa.exec.error: $error_code");
-                sleep(1);
-            } while ($data->{Status} eq 'Prepared' or $data->{Status} eq 'PreAuthorized');
+                if ($data->{Status} eq 'Prepared' || $data->{Status} eq 'PreAuthorized') {
+                    sleep(1);
+                }
+            } while ($data->{Status} eq 'Prepared' || $data->{Status} eq 'PreAuthorized');
+            $data->{Status} eq 'Authorized'
+                 or user_error("login failed: cancelled in mobile app");
             $content = encode_json({
             });
         } elsif ($auth_mode eq 'SMS') {
