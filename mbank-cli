@@ -1020,7 +1020,6 @@ sub _ask_for_sms_password
     my ($date, $n, $try) = @_;
     my ($y, $m, $d) = split /-/, $date;
     my $cfg = $global_config;
-    my $sms_password;
     my $inbox = get_config_var($cfg, 'smsinbox');
     if (defined $inbox) {
         $inbox = expand_tilde($inbox);
@@ -1038,6 +1037,7 @@ sub _ask_for_sms_password
         my $watcher = Filesys::Notify::Simple->new([$inbox]);
         debug('waiting for SMS password');
         while (1) {
+            my $passwd;
             $watcher->wait(sub {
                 for my $event (@_) {
                     local $INPUT_RECORD_SEPARATOR = undef;
@@ -1052,14 +1052,14 @@ sub _ask_for_sms_password
                     my $text = <$fh>;
                     close($fh) or os_error("$path: $ERRNO");
                     # FIXME: this only works for Polish
-                    ($sms_password) = $text =~ m{! Operacja nr $n z dn[.] $d-$m-$y\b.*\bhaslo: (\d{8}) mBank\b};
-                    if (defined($sms_password)) {
+                    ($passwd) = $text =~ m{! Operacja nr $n z dn[.] $d-$m-$y\b.*\bhaslo: (\d{8}) mBank\b};
+                    if (defined($passwd)) {
                         last;
                     }
                 }
             });
-            if (defined($sms_password)) {
-                last;
+            if (defined($passwd)) {
+                return $passwd
             }
         }
     } elsif (-t STDIN) {
@@ -1071,13 +1071,15 @@ sub _ask_for_sms_password
         }
         my $term = term_new();
         while (1) {
-            $sms_password = $term->readline("SMS password ($y-$m-$d, #$n): ") // '';
-            $sms_password =~ m/\A\d{8}\z/ and last;
+            my $passwd = $term->readline("SMS password ($y-$m-$d, #$n): ") // '';
+            if ($passwd =~ m/\A\d{8}\z/) {
+                return $passwd;
+            }
         };
     } else {
         user_error('unable to ask for SMS password');
     }
-    return $sms_password;
+    return;
 }
 
 sub do_login  ## no critic (ExcessComplexity)
