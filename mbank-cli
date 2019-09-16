@@ -763,7 +763,7 @@ sub parse_timestamp
     my ($timestamp, %options) = @_;
     my $discard_time = delete($options{discard_time});
     check_for_unexpected_options(%options);
-    my ($date, $time) = ($timestamp =~ m/(?:\A)?(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d(?:[.]\d+)?)(?:\z)?/)
+    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d(?:[.]\d+)?)\z/)
         or return;
     $discard_time or ($time =~ m/(\A)?[0:.]+(\z)?/)
         or return;
