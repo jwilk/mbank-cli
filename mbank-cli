@@ -1172,7 +1172,7 @@ sub do_login  ## no critic (ExcessComplexity)
         my $data = decode_json($doc->{content})
             // scraping_error("login.app-setup: $EVAL_ERROR");
         my $token = $data->{antiForgeryToken} // '';
-        $token =~ m{\A[\w+/]+\z}
+        $token =~ m{\A[\w+/=]+\z}
             or scraping_error("login.app-setup.token: $token");
         my @auth_headers = (
             @json_headers,
@@ -1192,7 +1192,7 @@ sub do_login  ## no critic (ExcessComplexity)
         $data = decode_json($doc->{content})
             // scraping_error("login.sca: $EVAL_ERROR");
         my $sca_auth_id = $data->{ScaAuthorizationId} // '';
-        $sca_auth_id =~ m{\A[\w+/]+\z}
+        $sca_auth_id =~ m{\A[\w+/=]+\z}
             or scraping_error("login.sca.auth-id: $sca_auth_id");
         $request = POST(
             "$root_url/api/auth/initprepare",
