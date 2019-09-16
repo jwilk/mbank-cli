@@ -1280,7 +1280,6 @@ sub do_login  ## no critic (ExcessComplexity)
                     or scraping_error('login.2fa.exec.error');
                 $error_code eq ''
                     or scraping_error("login.2fa.exec.error: $error_code");
-                last;
             }
         } elsif ($auth_mode eq 'SMS') {
             my $sms_date = $data->{OperationDate} // '';
