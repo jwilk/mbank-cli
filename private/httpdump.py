@@ -25,6 +25,7 @@ logging script for mitmproxy
 usage: mitmproxy --listen-host 127.0.0.1 --anticache -s httpdump.py
 '''
 
+import datetime
 import os
 import re
 import sys
@@ -45,11 +46,19 @@ except ImportError:
         assemble_response_head,
     )
 
-def response(flow, logindex=[0]):
+class state:
+    dir = None
+    index = 0
+
+state.dir = 'httpdump.' + str(datetime.datetime.now()).replace(' ', 'T')
+os.mkdir(state.dir)
+
+def response(flow):
     try:
-        logindex[0] += 1
-        path = 'log.{index:06}.{method}.{host}.{path}'.format(
-            index=logindex[0],
+        state.index += 1
+        path = '{dir}/log.{index:06}.{method}.{host}.{path}'.format(
+            dir=state.dir,
+            index=state.index,
             method=flow.request.method,
             host=flow.request.host,
             path=re.sub(r'[^\w.]', '_', flow.request.path),
