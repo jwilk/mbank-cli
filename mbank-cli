@@ -763,9 +763,9 @@ sub parse_timestamp
     my ($timestamp, %options) = @_;
     my $discard_time = delete($options{discard_time});
     check_for_unexpected_options(%options);
-    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d(?:[.]\d+)?)\z/)
+    my ($date, $time) = ($timestamp =~ m/(?:\A)?(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d(?:[.]\d+)?)(?:\z)?/)
         or return;
-    $discard_time or ($time =~ m/\A[0:.]+\z/)
+    $discard_time or ($time =~ m/(\A)?[0:.]+(\z)?/)
         or return;
     eval {
         Time::Piece->strptime($date, '%Y-%m-%d');
@@ -1225,8 +1225,14 @@ sub do_login  ## no critic (ExcessComplexity)
         $error_code eq ''
             or scraping_error("login.2fa.init.error: $error_code");
         my $auth_mode = $data->{AuthMode} // '';
+        my $operation_date = $data->{OperationDate} // '';
+        $operation_date = parse_timestamp($operation_date)
+            or scraping_error("login.2fa.init.operation-date: $operation_date");
+        my $operation_no = $data->{OperationNumber} // '';
+        $operation_no =~ m/\A\d+\z/
+            or scraping_error("login.2fa.init.operation-no: $operation_no");
         if ($auth_mode eq 'NAM') {
-            say {*STDERR} 'Waiting for confirmation in the mobile app...';
+            say {*STDERR} "Waiting for confirmation of operation no $operation_no from $operation_date in the mobile app...";
             my $tran_id = $data->{TranId} // '';
             parse_uuid($tran_id)
                 or scraping_error("login.2fa.init.tran-id: $tran_id");
@@ -1282,14 +1288,8 @@ sub do_login  ## no critic (ExcessComplexity)
                     or scraping_error("login.2fa.exec.error: $error_code");
             }
         } elsif ($auth_mode eq 'SMS') {
-            my $sms_date = $data->{OperationDate} // '';
-            $sms_date = parse_timestamp($sms_date)
-                or scraping_error("login.2fa.init.sms-date: $sms_date");
-            my $sms_no = $data->{OperationNumber} // '';
-            $sms_no =~ m/\A\d+\z/
-                or scraping_error("login.2fa.init.sms-no: $sms_no");
             for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
-                my $sms_password = _ask_for_sms_password($sms_date, $sms_no, $try);
+                my $sms_password = _ask_for_sms_password($operation_date, $operation_no, $try);
                 $request = POST(
                     "$root_url/api/auth/execute",
                     @auth_headers,
