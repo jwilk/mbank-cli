@@ -799,6 +799,14 @@ sub shift_date
     return $date;
 }
 
+sub parse_uuid
+{
+    my ($s) = @_;
+    $s =~ m/\A[\dA-Fa-f]{8}(?:-[\dA-Fa-f]{4}){3}-[\dA-Fa-f]{12}\z/
+        or return;
+    return $s;
+}
+
 sub wildcards_to_regexp
 {
     my (@wildcards) = @_;
@@ -1012,6 +1020,8 @@ sub _get_tabid
     );
     defined($tabid)
         or scraping_error('login.tabid');
+    parse_uuid($tabid)
+        or scraping_error("login.tabid: $tabid");
     return $tabid;
 }
 
