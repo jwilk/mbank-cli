@@ -5,7 +5,7 @@ mbank-cli (2.1) unstable; urgency=low
   * Second-factor authentication via the mobile application is now
     supported.
     https://github.com/jwilk/mbank-cli/issues/72
-    Code contributed by Tomasz Chilinski.
+    Code contributed by Tomasz Chiliński.
 
   * Mistyped SMS passwords are now handled gracefully.
 
