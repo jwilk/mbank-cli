@@ -1218,7 +1218,7 @@ sub do_login  ## no critic (ExcessComplexity)
         if ($auth_mode eq 'NAM') {
             print "Waiting for confirm click in mobile app...\n";
             $tran_id = $data->{TranId} // '';
-            do {
+            while (1) {
                 $request = POST(
                     "$root_url/api/auth/status",
                     @auth_headers,
@@ -1233,12 +1233,18 @@ sub do_login  ## no critic (ExcessComplexity)
                 $error_code = $data->{ErrorCode} // '?';
                 $error_code eq ''
                     or scraping_error("login.2fa.exec.error: $error_code");
-                if ($data->{Status} eq 'Prepared' || $data->{Status} eq 'PreAuthorized') {
-                    sleep(1);
+                if ($data->{Status} ne 'Prepared' && $data->{Status} ne 'PreAuthorized') {
+                    last;
                 }
-            } while ($data->{Status} eq 'Prepared' || $data->{Status} eq 'PreAuthorized');
-            $data->{Status} eq 'Authorized'
-                 or user_error("login failed: cancelled in mobile app");
+                sleep(1);
+            }
+            if ($data->{Status} eq 'Canceled') {
+                 user_error("login failed: cancelled in mobile app");
+            } elsif ($data->{Status} eq 'TimeOut') {
+                 user_error("login failed: session timeout while waiting for confirm in mobile app");
+            } elsif ($data->{Status} ne 'Authorized') {
+                 scraping_error("login.2fa.exec: unknown status: $EVAL_ERROR");
+            }
             $content = encode_json({
             });
         } elsif ($auth_mode eq 'SMS') {
