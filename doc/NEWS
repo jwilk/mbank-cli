@@ -1,4 +1,4 @@
-mbank-cli (2.1) UNRELEASED; urgency=low
+mbank-cli (2.1) unstable; urgency=low
 
   Major bug fixes:
 
@@ -12,7 +12,7 @@ mbank-cli (2.1) UNRELEASED; urgency=low
   * Scraping error while logging in has been fixed.
     https://github.com/jwilk/mbank-cli/issues/76
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 16 Sep 2019 17:14:54 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 16 Sep 2019 17:20:18 +0200
 
 mbank-cli (2.0) unstable; urgency=low
 
