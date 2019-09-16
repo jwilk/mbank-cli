@@ -1226,21 +1226,36 @@ sub do_login  ## no critic (ExcessComplexity)
         my $sms_no = $data->{OperationNumber} // '';
         $sms_no =~ m/\A\d+\z/
             or scraping_error("login.2fa.init.sms-no: $sms_no");
-        my $sms_password = _ask_for_sms_password($sms_date, $sms_no, 1);
-        $request = POST(
-            "$root_url/api/auth/execute",
-            @auth_headers,
-            'data-type' => 'json',
-            'Content' => encode_json({
-                'Auth' => $sms_password
-            })
-        );
-        $doc = download($request);
-        $data = decode_json($doc->{content})
-            // scraping_error("login.2fa.exec: $EVAL_ERROR");
-        $error_code = $data->{ErrorCode} // '?';
-        $error_code eq ''
-            or scraping_error("login.2fa.exec.error: $error_code");
+        for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
+            my $sms_password = _ask_for_sms_password($sms_date, $sms_no, $try);
+            $request = POST(
+                "$root_url/api/auth/execute",
+                @auth_headers,
+                'data-type' => 'json',
+                'Content' => encode_json({
+                    'Auth' => $sms_password
+                })
+            );
+            $doc = download($request, ignore_errors => 1);
+            $data = decode_json($doc->{content})
+                // scraping_error("login.2fa.exec: $EVAL_ERROR");
+            $error_code = $data->{error};
+            if (defined($error_code)) {
+                if ($error_code eq 'QGE0193' or $error_code eq 'QGE0200') {
+                    say {*STDERR} 'Incorrect SMS password';
+                    next;
+                } else {
+                   scraping_error("login.2fa.exec.error: $error_code")
+                }
+            } else {
+                $error_code = $data->{ErrorCode};
+                defined($error_code)
+                    or scraping_error('login.2fa.exec.error');
+                $error_code eq ''
+                    or scraping_error("login.2fa.exec.error: $error_code");
+                last;
+            }
+        }
         $request = POST(
             "$base_url/Sca/FinalizeAuthorization",
             @auth_headers,
