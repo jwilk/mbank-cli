@@ -629,7 +629,7 @@ sub _read_config
     };
     while (<$fh>) {
         chomp;
-        if (defined($pgp)) {  ## no critic (CascadingIfElse)
+        if (defined($pgp)) {
             $pgp .= "$_\n";
             if ($_ eq '-----END PGP MESSAGE-----') {
                 push(@{$config->{__pgp__}}, $pgp);

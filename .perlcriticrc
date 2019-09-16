@@ -7,6 +7,9 @@ verbose = %f:%l: [%p] %m\n
 [-CodeLayout::RequireTidyCode]
 # perltidy is too limited for our purposes
 
+[ControlStructures::ProhibitCascadingIfElse]
+max_elsif = 5
+
 [-InputOutput::ProhibitInteractiveTest]
 # -t is good enough
 
