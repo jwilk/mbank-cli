@@ -2267,7 +2267,7 @@ sub do_debug_sms_password
     } or user_error("invalid SMS date: $date");
     $n //= '';
     eval {
-        $n = 0 + $n;
+        $n >= 1;
     } or user_error("invalid SMS number: $n");
     say _ask_for_sms_password($date, $n);
     return;
