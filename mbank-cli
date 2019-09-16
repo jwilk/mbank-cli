@@ -489,7 +489,9 @@ sub http_init
 
 sub download
 {
-    my ($request) = @_;
+    my ($request, %options) = @_;
+    my $ignore_errors = delete($options{ignore_errors});
+    check_for_unexpected_options(%options);
     my $message = sprintf(
         '%s %s',
         $request->method,
@@ -531,7 +533,7 @@ sub download
         close($fh)
             or os_error("$rpath: $ERRNO");
     }
-    if (not $response->is_success) {
+    if (not $response->is_success and not $ignore_errors) {
         http_error($request, $response);
     }
     $content = $response->decoded_content()
@@ -1222,7 +1224,7 @@ sub do_login  ## no critic (ExcessComplexity)
         my $sms_no = $data->{OperationNumber} // '';
         $sms_no =~ m/\A\d+\z/
             or scraping_error("login.2fa.init.sms-no: $sms_no");
-        my $sms_password = _ask_for_sms_password($sms_date, $sms_no);
+        my $sms_password = _ask_for_sms_password($sms_date, $sms_no, 1);
         $request = POST(
             "$root_url/api/auth/execute",
             @auth_headers,
