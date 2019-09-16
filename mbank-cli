@@ -489,7 +489,9 @@ sub http_init
 
 sub download
 {
-    my ($request) = @_;
+    my ($request, %options) = @_;
+    my $ignore_errors = delete($options{ignore_errors});
+    check_for_unexpected_options(%options);
     my $message = sprintf(
         '%s %s',
         $request->method,
@@ -531,7 +533,7 @@ sub download
         close($fh)
             or os_error("$rpath: $ERRNO");
     }
-    if (not $response->is_success) {
+    if (not $response->is_success and not $ignore_errors) {
         http_error($request, $response);
     }
     $content = $response->decoded_content()
@@ -797,6 +799,14 @@ sub shift_date
     return $date;
 }
 
+sub parse_uuid
+{
+    my ($s) = @_;
+    $s =~ m/\A[\dA-Fa-f]{8}(?:-[\dA-Fa-f]{4}){3}-[\dA-Fa-f]{12}\z/
+        or return;
+    return $s;
+}
+
 sub wildcards_to_regexp
 {
     my (@wildcards) = @_;
@@ -1010,19 +1020,16 @@ sub _get_tabid
     );
     defined($tabid)
         or scraping_error('login.tabid');
+    parse_uuid($tabid)
+        or scraping_error("login.tabid: $tabid");
     return $tabid;
 }
 
 sub _ask_for_sms_password
 {
-    my ($date, $n) = @_;
-    my ($y, $m, $d);
-    my $probe = $date eq 'probe';
-    if (not $probe) {
-        ($y, $m, $d) = split /-/, $date;
-    }
+    my ($date, $n, $try) = @_;
+    my ($y, $m, $d) = split /-/, $date;
     my $cfg = $global_config;
-    my $sms_password;
     my $inbox = get_config_var($cfg, 'smsinbox');
     if (defined $inbox) {
         $inbox = expand_tilde($inbox);
@@ -1032,12 +1039,15 @@ sub _ask_for_sms_password
         eval {
             require Filesys::Notify::Simple;
         } // user_error('Filesys::Notify::Simple is required to read SMS messages');
-        if ($probe) {
+        if ($try == 0) {
             return;
+        } elsif ($try > 1) {
+            internal_error('SMS retrieval failed?');
         }
         my $watcher = Filesys::Notify::Simple->new([$inbox]);
         debug('waiting for SMS password');
         while (1) {
+            my $passwd;
             $watcher->wait(sub {
                 for my $event (@_) {
                     local $INPUT_RECORD_SEPARATOR = undef;
@@ -1052,32 +1062,34 @@ sub _ask_for_sms_password
                     my $text = <$fh>;
                     close($fh) or os_error("$path: $ERRNO");
                     # FIXME: this only works for Polish
-                    ($sms_password) = $text =~ m{! Operacja nr $n z dn[.] $d-$m-$y\b.*\bhaslo: (\d{8}) mBank\b};
-                    if (defined($sms_password)) {
+                    ($passwd) = $text =~ m{! Operacja nr $n z dn[.] $d-$m-$y\b.*\bhaslo: (\d{8}) mBank\b};
+                    if (defined($passwd)) {
                         last;
                     }
                 }
             });
-            if (defined($sms_password)) {
-                last;
+            if (defined($passwd)) {
+                return $passwd
             }
         }
     } elsif (-t STDIN) {
         eval {
             term_import();
         } // user_error('Term::ReadLine::Gnu is required for password prompt');
-        if ($probe) {
+        if ($try == 0) {
             return;
         }
         my $term = term_new();
         while (1) {
-            $sms_password = $term->readline("SMS password ($y-$m-$d, #$n): ") // '';
-            $sms_password =~ m/\A\d{8}\z/ and last;
+            my $passwd = $term->readline("SMS password ($y-$m-$d, #$n): ") // '';
+            if ($passwd =~ m/\A\d{8}\z/) {
+                return $passwd;
+            }
         };
     } else {
         user_error('unable to ask for SMS password');
     }
-    return $sms_password;
+    return;
 }
 
 sub do_login  ## no critic (ExcessComplexity)
@@ -1130,7 +1142,7 @@ sub do_login  ## no critic (ExcessComplexity)
         }
         length($password) > 0
             or user_error('login failed: empty password');
-        _ask_for_sms_password(probe => 1);
+        _ask_for_sms_password('2006-07-30', 1, 0);
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
@@ -1172,7 +1184,7 @@ sub do_login  ## no critic (ExcessComplexity)
         my $data = decode_json($doc->{content})
             // scraping_error("login.app-setup: $EVAL_ERROR");
         my $token = $data->{antiForgeryToken} // '';
-        $token =~ m{\A[\w+/]+\z}
+        $token =~ m{\A[\w+/=]+\z}
             or scraping_error("login.app-setup.token: $token");
         my @auth_headers = (
             @json_headers,
@@ -1192,7 +1204,7 @@ sub do_login  ## no critic (ExcessComplexity)
         $data = decode_json($doc->{content})
             // scraping_error("login.sca: $EVAL_ERROR");
         my $sca_auth_id = $data->{ScaAuthorizationId} // '';
-        $sca_auth_id =~ m{\A[\w+/]+\z}
+        $sca_auth_id =~ m{\A[\w+/=]+\z}
             or scraping_error("login.sca.auth-id: $sca_auth_id");
         $request = POST(
             "$root_url/api/auth/initprepare",
@@ -1245,8 +1257,19 @@ sub do_login  ## no critic (ExcessComplexity)
             } elsif ($data->{Status} ne 'Authorized') {
                  scraping_error("login.2fa.exec: unknown status: $EVAL_ERROR");
             }
-            $content = encode_json({
-            });
+            $request = POST(
+                "$root_url/api/auth/execute",
+                @auth_headers,
+                'data-type' => 'json',
+                'Content' => encode_json({
+                })
+            );
+            $doc = download($request);
+            $data = decode_json($doc->{content})
+                // scraping_error("login.2fa.exec: $EVAL_ERROR");
+            $error_code = $data->{ErrorCode} // '?';
+            $error_code eq ''
+                or scraping_error("login.2fa.exec.error: $error_code");
         } elsif ($auth_mode eq 'SMS') {
             my $sms_date = $data->{OperationDate} // '';
             $sms_date = parse_timestamp($sms_date)
@@ -1254,25 +1277,39 @@ sub do_login  ## no critic (ExcessComplexity)
             my $sms_no = $data->{OperationNumber} // '';
             $sms_no =~ m/\A\d+\z/
                 or scraping_error("login.2fa.init.sms-no: $sms_no");
-            my $sms_password = _ask_for_sms_password($sms_date, $sms_no);
-            $content = encode_json({
-                'Auth' => $sms_password
-            });
+            for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
+                my $sms_password = _ask_for_sms_password($sms_date, $sms_no);
+                $request = POST(
+                    "$root_url/api/auth/execute",
+                    @auth_headers,
+                    'data-type' => 'json',
+                    'Content' => encode_json({
+                        'Auth' => $sms_password
+                    })
+                );
+                $doc = download($request, ignore_errors => 1);
+                $data = decode_json($doc->{content})
+                    // scraping_error("login.2fa.exec: $EVAL_ERROR");
+                $error_code = $data->{error};
+                if (defined($error_code)) {
+                    if ($error_code eq 'QGE0193' or $error_code eq 'QGE0200') {
+                        say {*STDERR} 'Incorrect SMS password';
+                        next;
+                    } else {
+                       scraping_error("login.2fa.exec.error: $error_code")
+                    }
+                } else {
+                    $error_code = $data->{ErrorCode};
+                    defined($error_code)
+                        or scraping_error('login.2fa.exec.error');
+                    $error_code eq ''
+                        or scraping_error("login.2fa.exec.error: $error_code");
+                    last;
+                }
+            }
         } else {
             scraping_error("login.2fa.init.auth-mode: $auth_mode");
         }
-        $request = POST(
-            "$root_url/api/auth/execute",
-            @auth_headers,
-            'data-type' => 'json',
-            'Content' => $content
-        );
-        $doc = download($request);
-        $data = decode_json($doc->{content})
-            // scraping_error("login.2fa.exec: $EVAL_ERROR");
-        $error_code = $data->{ErrorCode} // '?';
-        $error_code eq ''
-            or scraping_error("login.2fa.exec.error: $error_code");
         $request = POST(
             "$base_url/Sca/FinalizeAuthorization",
             @auth_headers,
@@ -2000,7 +2037,7 @@ sub do_deposits
         my $currency = $deposit->{currency} // '';
         $amount = format_amount($amount, fp => 1, currency => $currency)
             // scraping_error("deposits.amount: $amount $currency");
-        # FIXME: the legacy interface has also “status”
+        # FIXME: the pre-1.0 interface had also “status”
         print("$title\t$type\t$start_date\t$end_date\t$duration\t$interest%\t$amount\n");
     }
     return;
@@ -2292,7 +2329,7 @@ sub do_debug_sms_password
     my %options = @_;
     my $args = delete($options{args});
     check_for_unexpected_options(%options);
-    my ($date, $n) = @{$args};
+    my ($date, $n, $try) = @{$args};
     $date //= '';
     my ($y, $m, $d) = $date =~ m/\A(\d\d\d\d)-(\d\d)-(\d\d)\z/
         or user_error("SMS date not in the YYYY-MM-DD format: $date");
@@ -2301,9 +2338,13 @@ sub do_debug_sms_password
     } or user_error("invalid SMS date: $date");
     $n //= '';
     eval {
-        $n = 0 + $n;
+        $n >= 1;
     } or user_error("invalid SMS number: $n");
-    say _ask_for_sms_password($date, $n);
+    $try //= '1';
+    eval {
+        $try >= 0;
+    } or user_error("invalid try number: $try");
+    say _ask_for_sms_password($date, $n, $try);
     return;
 }
 
@@ -2545,7 +2586,7 @@ sub xdg_data_home
 # main program
 # ============
 
-our $VERSION = '2.0';
+our $VERSION = '2.1';
 
 umask(
     umask() | oct('077')
