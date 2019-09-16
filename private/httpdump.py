@@ -61,7 +61,7 @@ def response(flow):
             index=state.index,
             method=flow.request.method,
             host=flow.request.host,
-            path=re.sub(r'[^\w.]', '_', flow.request.path),
+            path=re.sub(r'[^\w.]', '_', flow.request.path)[:192],
         )
         fd = os.open(path, os.O_TRUNC | os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, 'wb') as log:
