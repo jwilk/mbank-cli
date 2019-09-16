@@ -1966,7 +1966,7 @@ sub do_deposits
         my $currency = $deposit->{currency} // '';
         $amount = format_amount($amount, fp => 1, currency => $currency)
             // scraping_error("deposits.amount: $amount $currency");
-        # FIXME: the legacy interface has also “status”
+        # FIXME: the pre-1.0 interface had also “status”
         print("$title\t$type\t$start_date\t$end_date\t$duration\t$interest%\t$amount\n");
     }
     return;
