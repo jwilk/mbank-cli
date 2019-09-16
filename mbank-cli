@@ -1015,12 +1015,8 @@ sub _get_tabid
 
 sub _ask_for_sms_password
 {
-    my ($date, $n) = @_;
-    my ($y, $m, $d);
-    my $probe = $date eq 'probe';
-    if (not $probe) {
-        ($y, $m, $d) = split /-/, $date;
-    }
+    my ($date, $n, $try) = @_;
+    my ($y, $m, $d) = split /-/, $date;
     my $cfg = $global_config;
     my $sms_password;
     my $inbox = get_config_var($cfg, 'smsinbox');
@@ -1032,8 +1028,10 @@ sub _ask_for_sms_password
         eval {
             require Filesys::Notify::Simple;
         } // user_error('Filesys::Notify::Simple is required to read SMS messages');
-        if ($probe) {
+        if ($try == 0) {
             return;
+        } elsif ($try > 1) {
+            internal_error('SMS retrieval failed?');
         }
         my $watcher = Filesys::Notify::Simple->new([$inbox]);
         debug('waiting for SMS password');
@@ -1066,7 +1064,7 @@ sub _ask_for_sms_password
         eval {
             term_import();
         } // user_error('Term::ReadLine::Gnu is required for password prompt');
-        if ($probe) {
+        if ($try == 0) {
             return;
         }
         my $term = term_new();
@@ -1130,7 +1128,7 @@ sub do_login  ## no critic (ExcessComplexity)
         }
         length($password) > 0
             or user_error('login failed: empty password');
-        _ask_for_sms_password(probe => 1);
+        _ask_for_sms_password('2006-07-30', 1, 0);
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
@@ -2258,7 +2256,7 @@ sub do_debug_sms_password
     my %options = @_;
     my $args = delete($options{args});
     check_for_unexpected_options(%options);
-    my ($date, $n) = @{$args};
+    my ($date, $n, $try) = @{$args};
     $date //= '';
     my ($y, $m, $d) = $date =~ m/\A(\d\d\d\d)-(\d\d)-(\d\d)\z/
         or user_error("SMS date not in the YYYY-MM-DD format: $date");
@@ -2269,7 +2267,11 @@ sub do_debug_sms_password
     eval {
         $n >= 1;
     } or user_error("invalid SMS number: $n");
-    say _ask_for_sms_password($date, $n);
+    $try //= '1';
+    eval {
+        $try >= 0;
+    } or user_error("invalid try number: $try");
+    say _ask_for_sms_password($date, $n, $try);
     return;
 }
 
