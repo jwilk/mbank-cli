@@ -1225,11 +1225,9 @@ sub do_login  ## no critic (ExcessComplexity)
         $error_code eq ''
             or scraping_error("login.2fa.init.error: $error_code");
         my $auth_mode = $data->{AuthMode} // '';
-        my $content = '';
-        my $tran_id = '';
         if ($auth_mode eq 'NAM') {
             print "Waiting for confirm click in mobile app...\n";
-            $tran_id = $data->{TranId} // '';
+            my $tran_id = $data->{TranId} // '';
             while (1) {
                 $request = POST(
                     "$root_url/api/auth/status",
