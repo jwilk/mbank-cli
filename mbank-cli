@@ -1256,6 +1256,8 @@ sub do_login  ## no critic (ExcessComplexity)
                     last;
                 } elsif ($status eq 'Canceled') {
                     user_error('login failed: rejected mobile authentication request');
+                } elsif ($status eq 'TimeOut') {
+                    user_error('login failed: mobile authentication request timed out');
                 } else {
                     scraping_error("login.2fa.status.status: $status")
                 }
