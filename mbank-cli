@@ -1092,7 +1092,167 @@ sub _ask_for_sms_password
     return;
 }
 
-sub do_login  ## no critic (ExcessComplexity)
+sub _do_2fa  ## no critic (ExcessComplexity)
+{
+    my $tabid = _get_tabid();
+    my $request = GET(
+        "$root_url/api/app/setup/data",
+        @json_headers,
+        'Referer' => "$root_url/authorization",
+    );
+    my $doc = download($request);
+    my $data = decode_json($doc->{content})
+        // scraping_error("login.app-setup: $EVAL_ERROR");
+    my $token = $data->{antiForgeryToken} // '';
+    $token =~ m{\A[\w+/=]+\z}
+        or scraping_error("login.app-setup.token: $token");
+    my @auth_headers = (
+        @json_headers,
+        'X-Request-Verification-Token' => $token,
+        'X-Tab-Id' => $tabid,
+        'Origin' => $root_url,
+    );
+    $request = POST(
+        "$base_url/Sca/GetScaAuthorizationData",
+        @auth_headers,
+        'Referer' => "$root_url/authorization",
+    );
+    push @auth_headers, (
+        'Referer' => "$root_url/authorization/onetime/set",
+    );
+    $doc = download($request);
+    $data = decode_json($doc->{content})
+        // scraping_error("login.sca: $EVAL_ERROR");
+    my $sca_auth_id = $data->{ScaAuthorizationId} // '';
+    $sca_auth_id =~ m{\A[\w+/=]+\z}
+        or scraping_error("login.sca.auth-id: $sca_auth_id");
+    $request = POST(
+        "$root_url/api/auth/initprepare",
+        @auth_headers,
+        'data-type' => 'json',
+        'Content' => encode_json({
+            'Url' => 'sca/authorization/disposable',
+            'Method' => 'POST',
+            'Data' => {
+                'ScaAuthorizationId' => $sca_auth_id
+            }
+        })
+    );
+    $doc = download($request);
+    $data = decode_json($doc->{content})
+        // scraping_error("login.2fa.init: $EVAL_ERROR");
+    my $error_code = $data->{ErrorCode} // '?';
+    $error_code eq ''
+        or scraping_error("login.2fa.init.error: $error_code");
+    my $auth_mode = $data->{AuthMode} // '';
+    my $operation_date = $data->{OperationDate} // '';
+    $operation_date = parse_timestamp($operation_date, discard_time => 1)
+        or scraping_error("login.2fa.init.operation-date: $operation_date");
+    my $operation_no = $data->{OperationNumber} // '';
+    $operation_no =~ m/\A\d+\z/
+        or scraping_error("login.2fa.init.operation-no: $operation_no");
+    if ($auth_mode eq 'NAM') {
+        say {*STDERR} "Waiting for confirmation of operation no $operation_no from $operation_date in the mobile app...";
+        my $tran_id = $data->{TranId} // '';
+        parse_uuid($tran_id)
+            or scraping_error("login.2fa.init.tran-id: $tran_id");
+        while (1) {
+            $request = POST(
+                "$root_url/api/auth/status",
+                @auth_headers,
+                'data-type' => 'json',
+                'Content' => encode_json({
+                    'TranId' => $tran_id
+                })
+            );
+            $doc = download($request);
+            $data = decode_json($doc->{content})
+                // scraping_error("login.2fa.status: $EVAL_ERROR");
+            $error_code = $data->{ErrorCode};
+            defined($error_code)
+                or scraping_error('login.2fa.status.error');
+            $error_code eq ''
+                or scraping_error("login.2fa.status.error: $error_code");
+            my $status = $data->{Status} // '';
+            debug("2FA mobile auth: $status");
+            if ($status eq 'Prepared' or $status eq 'PreAuthorized') {
+                sleep(1)
+                    or os_error("sleep(): $ERRNO");
+            } elsif ($status eq 'Authorized') {
+                last;
+            } elsif ($status eq 'Canceled') {
+                user_error('login failed: rejected mobile authentication request');
+            } elsif ($status eq 'TimeOut') {
+                user_error('login failed: mobile authentication request timed out');
+            } else {
+                scraping_error("login.2fa.status.status: $status")
+            }
+        }
+        $request = POST(
+            "$root_url/api/auth/execute",
+            @auth_headers,
+            'data-type' => 'json',
+            'Content' => '{}'
+        );
+        $doc = download($request, ignore_errors => 1);
+        $data = decode_json($doc->{content})
+            // scraping_error("login.2fa.exec: $EVAL_ERROR");
+        $error_code = $data->{error};
+        if (defined($error_code)) {
+            scraping_error("login.2fa.exec.error: $error_code")
+        } else {
+            $error_code = $data->{ErrorCode};
+            defined($error_code)
+                or scraping_error('login.2fa.exec.error');
+            $error_code eq ''
+                or scraping_error("login.2fa.exec.error: $error_code");
+        }
+    } elsif ($auth_mode eq 'SMS') {
+        for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
+            my $sms_password = _ask_for_sms_password($operation_date, $operation_no, $try);
+            $request = POST(
+                "$root_url/api/auth/execute",
+                @auth_headers,
+                'data-type' => 'json',
+                'Content' => encode_json({
+                    'Auth' => $sms_password
+                })
+            );
+            $doc = download($request, ignore_errors => 1);
+            $data = decode_json($doc->{content})
+                // scraping_error("login.2fa.exec: $EVAL_ERROR");
+            $error_code = $data->{error};
+            if (defined($error_code)) {
+                if ($error_code eq 'QGE0193' or $error_code eq 'QGE0200') {
+                    say {*STDERR} 'Incorrect SMS password';
+                    next;
+                } else {
+                   scraping_error("login.2fa.exec.error: $error_code")
+                }
+            } else {
+                $error_code = $data->{ErrorCode};
+                defined($error_code)
+                    or scraping_error('login.2fa.exec.error');
+                $error_code eq ''
+                    or scraping_error("login.2fa.exec.error: $error_code");
+                last;
+            }
+        }
+    } else {
+        scraping_error("login.2fa.init.auth-mode: $auth_mode");
+    }
+    $request = POST(
+        "$base_url/Sca/FinalizeAuthorization",
+        @auth_headers,
+        'Content' => encode_json({
+            'ScaAuthorizationId' => $sca_auth_id
+        })
+    );
+    $doc = download($request);
+    return;
+}
+
+sub do_login
 {
     my %options = @_;
     my $probe = delete($options{probe});
@@ -1174,161 +1334,7 @@ sub do_login  ## no critic (ExcessComplexity)
         my $redirect_url = $login_json->{redirectUrl} // '';
         $redirect_url eq '/authorization'
             or scraping_error("login.redirect-url: $redirect_url");
-        my $tabid = _get_tabid();
-        $request = GET(
-            "$root_url/api/app/setup/data",
-            @json_headers,
-            'Referer' => "$root_url/authorization",
-        );
-        $doc = download($request);
-        my $data = decode_json($doc->{content})
-            // scraping_error("login.app-setup: $EVAL_ERROR");
-        my $token = $data->{antiForgeryToken} // '';
-        $token =~ m{\A[\w+/=]+\z}
-            or scraping_error("login.app-setup.token: $token");
-        my @auth_headers = (
-            @json_headers,
-            'X-Request-Verification-Token' => $token,
-            'X-Tab-Id' => $tabid,
-            'Origin' => $root_url,
-        );
-        $request = POST(
-            "$base_url/Sca/GetScaAuthorizationData",
-            @auth_headers,
-            'Referer' => "$root_url/authorization",
-        );
-        push @auth_headers, (
-            'Referer' => "$root_url/authorization/onetime/set",
-        );
-        $doc = download($request);
-        $data = decode_json($doc->{content})
-            // scraping_error("login.sca: $EVAL_ERROR");
-        my $sca_auth_id = $data->{ScaAuthorizationId} // '';
-        $sca_auth_id =~ m{\A[\w+/=]+\z}
-            or scraping_error("login.sca.auth-id: $sca_auth_id");
-        $request = POST(
-            "$root_url/api/auth/initprepare",
-            @auth_headers,
-            'data-type' => 'json',
-            'Content' => encode_json({
-                'Url' => 'sca/authorization/disposable',
-                'Method' => 'POST',
-                'Data' => {
-                    'ScaAuthorizationId' => $sca_auth_id
-                }
-            })
-        );
-        $doc = download($request);
-        $data = decode_json($doc->{content})
-            // scraping_error("login.2fa.init: $EVAL_ERROR");
-        my $error_code = $data->{ErrorCode} // '?';
-        $error_code eq ''
-            or scraping_error("login.2fa.init.error: $error_code");
-        my $auth_mode = $data->{AuthMode} // '';
-        my $operation_date = $data->{OperationDate} // '';
-        $operation_date = parse_timestamp($operation_date, discard_time => 1)
-            or scraping_error("login.2fa.init.operation-date: $operation_date");
-        my $operation_no = $data->{OperationNumber} // '';
-        $operation_no =~ m/\A\d+\z/
-            or scraping_error("login.2fa.init.operation-no: $operation_no");
-        if ($auth_mode eq 'NAM') {
-            say {*STDERR} "Waiting for confirmation of operation no $operation_no from $operation_date in the mobile app...";
-            my $tran_id = $data->{TranId} // '';
-            parse_uuid($tran_id)
-                or scraping_error("login.2fa.init.tran-id: $tran_id");
-            while (1) {
-                $request = POST(
-                    "$root_url/api/auth/status",
-                    @auth_headers,
-                    'data-type' => 'json',
-                    'Content' => encode_json({
-                        'TranId' => $tran_id
-                    })
-                );
-                $doc = download($request);
-                $data = decode_json($doc->{content})
-                    // scraping_error("login.2fa.status: $EVAL_ERROR");
-                $error_code = $data->{ErrorCode};
-                defined($error_code)
-                    or scraping_error('login.2fa.status.error');
-                $error_code eq ''
-                    or scraping_error("login.2fa.status.error: $error_code");
-                my $status = $data->{Status} // '';
-                debug("2FA mobile auth: $status");
-                if ($status eq 'Prepared' or $status eq 'PreAuthorized') {
-                    sleep(1)
-                        or os_error("sleep(): $ERRNO");
-                } elsif ($status eq 'Authorized') {
-                    last;
-                } elsif ($status eq 'Canceled') {
-                    user_error('login failed: rejected mobile authentication request');
-                } elsif ($status eq 'TimeOut') {
-                    user_error('login failed: mobile authentication request timed out');
-                } else {
-                    scraping_error("login.2fa.status.status: $status")
-                }
-            }
-            $request = POST(
-                "$root_url/api/auth/execute",
-                @auth_headers,
-                'data-type' => 'json',
-                'Content' => '{}'
-            );
-            $doc = download($request, ignore_errors => 1);
-            $data = decode_json($doc->{content})
-                // scraping_error("login.2fa.exec: $EVAL_ERROR");
-            $error_code = $data->{error};
-            if (defined($error_code)) {
-                scraping_error("login.2fa.exec.error: $error_code")
-            } else {
-                $error_code = $data->{ErrorCode};
-                defined($error_code)
-                    or scraping_error('login.2fa.exec.error');
-                $error_code eq ''
-                    or scraping_error("login.2fa.exec.error: $error_code");
-            }
-        } elsif ($auth_mode eq 'SMS') {
-            for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
-                my $sms_password = _ask_for_sms_password($operation_date, $operation_no, $try);
-                $request = POST(
-                    "$root_url/api/auth/execute",
-                    @auth_headers,
-                    'data-type' => 'json',
-                    'Content' => encode_json({
-                        'Auth' => $sms_password
-                    })
-                );
-                $doc = download($request, ignore_errors => 1);
-                $data = decode_json($doc->{content})
-                    // scraping_error("login.2fa.exec: $EVAL_ERROR");
-                $error_code = $data->{error};
-                if (defined($error_code)) {
-                    if ($error_code eq 'QGE0193' or $error_code eq 'QGE0200') {
-                        say {*STDERR} 'Incorrect SMS password';
-                        next;
-                    } else {
-                       scraping_error("login.2fa.exec.error: $error_code")
-                    }
-                } else {
-                    $error_code = $data->{ErrorCode};
-                    defined($error_code)
-                        or scraping_error('login.2fa.exec.error');
-                    $error_code eq ''
-                        or scraping_error("login.2fa.exec.error: $error_code");
-                    last;
-                }
-            }
-        } else {
-            scraping_error("login.2fa.init.auth-mode: $auth_mode");
-        }
-        $request = POST(
-            "$base_url/Sca/FinalizeAuthorization",
-            @auth_headers,
-            'Content' => encode_json({
-                'ScaAuthorizationId' => $sca_auth_id
-            })
-        );
-        $doc = download($request);
+        _do_2fa();
         $request = GET($base_url);
         $doc = download($request);
     }
