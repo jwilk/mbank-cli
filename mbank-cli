@@ -1303,6 +1303,19 @@ sub do_login
         length($password) > 0
             or user_error('login failed: empty password');
         _ask_for_sms_password('2006-07-30', 1, 0);
+        my $dfp_data = {
+            dfp => undef,
+            scaOperationId => undef,
+            errorMessage => undef,
+        };
+        my $dfp = get_config_var($cfg, 'dfp');
+        if (defined $dfp) {
+            eval {
+                require UUID::Tiny;
+            } // user_error('UUID::Tiny is required for DFP');
+            $dfp_data->{dfp} = $dfp;
+            $dfp_data->{scaOperationId} = UUID::Tiny::create_uuid_as_string(UUID::Tiny::UUID_RANDOM());
+        }
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
@@ -1315,7 +1328,7 @@ sub do_login
                 UWAdditionalParams => {InOut => undef, ReturnAddress => undef, Source => undef},
                 Lang => '',
                 HrefHasHash => decode_json('false'),
-                DfpData => {dfp => undef, scaOperationId => undef, errorMessage => undef},
+                DfpData => $dfp_data,
             }),
         );
         $doc = download($request);
@@ -1332,9 +1345,13 @@ sub do_login
             user_error("login failed: $message");
         }
         my $redirect_url = $login_json->{redirectUrl} // '';
-        $redirect_url eq '/authorization'
-            or scraping_error("login.redirect-url: $redirect_url");
-        _do_2fa();
+        if ("$root_url$redirect_url" eq $base_url) {
+            # yay, no 2FA
+        } elsif ($redirect_url eq '/authorization') {
+            _do_2fa();
+        } else {
+            scraping_error("login.redirect-url: $redirect_url");
+        }
         $request = GET($base_url);
         $doc = download($request);
     }
