@@ -809,6 +809,15 @@ sub parse_uuid
 
 sub gen_uuid
 {
+    my $path = '/proc/sys/kernel/random/uuid';
+    if (open(my $fh, '<', $path)) {
+        my $uuid = <$fh>
+            // os_error("$path: $ERRNO");
+        chomp $uuid;
+        parse_uuid($uuid)
+            or os_error("$path: invalid UUID");
+        return $uuid;
+    }
     eval {
         require UUID::Tiny;
     } // user_error('UUID::Tiny is required for DFP');
