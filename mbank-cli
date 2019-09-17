@@ -807,6 +807,14 @@ sub parse_uuid
     return $s;
 }
 
+sub gen_uuid
+{
+    eval {
+        require UUID::Tiny;
+    } // user_error('UUID::Tiny is required for DFP');
+    return UUID::Tiny::create_uuid_as_string(UUID::Tiny::UUID_RANDOM())
+}
+
 sub wildcards_to_regexp
 {
     my (@wildcards) = @_;
@@ -1314,11 +1322,8 @@ sub do_login
         };
         my $dfp = get_config_var($cfg, 'dfp');
         if (defined $dfp) {
-            eval {
-                require UUID::Tiny;
-            } // user_error('UUID::Tiny is required for DFP');
             $dfp_data->{dfp} = $dfp;
-            $dfp_data->{scaOperationId} = UUID::Tiny::create_uuid_as_string(UUID::Tiny::UUID_RANDOM());
+            $dfp_data->{scaOperationId} = get_uuid();
         }
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
