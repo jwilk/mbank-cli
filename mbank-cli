@@ -813,6 +813,8 @@ sub gen_uuid
     if (open(my $fh, '<', $path)) {
         my $uuid = <$fh>
             // os_error("$path: $ERRNO");
+        close($fh)
+            or os_error("$path: $ERRNO");
         chomp $uuid;
         parse_uuid($uuid)
             or os_error("$path: invalid UUID");
