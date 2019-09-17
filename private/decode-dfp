@@ -1,0 +1,35 @@
+#!/usr/bin/env perl
+
+# Copyright © 2014-2019 Jakub Wilk <jwilk@jwilk.net>
+# SPDX-License-Identifier: MIT
+
+use v5.10;
+
+use strict;
+use warnings;
+
+no lib '.';
+
+use Compress::Raw::Zlib;
+use English qw(-no_match_vars);
+use MIME::Base64 qw(decode_base64);
+
+my $zdata;
+if (scalar @ARGV) {
+    ($zdata) = @ARGV;
+} else {
+    local $RS = undef;
+    $zdata = <STDIN>;
+}
+$zdata = decode_base64($zdata);
+my $z = Compress::Raw::Zlib::Inflate->new();
+my $data;
+my $status = $z->inflate($zdata, $data);
+$status == Z_STREAM_END
+    or die "zlib $status";
+if (-t STDOUT) {
+    die 'binary data not written to a terminal';
+}
+print $data;
+
+# vim:ts=4 sts=4 sw=4 et
