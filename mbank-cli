@@ -1126,6 +1126,10 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     my $sca_auth_id = $data->{ScaAuthorizationId} // '';
     $sca_auth_id =~ m{\A[\w+/=]+\z}
         or scraping_error("login.sca.auth-id: $sca_auth_id");
+    my $trusted_add_allowed = $data->{TrustedDeviceAddingAllowed};
+    defined($trusted_add_allowed)
+        or scraping_error('login.sca.trusted-add');
+    debug('adding trusted device allowed: ' . ($trusted_add_allowed ? 'yes' : 'no'));
     $request = POST(
         "$root_url/api/auth/initprepare",
         @auth_headers,
