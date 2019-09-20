@@ -2910,7 +2910,7 @@ if ($command_info->{dates}) {
         end_date => $opt_end_date,
     );
 }
-if ($command_info->{dates}) {
+if ($command_info->{ids}) {
     push(@cmd_options,
         display_id => $opt_with_id,
     );
