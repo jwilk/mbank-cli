@@ -388,13 +388,20 @@ sub guess_country
     return;
 }
 
+# ====================
+# HTTP client identity
+# ====================
+
+# Extracted from Tor Browser 8.5.5 (based on Firefox 60 ESR):
+my $browser_user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0';
+my $browser_dfp = 'eJzjEuXi8cnMK61QqLAwizczEWIO9fOWYBBS4/jFLnCVReIXu8JVFo1f7AZXWayEDHIS81KKkxMLUnULijJzE4sqpVi4mFLzlEQ4GKAaFRi0QAwDBgsGLVsG4kEDhogVg8ORci82DgYBBgmGIGY/fUcwESXExe6bX5WZk5MoBGMkMRR5rmDi2MDEsYOJ4wATxwkmiQtMDDeYGgQeMAm8AFIfmB4w/mDiaGBuEOhg5pjALDCDmWMBcwPTCmbGDcyMO5gZDzDbn2BuULgAxADACDj4';
+
 # =========
 # HTTP, TLS
 # =========
 
 my $ua = undef;
 
-my $http_product_name = 'Mozilla/5.0 (Windows NT 6.1; rv:52.0) Gecko/20100101 Firefox/52.0';
 my $http_read_size_hint = 1 << 20;  # 1 MiB
 my $http_timeout = 30;
 
@@ -461,7 +468,7 @@ sub http_init
     };
     my $cookie_jar = HTTP::Cookies->new(@cookie_jar_options);
     my $ua = LWP::UserAgent->new(  ## no critic (ReusedNames)
-        agent => $http_product_name,
+        agent => $browser_user_agent,
         cookie_jar => $cookie_jar,
         protocols_allowed => ['https'],
         timeout => $http_timeout,
@@ -1326,16 +1333,12 @@ sub do_login
         length($password) > 0
             or user_error('login failed: empty password');
         _ask_for_sms_password('2006-07-30', 1, 0);
+        my $dfp = get_config_var($cfg, 'dfp') // $browser_dfp;
         my $dfp_data = {
-            dfp => undef,
-            scaOperationId => undef,
+            dfp => $dfp,
+            scaOperationId => gen_uuid(),
             errorMessage => undef,
         };
-        my $dfp = get_config_var($cfg, 'dfp');
-        if (defined $dfp) {
-            $dfp_data->{dfp} = $dfp;
-            $dfp_data->{scaOperationId} = gen_uuid();
-        }
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
             @json_headers,
