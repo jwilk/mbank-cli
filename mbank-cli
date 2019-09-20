@@ -822,7 +822,7 @@ sub gen_uuid
     }
     eval {
         require UUID::Tiny;
-    } // user_error('UUID::Tiny is required for DFP');
+    } // user_error('UUID::Tiny is required for generating UUID');
     return UUID::Tiny::create_uuid_as_string(UUID::Tiny::UUID_RANDOM())
 }
 
