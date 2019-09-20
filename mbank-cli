@@ -97,6 +97,7 @@ use HTML::TreeBuilder ();
 use HTTP::Cookies ();
 use HTTP::Message 5.802;
 use HTTP::Request::Common qw(GET POST);
+use URI::Escape qw(uri_escape_utf8);
 use IO::Socket::SSL 1.31;
 use LWP::UserAgent ();
 use LWP::Protocol::https ();
@@ -1120,6 +1121,7 @@ sub _ask_for_sms_password
 
 sub _do_2fa  ## no critic (ExcessComplexity)
 {
+    my ($device_to_add) = @_;
     my $tabid = _get_tabid();
     my $request = GET(
         "$root_url/api/app/setup/data",
@@ -1143,9 +1145,6 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         @auth_headers,
         'Referer' => "$root_url/authorization",
     );
-    push @auth_headers, (
-        'Referer' => "$root_url/authorization/onetime/set",
-    );
     $doc = download($request);
     $data = decode_json($doc->{content})
         // scraping_error("login.sca: $EVAL_ERROR");
@@ -1155,17 +1154,65 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     my $trusted_add_allowed = $data->{TrustedDeviceAddingAllowed};
     defined($trusted_add_allowed)
         or scraping_error('login.sca.trusted-add');
-    debug('adding trusted device allowed: ' . ($trusted_add_allowed ? 'yes' : 'no'));
+    my $auth_type;
+    my $auth_data = {
+        'ScaAuthorizationId' => $sca_auth_id,
+    };
+    my $cfg = $global_config;
+    my $dfp = get_config_var($cfg, 'dfp') // $browser_dfp;
+    if (defined($device_to_add)) {
+        $trusted_add_allowed or
+            user_error('adding trusted device not allowed');
+        $request = GET(
+            "$root_url/api/sca/TrustedDevices/IsPossibleToAddNextDevice",
+            @json_headers,
+            'X-Request-Verification-Token' => $token,
+            'X-Tab-Id' => $tabid,
+            'Referer' => "$root_url/authorization/unknownDevice",
+        );
+        $doc = download($request);
+        $data = decode_json($doc->{content})
+            // scraping_error("login.2fa.next-dev: $EVAL_ERROR");
+        $data->{isValid}
+            or scraping_error('login.2fa.next-dev.invalid');
+        my $query = 'deviceName=' . uri_escape_utf8($device_to_add);
+        $request = GET(
+            "$root_url/api/sca/TrustedDevices?$query",
+            @json_headers,
+            'X-Request-Verification-Token' => $token,
+            'X-Tab-Id' => $tabid,
+            'Referer' => "$root_url/authorization/secureDevice/set",
+        );
+        $doc = download($request);
+        $data = decode_json($doc->{content})
+            // scraping_error("login.2fa.trusted-dev: $EVAL_ERROR");
+        $data->{isValid}
+            or scraping_error('login.2fa.trusted-dev.invalid');
+        $auth_type = 'trusteddevice';
+        $auth_data = {
+            %{$auth_data},
+            'DfpData' => $dfp,
+            'DeviceName' => $device_to_add,
+            'IsTheOnlyDeviceUser' => decode_json('true'),
+        };
+        push @auth_headers, (
+            'Referer' => "$root_url/authorization/secureDevice/confirm",
+        );
+    } else {
+        debug('adding trusted device allowed: ' . ($trusted_add_allowed ? 'yes' : 'no'));
+        $auth_type = 'disposable';
+        push @auth_headers, (
+            'Referer' => "$root_url/authorization/onetime/set",
+        );
+    }
     $request = POST(
         "$root_url/api/auth/initprepare",
         @auth_headers,
         'data-type' => 'json',
         'Content' => encode_json({
-            'Url' => 'sca/authorization/disposable',
+            'Url' => "sca/authorization/$auth_type",
             'Method' => 'POST',
-            'Data' => {
-                'ScaAuthorizationId' => $sca_auth_id
-            }
+            'Data' => $auth_data,
         })
     );
     $doc = download($request);
@@ -1271,13 +1318,25 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     } else {
         scraping_error("login.2fa.init.auth-mode: $auth_mode");
     }
-    $request = POST(
-        "$base_url/Sca/FinalizeAuthorization",
-        @auth_headers,
-        'Content' => encode_json({
-            'ScaAuthorizationId' => $sca_auth_id
-        })
-    );
+    if (defined($device_to_add)) {
+        $request = POST(
+            "$base_url/Sca/FinalizeTrustedDeviceAuthorization",
+            @auth_headers,
+            'Content' => encode_json({
+                'ScaAuthorizationId' => $sca_auth_id,
+                'currentDfp' => $dfp,
+                'deviceName' => $device_to_add,
+            })
+        );
+    } else {
+        $request = POST(
+            "$base_url/Sca/FinalizeAuthorization",
+            @auth_headers,
+            'Content' => encode_json({
+                'ScaAuthorizationId' => $sca_auth_id
+            })
+        );
+    }
     $doc = download($request);
     return;
 }
@@ -1286,6 +1345,7 @@ sub do_login
 {
     my %options = @_;
     my $probe = delete($options{probe});
+    my $register_device = delete($options{register_device});
     check_for_unexpected_options(%options);
     my $request = GET($base_url);
     my $doc = download($request);
@@ -1370,8 +1430,11 @@ sub do_login
         my $redirect_url = $login_json->{redirectUrl} // '';
         if ("$root_url$redirect_url" eq $base_url) {
             # yay, no 2FA
+            if (defined($register_device)) {
+                user_error('device already registered');
+            }
         } elsif ($redirect_url eq '/authorization') {
-            _do_2fa();
+            _do_2fa($register_device);
         } else {
             scraping_error("login.redirect-url: $redirect_url");
         }
@@ -1399,6 +1462,21 @@ sub do_login
         profiles => \%profiles,
         url => $doc->{url},
     };
+}
+
+sub do_register_device
+{
+    my %options = @_;
+    my @args = @{delete($options{args})};
+    check_for_unexpected_options(%options);
+    scalar(@args) <= 1
+        or user_error('regsiter-device: too many arguments');
+    my ($name) = @args;
+    $name //= 'CLI';
+    $name = bytes_to_unicode($name);
+    do_logout(maybe => 1);
+    do_login(register_device => $name);
+    return;
 }
 
 sub do_list
@@ -2337,12 +2415,17 @@ sub _do_lazy_logout
 sub do_logout
 {
     my %options = @_;
+    my $maybe = delete $options{maybe};
     check_for_unexpected_options(%options);
     my $login_info = do_login(probe => 1);
     if (not defined($login_info)) {
         $ua->cookie_jar->clear_temporary_cookies();
         debug('temporary cookies have been wiped out');
-        user_error('logout: the user was not logged in')
+        if ($maybe) {
+            return;
+        } else {
+            user_error('logout: the user was not logged in')
+        }
     } else {
         debug('logging out...');
         _do_lazy_logout(login => $login_info);
@@ -2675,6 +2758,7 @@ Usage:
   mbank-cli notices
   mbank-cli logout
   mbank-cli activate-profile {personal | business | <company-name>}
+  mbank-cli register-device [<device-name>]
   mbank-cli configure
 
 Common options:
@@ -2845,6 +2929,7 @@ my %commands = (
     'pension' => {},
     'notices' => {},
     'logout' => { login => 0 },
+    'register-device' => { login => 0, args => 1 },
     'activate-profile' => { args => 1 },
     'configure' => { login => 0, config => 0 },
 );

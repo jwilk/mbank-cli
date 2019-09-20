@@ -39,6 +39,9 @@ B<mbank-cli> B<notices> [I<option>...]
 B<mbank-cli> B<logout> [I<option>...]
 
 =item *
+B<mbank-cli> B<register-device> [I<option>...] [I<device-name>]
+
+=item *
 B<mbank-cli> B<activate-profile> [I<option>...] {B<personal> | B<business> | I<company-name>}
 
 =item *
@@ -379,6 +382,16 @@ Syntax:
 B<mbank-cli> B<logout> [I<option>...]
 
 Log out from the web interface.
+
+=head2 The “register-device” command
+
+Syntax:
+B<mbank-cli> B<register-device> [I<option>...] [I<device-name>]
+
+Register mbank-cli as a trusted device.
+This should allow logging in without second-factor authentication requests most of the time.
+
+The default device name is “B<CLI>”.
 
 =head2 The “activate-profile” command
 
