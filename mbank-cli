@@ -2253,6 +2253,35 @@ sub do_notices
     return;
 }
 
+sub do_list_profiles
+{
+    my %options = @_;
+    my $login_info = delete($options{login})
+        // internal_error('missing login info');
+    my @args = @{delete($options{args})};
+    check_for_unexpected_options(%options);
+    my ($profile_type) = @args;
+    scalar(@args) > 0
+        or $profile_type = 'all';
+    scalar(@args) <= 1
+        or user_error('list-profiles: too many arguments');
+    my @valid_types = qw(personal business all);
+    grep { $profile_type eq $_ } @valid_types
+        or user_error("list-profiles: unknown profile type $profile_type");
+    my %profiles = %{$login_info->{profiles}};
+    foreach my $account_name (keys %profiles) {
+        my @account_data = @{$profiles{$account_name}};
+        my $active_str = '';
+        $active_str = "active" if defined($account_data[0][0]);
+        if ( $profile_type eq 'all'
+                or ($profile_type eq 'business' and $account_name ne 'personal')
+                or ($profile_type eq 'personal' and $account_name eq 'personal')
+        ) {
+            print("$account_name\t$active_str\n");
+        }
+    }
+}
+
 sub do_activate_profile
 {
     my %options = @_;
@@ -2674,6 +2703,7 @@ Usage:
   mbank-cli cards
   mbank-cli notices
   mbank-cli logout
+  mbank-cli list-profiles [personal | business | all]
   mbank-cli activate-profile {personal | business | <company-name>}
   mbank-cli configure
 
@@ -2845,6 +2875,7 @@ my %commands = (
     'pension' => {},
     'notices' => {},
     'logout' => { login => 0 },
+    'list-profiles' => { args => 1 },
     'activate-profile' => { args => 1 },
     'configure' => { login => 0, config => 0 },
 );
