@@ -2339,8 +2339,8 @@ sub do_logout
     my %options = @_;
     my $login_info = do_login(probe => 1);
     if (not defined($login_info)) {
-        $ua->cookie_jar->clear();
-        debug('cookies have been wiped out');
+        $ua->cookie_jar->clear_temporary_cookies();
+        debug('temporary cookies have been wiped out');
         user_error('logout: the user was not logged in')
     } else {
         debug('logging out...');
@@ -2354,8 +2354,8 @@ sub do_logout
             or scraping_error('logout.redirect');
         debug('successful logout');
     }
-    $ua->cookie_jar->clear();
-    debug('cookies have been wiped out');
+    $ua->cookie_jar->clear_temporary_cookies();
+    debug('temporary cookies have been wiped out');
     return;
 }
 
