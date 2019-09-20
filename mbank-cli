@@ -2337,6 +2337,7 @@ sub _do_lazy_logout
 sub do_logout
 {
     my %options = @_;
+    check_for_unexpected_options(%options);
     my $login_info = do_login(probe => 1);
     if (not defined($login_info)) {
         $ua->cookie_jar->clear_temporary_cookies();
