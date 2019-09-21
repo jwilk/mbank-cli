@@ -15,8 +15,9 @@ mbank-cli (2.2) UNRELEASED; urgency=low
 
   * Installation instruction for CentOS 6 has been fixed.
   * Installation instruction for CentOS 7 has been added.
+  * Installation instruction for Ubuntu has been added.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 21 Sep 2019 15:04:57 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 21 Sep 2019 19:15:33 +0200
 
 mbank-cli (2.1) unstable; urgency=low
 
