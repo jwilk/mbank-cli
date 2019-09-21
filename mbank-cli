@@ -394,7 +394,11 @@ sub guess_country
 # ====================
 
 # Extracted from Tor Browser 8.5.5 (based on Firefox 60 ESR):
+
+# » navigator.userAgent
 my $browser_user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0';
+
+# » Ebre.Behaviour.GetCurrentDfp().then(console.log) && null
 my $browser_dfp = 'eJzjEuXi8cnMK61QqLAwizczEWIO9fOWYBBS4/jFLnCVReIXu8JVFo1f7AZXWayEDHIS81KKkxMLUnULijJzE4sqpVi4mFLzlEQ4GKAaFRi0QAwDBgsGLVsG4kEDhogVg8ORci82DgYBBgmGIGY/fUcwESXExe6bX5WZk5MoBGMkMRR5rmDi2MDEsYOJ4wATxwkmiQtMDDeYGgQeMAm8AFIfmB4w/mDiaGBuEOhg5pjALDCDmWMBcwPTCmbGDcyMO5gZDzDbn2BuULgAxADACDj4';
 
 # =========
