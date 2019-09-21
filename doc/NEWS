@@ -3,6 +3,7 @@ mbank-cli (2.2) UNRELEASED; urgency=low
   New features:
 
   * The “register-device” command has been added.
+    https://github.com/jwilk/mbank-cli/issues/74
 
   Minor improvements:
 
