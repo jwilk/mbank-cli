@@ -57,6 +57,12 @@ CentOS 6::
    yum install perl-IPC-Run  # for password management
    yum install gnupg2  # for password encryption
 
+CentOS 7::
+
+   yum install epel-release  # some packages are only in EPEL
+   yum install perl-core perl-LWP-Protocol-https perl-HTML-Form perl-HTML-Tree
+   yum install perl-IPC-Run  # for password management
+
 Debian 7 (wheezy) or newer::
 
    apt-get install libwww-perl libhtml-form-perl libterm-readline-gnu-perl
