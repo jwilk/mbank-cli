@@ -63,7 +63,7 @@ CentOS 7::
    yum install perl-core perl-LWP-Protocol-https perl-HTML-Form perl-HTML-Tree
    yum install perl-IPC-Run  # for password management
 
-Debian 7 (wheezy) or newer::
+Debian 7 (wheezy) or newer; Ubuntu 14.04 (trusty) or newer::
 
    apt-get install libwww-perl libhtml-form-perl libterm-readline-gnu-perl
    apt-get install libipc-run-perl  # for password management
