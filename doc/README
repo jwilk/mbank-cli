@@ -60,7 +60,7 @@ CentOS 6::
 CentOS 7::
 
    yum install epel-release  # some packages are only in EPEL
-   yum install perl-core perl-LWP-Protocol-https perl-HTML-Form perl-HTML-Tree
+   yum install perl-core perl-LWP-Protocol-https perl-HTML-Form perl-HTML-Tree perl-Term-ReadLine-Gnu
    yum install perl-IPC-Run  # for password management
 
 Debian 7 (wheezy) or newer; Ubuntu 14.04 (trusty) or newer::
