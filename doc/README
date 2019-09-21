@@ -52,6 +52,7 @@ Arch Linux::
 
 CentOS 6::
 
+   yum install epel-release  # some packages are only in EPEL
    yum install perl-core perl-libwww-perl perl-IO-Socket-SSL perl-HTML-Tree perl-JSON perl-Term-ReadLine-Gnu
    yum install perl-IPC-Run  # for password management
    yum install gnupg2  # for password encryption
