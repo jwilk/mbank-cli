@@ -114,7 +114,7 @@ my $opt_verbose = 0;
 my $opt_debug_dir = undef;
 my $bugtracker = 'https://github.com/jwilk/mbank-cli/issues';
 my $bugreport_url_tmpl = "$bugtracker/%d";
-my $bugreport_request = "Please file a bug at <$bugtracker>.\n";
+my $bugreport_request = "Please file a bug at <$bugtracker>.";
 
 sub write_log
 {
@@ -123,7 +123,7 @@ sub write_log
     my $path = "$opt_debug_dir/log";
     open(my $log, '>>', $path)
         or os_error("$path: $ERRNO");
-    print {$log} "$message\n";
+    say {$log} $message;
     close($log)
         or os_error("$path: $ERRNO");
     return;
@@ -135,7 +135,7 @@ sub debug
     $message = "* $message";
     write_log($message);
     if ($opt_verbose) {
-        print {*STDERR} "$message\n";
+        say {*STDERR} $message;
     }
     return;
 }
@@ -145,7 +145,7 @@ sub user_error
     my ($message) = @_;
     if (defined($message)) {
         write_log($message);
-        print {*STDERR} "mbank-cli: $message\n";
+        say {*STDERR} "mbank-cli: $message";
     }
     exit(1);
 }
@@ -218,7 +218,7 @@ sub scraping_error
     write_log($message);
     local $Carp::CarpLevel = 1;
     Carp::cluck($message);
-    print {*STDERR} $bugreport_request;
+    say {*STDERR} $bugreport_request;
     exit(3);
 }
 
@@ -258,7 +258,7 @@ sub internal_error
     write_log($message);
     local $Carp::CarpLevel = $level + 1;
     Carp::cluck($message);
-    print {*STDERR} $bugreport_request;
+    say {*STDERR} $bugreport_request;
     exit(-1);
 }
 
@@ -268,7 +268,7 @@ sub known_bug
     my $url = sprintf($bugreport_url_tmpl, $bugno);
     $message .= "; see <$url>";
     write_log($message);
-    print {*STDERR} "mbank-cli: $message\n";
+    say {*STDERR} "mbank-cli: $message";
     exit(-1);
 }
 
@@ -2585,7 +2585,7 @@ sub _configure_password
                 my $message = $EVAL_ERROR;
                 my $file = __FILE__;
                 $message =~ s/ at \Q$file\E line \d+[.]\n+//;
-                print {*STDERR} "$message\n";
+                say {*STDERR} $message;
             }
             my $retry = '';
             until ($retry =~ m/\A[yYnN]\z/) {  ## no critic (Until)
