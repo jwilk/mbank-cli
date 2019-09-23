@@ -5,6 +5,8 @@ mbank-cli (2.2) UNRELEASED; urgency=low
   * The “register-device” command has been added.
     https://github.com/jwilk/mbank-cli/issues/74
 
+    As a consequence, on non-Linux systems, the UUID::Tiny is now required.
+
   Minor improvements:
 
   * The Term::ReadLine::Gnu module is no longer required, except when asking
