@@ -7,9 +7,17 @@ mbank-cli (2.2) UNRELEASED; urgency=low
 
   Minor improvements:
 
+  * The Term::ReadLine::Gnu module is no longer required, except when asking
+    for the account password.
+
   * The “logout” command now removes only temporary cookies.
 
   * The User-Agent string has been updated to match Firefox 60 on Linux.
+
+  Minor bug fixes:
+
+  * Possible use of uninitialized value when asking for the account password
+    has been fixed.
 
   Documentation improvements:
 
@@ -17,7 +25,7 @@ mbank-cli (2.2) UNRELEASED; urgency=low
   * Installation instruction for CentOS 7 has been added.
   * Installation instruction for Ubuntu has been added.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 21 Sep 2019 19:15:33 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 23 Sep 2019 13:06:53 +0200
 
 mbank-cli (2.1) unstable; urgency=low
 
@@ -41,6 +49,8 @@ mbank-cli (2.0) unstable; urgency=low
 
   * Interactive second-factor SMS authentication is now supported.
     https://github.com/jwilk/mbank-cli/issues/70
+
+    As a consequence, the Term::ReadLine::Gnu module is now required.
 
   Minor bug fixes:
 
