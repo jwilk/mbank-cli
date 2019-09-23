@@ -1380,6 +1380,7 @@ sub do_login
                 if (-t STDIN) {
                     my $term = term_new(readpasswd => 1);
                     $password = term_readpasswd($term, 'Password: ');
+                    $password //= '';
                 } else {
                     config_error($cfg, 'missing password');
                 }
