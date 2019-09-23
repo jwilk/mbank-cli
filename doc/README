@@ -22,7 +22,7 @@ Requirements
 
   - IO::Socket::SSL (≥ 1.31)
 
-  - IPC::Run (optionally, for password encryption, or for password manager
+  - IPC::Run (optional: for password encryption, or for password manager
     support)
 
   - JSON or JSON::PP (the latter is a core module since Perl 5.14)
