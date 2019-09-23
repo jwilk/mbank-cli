@@ -74,7 +74,7 @@ Cheat sheet for cpanm(1)
 ::
 
    cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay Term::ReadLine::Gnu UUID::Tiny
-   cpanm IPC::Run  # for password management U
+   cpanm IPC::Run  # for password management
 
 CA certificate
 --------------
