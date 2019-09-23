@@ -35,7 +35,7 @@ Requirements
 
   - Net::SSLeay
 
-  - Term::ReadLine::Gnu
+  - Term::ReadLine::Gnu (optional: for account password prompt)
 
   - UUID::Tiny (not needed on Linux)
 
@@ -46,26 +46,30 @@ Cheat sheet for free software distributions
 
 Arch Linux::
 
-   pacman -S perl-html-form perl-html-tree perl-lwp-protocol-https perl-term-readline-gnu
+   pacman -S perl-html-form perl-html-tree perl-lwp-protocol-https
+   pacman -S perl-term-readline-gnu  # for account password prompt
    pacman -S perl-ipc-run  # for password management
    pacman -S gnupg  # for password encryption
 
 CentOS 6::
 
    yum install epel-release  # some packages are only in EPEL
-   yum install perl-core perl-libwww-perl perl-IO-Socket-SSL perl-HTML-Tree perl-JSON perl-Term-ReadLine-Gnu
+   yum install perl-core perl-libwww-perl perl-IO-Socket-SSL perl-HTML-Tree perl-JSON
+   yum install perl-Term-ReadLine-Gnu  # for account password prompt
    yum install perl-IPC-Run  # for password management
    yum install gnupg2  # for password encryption
 
 CentOS 7::
 
    yum install epel-release  # some packages are only in EPEL
-   yum install perl-core perl-LWP-Protocol-https perl-HTML-Form perl-HTML-Tree perl-Term-ReadLine-Gnu
+   yum install perl-core perl-LWP-Protocol-https perl-HTML-Form perl-HTML-Tree
+   yum install perl-Term-ReadLine-Gnu  # for account password prompt
    yum install perl-IPC-Run  # for password management
 
 Debian 7 (wheezy) or newer; Ubuntu 14.04 (trusty) or newer::
 
-   apt-get install libwww-perl libhtml-form-perl libterm-readline-gnu-perl
+   apt-get install libwww-perl libhtml-form-perl
+   apt-get install libterm-readline-gnu-perl  # for account password prompt
    apt-get install libipc-run-perl  # for password management
    apt-get install gnupg  # for password encryption
 
@@ -73,7 +77,8 @@ Cheat sheet for cpanm(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 ::
 
-   cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay Term::ReadLine::Gnu UUID::Tiny
+   cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay UUID::Tiny
+   cpanm Term::ReadLine::Gnu  # for account password prompt
    cpanm IPC::Run  # for password management
 
 CA certificate
