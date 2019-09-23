@@ -52,6 +52,7 @@ use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
 use Module::Loaded ();
 use POSIX ();
 use Symbol ();
+use Term::ReadLine ();
 use Text::ParseWords ();
 use Time::Piece ();
 use Time::Seconds ();
@@ -881,32 +882,28 @@ sub decode_json
 # terminal support
 # ================
 
-sub term_import
-{
-    my ($with_password) = @_;
-    require Term::ReadLine;
-    if ($with_password and $OSNAME ne 'MSWin32') {
-        # We normally require Term::ReadLine::Gnu, so that it's possible to
-        # ask for password without displaying it on the screen. But this
-        # module is difficult to port to Windows. Oh well.
-        require Term::ReadLine::Gnu;
-    }
-    return 1;
-}
-
 sub term_new
 {
-    return Term::ReadLine->new('mbank-cli');
+    my %options = @_;
+    my $readpasswd = delete $options{readpasswd};
+    check_for_unexpected_options(%options);
+    my $term = Term::ReadLine->new('mbank-cli');
+    if ($readpasswd) {
+        if ($OSNAME eq 'MSWin32') {
+            # We normally require Term::ReadLine::Gnu, so that it's possible to
+            # ask for password without displaying it on the screen. But this
+            # module is difficult to port to Windows. Oh well.
+        } elsif (not defined($term->Attribs->{shadow_redisplay})) {
+            debug("Term::ReadLine = $Term::ReadLine::ISA[0]");
+            user_error('Term::ReadLine::Gnu is required for password prompt');
+        }
+    }
+    return $term;
 }
 
 sub term_readpasswd
 {
     my ($term, $prompt) = @_;
-    state $readline_gnu = Module::Loaded::is_loaded('Term::ReadLine::Gnu');
-    if ($readline_gnu) {
-        defined($term->Attribs->{shadow_redisplay})
-            or internal_error('shadow_redisplay not defined');
-    }
     local $term->Attribs->{redisplay_function} =  ## no critic (LocalVars)
         $term->Attribs->{shadow_redisplay};
     return $term->readline($prompt);
@@ -1104,9 +1101,6 @@ sub _ask_for_sms_password
             }
         }
     } elsif (-t STDIN) {
-        eval {
-            term_import();
-        } // user_error('Term::ReadLine::Gnu is required for password prompt');
         if ($try == 0) {
             return;
         }
@@ -1383,11 +1377,8 @@ sub do_login
         } else {
             $password = get_config_var($cfg, 'password');
             if (not defined($password)) {
-                eval {
-                    term_import(1);
-                } // user_error('Term::ReadLine::Gnu is required for password prompt');
                 if (-t STDIN) {
-                    my $term = term_new();
+                    my $term = term_new(readpasswd => 1);
                     $password = term_readpasswd($term, 'Password: ');
                 } else {
                     config_error($cfg, 'missing password');
@@ -2627,10 +2618,7 @@ sub do_configure
     my $config_path = delete($options{config_path});
     my $cookie_jar_path = delete($options{cookie_jar_path});
     check_for_unexpected_options(%options);
-    eval {
-        term_import(1);
-    } // user_error('Term::ReadLine::Gnu is required to run configure');
-    my $term = term_new();
+    my $term = term_new(readpasswd => 1);
     _configure_overwrite($term, $config_path);
     my $cc = _configure_country($term);
     my $login = _configure_login($term);
