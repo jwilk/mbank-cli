@@ -3000,6 +3000,13 @@ if ($command_info->{export}) {
 $command->(@cmd_options);
 
 END {
+    # catch write errors:
+    local $ERRNO = 0;
+    close(STDOUT) or os_error("stdout: $ERRNO");
+    close(STDERR) or os_error("stderr: $ERRNO");
+}
+
+END {
     # save cookies:
     if (defined($ua)) {
         my $cookie_jar_path = $ua->cookie_jar->{file};
@@ -3008,13 +3015,6 @@ END {
             1;
         } // os_error("$cookie_jar_path: $ERRNO");
     }
-}
-
-END {
-    # catch write errors:
-    local $ERRNO = 0;
-    close(STDOUT) or os_error("stdout: $ERRNO");
-    close(STDERR) or os_error("stderr: $ERRNO");
 }
 
 # vim:ts=4 sts=4 sw=4 et
