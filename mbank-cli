@@ -1470,6 +1470,24 @@ sub do_register_device
     my ($name) = @args;
     $name //= 'CLI';
     $name = bytes_to_unicode($name);
+    { # Sanity check: fully functional cookie jar is needed for this command
+        my $uuid = gen_uuid();
+        my $cookie_jar_path = $ua->cookie_jar->{file} // '/dev/null';
+        $ua->cookie_jar->set_cookie(0, 'UUID', $uuid, '/cookie-jar', 'mbank-cli.test', undef, undef, undef, 60);
+        eval {
+            $ua->cookie_jar->save();
+            1;
+        } // os_error("$cookie_jar_path: $ERRNO");
+        $ua->cookie_jar->set_cookie(0, 'UUID', $uuid, '/cookie-jar', 'mbank-cli.test', undef, undef, undef, -1);
+        open (my $fh, '<', $cookie_jar_path)
+            or os_error("$cookie_jar_path: $ERRNO");
+        my $found = grep { /\b\Q$uuid\E\b/ } <$fh>;
+        close($fh)
+            or os_error("$cookie_jar_path: $ERRNO");
+        if (not $found) {
+            user_error("$cookie_jar_path: unwritable cookie file");
+        }
+    }
     do_logout(maybe => 1);
     do_login(register_device => $name);
     return;
