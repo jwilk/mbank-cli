@@ -2893,9 +2893,10 @@ sub initialize
         $message =~ s/\n+\z//;
         user_error($message);
     };
+    my $debug_dir;
     GetOptions(
         'verbose' => \$opt_verbose,
-        'debug=s' => \$opt_debug_dir,
+        'debug=s' => \$debug_dir,
         'config=s' => \$opt_config,
         'cookie-jar=s' => \$opt_cookie_jar,
         'from=s' => sub {
@@ -2916,6 +2917,17 @@ sub initialize
         'h|help' => \&show_help,
         'version' => \&show_version,
     ) or user_error();
+    if (defined($debug_dir)) {
+        if ($debug_dir =~ /\A-/) {
+            user_error("suspicious directory name for --debug: $debug_dir");
+        }
+        if (not -d $debug_dir) {
+            eval {
+                File::Path::make_path($debug_dir);
+            } // os_error($EVAL_ERROR);
+        }
+    }
+    $opt_debug_dir = $debug_dir;
 }
 
 if (defined($opt_export) and -t STDOUT) {
