@@ -63,10 +63,12 @@ BEGIN {
         require JSON;
         JSON->import('encode_json');
         *_decode_json = \&JSON::decode_json;
+        *is_json_bool = \&JSON::is_bool;
     } or do {
         require JSON::PP;
         JSON::PP->import('encode_json');
         *_decode_json = \&JSON::PP::decode_json;
+        *is_json_bool = \&JSON::PP::is_bool;
     }
 }
 
