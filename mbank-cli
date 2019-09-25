@@ -1165,8 +1165,8 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     my $cfg = $global_config;
     my $dfp = get_config_var($cfg, 'dfp') // $browser_dfp;
     if (defined($device_to_add)) {
-        $trusted_add_allowed or
-            user_error('adding trusted device not allowed');
+        $trusted_add_allowed
+            or user_error('adding trusted device not allowed');
         $request = GET(
             "$root_url/api/sca/TrustedDevices/IsPossibleToAddNextDevice",
             @json_headers,
