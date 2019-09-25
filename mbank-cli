@@ -1180,19 +1180,34 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         my $is_valid = $data->{isValid} // '';
         is_json_bool($is_valid) and $is_valid
             or scraping_error("login.2fa.next-dev.invalid: $is_valid");
-        my $query = 'deviceName=' . uri_escape_utf8($device_to_add);
-        $request = GET(
-            "$root_url/api/sca/TrustedDevices?$query",
-            @json_headers,
-            'X-Request-Verification-Token' => $token,
-            'X-Tab-Id' => $tabid,
-            'Referer' => "$root_url/authorization/secureDevice/set",
-        );
-        $doc = download($request);
-        $data = decode_json($doc->{content})
-            // scraping_error("login.2fa.trusted-dev: $EVAL_ERROR");
-        $data->{isValid}
-            or scraping_error('login.2fa.trusted-dev.invalid');
+        while (1) {
+            my $query = 'deviceName=' . uri_escape_utf8($device_to_add);
+            $request = GET(
+                "$root_url/api/sca/TrustedDevices?$query",
+                @json_headers,
+                'X-Request-Verification-Token' => $token,
+                'X-Tab-Id' => $tabid,
+                'Referer' => "$root_url/authorization/secureDevice/set",
+            );
+            $doc = download($request);
+            $data = decode_json($doc->{content})
+                // scraping_error("login.2fa.trusted-dev: $EVAL_ERROR");
+            $is_valid = $data->{isValid} // '';
+            is_json_bool($is_valid)
+                or scraping_error("login.2fa.next-dev.invalid: $is_valid");
+            if ($is_valid) {
+                last;
+            } else {
+                say {*STDERR} 'Device name has been rejected. Try another one.';
+                state $term = term_new();
+                my $name = '';
+                until (length($name) > 1) {  ## no critic (Until)
+                    $name = $term->readline('Device name: ', unicode_to_bytes($device_to_add)) // '';
+                    $name = bytes_to_unicode($name);
+                }
+                $device_to_add = $name;
+            }
+        }
         $auth_type = 'trusteddevice';
         $auth_data = {
             %{$auth_data},
