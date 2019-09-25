@@ -1,8 +1,23 @@
 mbank-cli (2.2.1) UNRELEASED; urgency=low
 
-  * 
+  Bug fixes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Tue, 24 Sep 2019 11:10:53 +0200
+  * Error handling when writing cookies has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/78
+
+  * The “register-device” command will now check early if the cookie jar is
+    writable.
+    https://github.com/jwilk/mbank-cli/issues/79
+
+  * The “register-device” will now ask the user for a different name if the
+    initial name is rejected.
+    https://github.com/jwilk/mbank-cli/issues/81
+
+  Minor improvements:
+
+  * The debug directory will be now created if it doesn't exist.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 25 Sep 2019 21:43:34 +0200
 
 mbank-cli (2.2) unstable; urgency=low
 
