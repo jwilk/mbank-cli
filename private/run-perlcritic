@@ -7,7 +7,7 @@ global_exclude='::RequireRcsKeywords'
 tests_exclude='::(RequireCarping|ProhibitAutomaticExportation|ProhibitComplexRegexes|RequireEndWithOne|RequireExplicitPackage)'
 
 private_exclude='::(RequireCarping|RequireEndWithOne|RequireExplicitPackage)'
-private_perl=$(grep -l '^#.*[ /]perl' private/*)
+private_perl=$(grep -l '^#.*[ /]perl' private/[!_]*)
 
 here=$(dirname "$0")
 cd "$here/.."
