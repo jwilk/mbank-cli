@@ -812,33 +812,6 @@ sub shift_date
     return $date;
 }
 
-sub parse_uuid
-{
-    my ($s) = @_;
-    $s =~ m/\A[\dA-Fa-f]{8}(?:-[\dA-Fa-f]{4}){3}-[\dA-Fa-f]{12}\z/
-        or return;
-    return $s;
-}
-
-sub gen_uuid
-{
-    my $path = '/proc/sys/kernel/random/uuid';
-    if (open(my $fh, '<', $path)) {
-        my $uuid = <$fh>
-            // os_error("$path: $ERRNO");
-        close($fh)
-            or os_error("$path: $ERRNO");
-        chomp $uuid;
-        parse_uuid($uuid)
-            or os_error("$path: invalid UUID");
-        return $uuid;
-    }
-    eval {
-        require UUID::Tiny;
-    } // user_error('UUID::Tiny is required for generating UUID');
-    return UUID::Tiny::create_uuid_as_string(UUID::Tiny::UUID_RANDOM())
-}
-
 sub wildcards_to_regexp
 {
     my (@wildcards) = @_;
@@ -876,6 +849,37 @@ sub decode_json
     return eval {
         _decode_json($json);
     } // return;
+}
+
+# =====
+# UUIDs
+# =====
+
+sub parse_uuid
+{
+    my ($s) = @_;
+    $s =~ m/\A[\dA-Fa-f]{8}(?:-[\dA-Fa-f]{4}){3}-[\dA-Fa-f]{12}\z/
+        or return;
+    return $s;
+}
+
+sub gen_uuid
+{
+    my $path = '/proc/sys/kernel/random/uuid';
+    if (open(my $fh, '<', $path)) {
+        my $uuid = <$fh>
+            // os_error("$path: $ERRNO");
+        close($fh)
+            or os_error("$path: $ERRNO");
+        chomp $uuid;
+        parse_uuid($uuid)
+            or os_error("$path: invalid UUID");
+        return $uuid;
+    }
+    eval {
+        require UUID::Tiny;
+    } // user_error('UUID::Tiny is required for generating UUID');
+    return UUID::Tiny::create_uuid_as_string(UUID::Tiny::UUID_RANDOM())
 }
 
 # ================
