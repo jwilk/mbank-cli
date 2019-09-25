@@ -1177,8 +1177,9 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         $doc = download($request);
         $data = decode_json($doc->{content})
             // scraping_error("login.2fa.next-dev: $EVAL_ERROR");
-        $data->{isValid}
-            or scraping_error('login.2fa.next-dev.invalid');
+        my $is_valid = $data->{isValid} // '';
+        is_json_bool($is_valid) and $is_valid
+            or scraping_error("login.2fa.next-dev.invalid: $is_valid");
         my $query = 'deviceName=' . uri_escape_utf8($device_to_add);
         $request = GET(
             "$root_url/api/sca/TrustedDevices?$query",
