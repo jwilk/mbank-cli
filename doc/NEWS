@@ -13,11 +13,16 @@ mbank-cli (2.2.1) UNRELEASED; urgency=low
     initial name is rejected.
     https://github.com/jwilk/mbank-cli/issues/81
 
+  * It is now possible to log in when stdin is not a tty.
+    https://github.com/jwilk/mbank-cli/issues/82
+
+  * Term::ReadLine::Perl initialization bug has been fixed.
+
   Minor improvements:
 
   * The debug directory will be now created if it doesn't exist.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Wed, 25 Sep 2019 21:43:34 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Thu, 26 Sep 2019 13:24:56 +0200
 
 mbank-cli (2.2) unstable; urgency=low
 
