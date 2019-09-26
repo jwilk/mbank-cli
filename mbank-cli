@@ -893,7 +893,7 @@ sub term_new
     my %options = @_;
     my $readpasswd = delete $options{readpasswd};
     check_for_unexpected_options(%options);
-    my $term = Term::ReadLine->new('mbank-cli');
+    state $term = Term::ReadLine->new('mbank-cli');
     if ($readpasswd) {
         if ($OSNAME eq 'MSWin32') {
             # We normally require Term::ReadLine::Gnu, so that it's possible to
@@ -1199,7 +1199,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                 last;
             } else {
                 say {*STDERR} 'Device name has been rejected. Try another one.';
-                state $term = term_new();
+                my $term = term_new();
                 my $name = '';
                 until (length($name) > 1) {  ## no critic (Until)
                     $name = $term->readline('Device name: ', unicode_to_bytes($device_to_add)) // '';
