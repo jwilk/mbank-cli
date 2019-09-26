@@ -2506,7 +2506,7 @@ sub do_debug_sms_password
     my %options = @_;
     my $args = delete($options{args});
     check_for_unexpected_options(%options);
-    my ($date, $n, $try) = @{$args};
+    my ($date, $n, $tries) = @{$args};
     $date //= '';
     my ($y, $m, $d) = $date =~ m/\A(\d\d\d\d)-(\d\d)-(\d\d)\z/
         or user_error("SMS date not in the YYYY-MM-DD format: $date");
@@ -2517,11 +2517,15 @@ sub do_debug_sms_password
     eval {
         $n >= 1;
     } or user_error("invalid SMS number: $n");
-    $try //= '1';
+    $tries //= '1';
     eval {
-        $try >= 0;
-    } or user_error("invalid try number: $try");
-    say _ask_for_sms_password($date, $n, $try);
+        $tries >= 0;
+    } or user_error("invalid number of tries: $tries");
+    _ask_for_sms_password($date, $n, 0);
+    for my $try (1..$tries) {
+        say "(try #$try)";
+        say _ask_for_sms_password($date, $n, $try);
+    }
     return;
 }
 
