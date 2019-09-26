@@ -1410,7 +1410,11 @@ sub do_login
         }
         length($password) > 0
             or user_error('login failed: empty password');
-        _ask_for_sms_password('2006-07-30', 1, 0);
+        if (defined(get_config_var($cfg, 'smsinbox'))) {
+            # Make sure the SMSInbox feature is configured properly before we
+            # try to log in:
+            _ask_for_sms_password('2006-07-30', 1, 0);
+        }
         my $dfp = get_config_var($cfg, 'dfp') // $browser_dfp;
         my $dfp_data = {
             dfp => $dfp,
