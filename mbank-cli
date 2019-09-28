@@ -67,6 +67,8 @@ BEGIN {
         *JSON::decode_json = \&JSON::PP::decode_json;
         *JSON::encode_json = \&JSON::PP::encode_json;
         *JSON::is_bool = \&JSON::PP::is_bool;
+        *JSON::false = \&JSON::PP::false;
+        *JSON::true = \&JSON::PP::true;
     }
 }
 
@@ -1220,7 +1222,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             %{$auth_data},
             'DfpData' => $dfp,
             'DeviceName' => $device_to_add,
-            'IsTheOnlyDeviceUser' => decode_json('true'),
+            'IsTheOnlyDeviceUser' => JSON::true,
         };
         push @auth_headers, (
             'Referer' => "$root_url/authorization/secureDevice/confirm",
@@ -1439,7 +1441,7 @@ sub do_login
                 Scenario => 'Default',
                 UWAdditionalParams => {InOut => undef, ReturnAddress => undef, Source => undef},
                 Lang => '',
-                HrefHasHash => decode_json('false'),
+                HrefHasHash => JSON::false,
                 DfpData => $dfp_data,
             }),
         );
