@@ -61,14 +61,12 @@ use Time::Seconds ();
 BEGIN {
     eval {
         require JSON;
-        JSON->import('encode_json');
-        *_decode_json = \&JSON::decode_json;
-        *is_json_bool = \&JSON::is_bool;
     } or do {
         require JSON::PP;
-        JSON::PP->import('encode_json');
-        *_decode_json = \&JSON::PP::decode_json;
-        *is_json_bool = \&JSON::PP::is_bool;
+        # poor man's reimplementation of the JSON module:
+        *JSON::decode_json = \&JSON::PP::decode_json;
+        *JSON::encode_json = \&JSON::PP::encode_json;
+        *JSON::is_bool = \&JSON::PP::is_bool;
     }
 }
 
@@ -845,11 +843,20 @@ sub find_html_class
     return $element->look_down('class', $re);
 }
 
+# ====
+# JSON
+# ====
+
+sub encode_json
+{
+    goto &JSON::encode_json
+}
+
 sub decode_json
 {
     my ($json) = @_;
     return eval {
-        _decode_json($json);
+        JSON::decode_json($json);
     } // return;
 }
 
@@ -1178,7 +1185,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         $data = decode_json($doc->{content})
             // scraping_error("login.2fa.next-dev: $EVAL_ERROR");
         my $is_valid = $data->{isValid} // '';
-        is_json_bool($is_valid) and $is_valid
+        JSON::is_bool($is_valid) and $is_valid
             or scraping_error("login.2fa.next-dev.invalid: $is_valid");
         while (1) {
             my $query = 'deviceName=' . uri_escape_utf8($device_to_add);
@@ -1193,7 +1200,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             $data = decode_json($doc->{content})
                 // scraping_error("login.2fa.trusted-dev: $EVAL_ERROR");
             $is_valid = $data->{isValid} // '';
-            is_json_bool($is_valid)
+            JSON::is_bool($is_valid)
                 or scraping_error("login.2fa.next-dev.invalid: $is_valid");
             if ($is_valid) {
                 last;
