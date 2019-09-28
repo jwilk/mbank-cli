@@ -1201,7 +1201,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                 // scraping_error("login.2fa.trusted-dev: $EVAL_ERROR");
             $is_valid = $data->{isValid} // '';
             JSON::is_bool($is_valid)
-                or scraping_error("login.2fa.next-dev.invalid: $is_valid");
+                or scraping_error("login.2fa.trusted-dev.invalid: $is_valid");
             if ($is_valid) {
                 last;
             } else {
