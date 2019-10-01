@@ -773,14 +773,37 @@ sub format_number
     return $s;
 }
 
-sub parse_timestamp
+=begin comments
+
+timestamp_to_date(TIMESTAMP, [time_must_be => 0])
+
+    >>> timestamp_to_date('2006-07-30T14:47:03')
+    '2006-07-30'
+
+    >>> timestamp_to_date('2006-07-30T14:47:03', time_must_be => 0)
+    undef
+
+    >>> timestamp_to_date('2006-07-30T00:00:00', time_must_be => 0)
+    '2006-07-30'
+
+=cut
+
+sub timestamp_to_date
 {
     my ($timestamp, %options) = @_;
-    my $discard_time = delete($options{discard_time});
+    my $time_must_be = delete($options{time_must_be});
     check_for_unexpected_options(%options);
+    my $time_re = qr/\A/;
+    if (defined($time_must_be)) {
+        if ($time_must_be == 0) {
+            $time_re = qr/\A[0:.]+\z/;
+        } else {
+            internal_error('invalid time_must_be');
+        }
+    }
     my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d(?:[.]\d+)?)\z/)
         or return;
-    $discard_time or ($time =~ m/\A[0:.]+\z/)
+    $time =~ $time_re
         or return;
     eval {
         Time::Piece->strptime($date, '%Y-%m-%d');
@@ -1252,7 +1275,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         or scraping_error("login.2fa.init.error: $error_code");
     my $auth_mode = $data->{AuthMode} // '';
     my $operation_date = $data->{OperationDate} // '';
-    $operation_date = parse_timestamp($operation_date, discard_time => 1)
+    $operation_date = timestamp_to_date($operation_date)
         or scraping_error("login.2fa.init.operation-date: $operation_date");
     my $operation_no = $data->{OperationNumber} // '';
     $operation_no =~ m/\A\d+\z/
@@ -2148,7 +2171,7 @@ sub do_future
             print("$name\t");
         }
         my $timestamp = $transfer->{date} // '';
-        my $date = parse_timestamp($timestamp)
+        my $date = timestamp_to_date($timestamp, time_must_be => 0)
             // scraping_error("future.transfer.date: $timestamp");
         my $recipient = $transfer->{benef}
             // scraping_error('future.transfer.recipient');
@@ -2204,7 +2227,7 @@ sub do_deposits
             // scraping_error('deposits.type');
         $type = unicode_to_bytes($type);
         my $end_date = $deposit->{endDate} // '';
-        $end_date = parse_timestamp($end_date)
+        $end_date = timestamp_to_date($end_date, time_must_be => 0)
             // scraping_error("deposits.end-date: $end_date");
         my $length = $deposit->{depositLength} // '';
         $length =~ m/\A\d+\z/
@@ -2370,7 +2393,7 @@ sub do_notices
             // scraping_error('notices.is-read');
         my $new_flag = $is_read ? '' : 'N';
         my $timestamp = $message->{StartDate};
-        my $date = parse_timestamp($timestamp, discard_time => 1)
+        my $date = timestamp_to_date($timestamp)
             // scraping_error("notices.date: $timestamp");
         my $title = $message->{Title}
             // scraping_error('notices.title');
