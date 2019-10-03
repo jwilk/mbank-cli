@@ -1920,6 +1920,7 @@ sub _do_history_page {
         // internal_error('missing html');
     my $name = delete($options{name})
         // internal_error('missing name');
+    $name = unicode_to_bytes($name);
     my $display_name = delete($options{display_name})
         // internal_error('missing display_name');
     my $display_id = delete($options{display_id})
