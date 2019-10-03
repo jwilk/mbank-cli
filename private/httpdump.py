@@ -55,6 +55,9 @@ os.mkdir(state.dir)
 
 def response(flow):
     try:
+        ct = flow.response.headers.get('content-type', '')
+        if ct.startswith('image/') or ct == 'text/css':
+            return
         state.index += 1
         path = '{dir}/log.{index:06}.{method}.{host}.{path}'.format(
             dir=state.dir,
