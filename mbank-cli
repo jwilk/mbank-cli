@@ -716,9 +716,9 @@ sub get_config_var
     return $config->{$var};
 }
 
-# ============
-# misc parsing
-# ============
+# ===========================
+# misc parsing and formatting
+# ===========================
 
 my $account_number_re = qr{
   \d{2}(?:[ ]\d{4}){6}  # Polish IBAN (without the country code)
