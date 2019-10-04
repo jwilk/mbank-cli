@@ -2957,6 +2957,7 @@ sub initialize
     return;
 }
 
+sub parse_args
 {
     local $SIG{__WARN__} = sub {
         my ($message) = @_;
@@ -2999,106 +3000,114 @@ sub initialize
         }
     }
     $opt_debug_dir = $debug_dir;
+    if (defined($opt_export) and -t STDOUT) {
+        user_error('export data cannot be written to a terminal; please redirect stdout to a file');
+    }
+    return @ARGV;
 }
 
-if (defined($opt_export) and -t STDOUT) {
-    user_error('export data cannot be written to a terminal; please redirect stdout to a file');
-}
-
-my ($command_name, @args) = @ARGV;
-$command_name //= 'list';
-debug("selected command: $command_name");
-
-my %commands = (
-    'debug-noop' => {},
-    'debug-https-get' => { args => 1 },
-    'debug-sms-password' => { args => 1 },
-    'list' => {},
-    'history' => { accounts => 1, dates => 1, ids => 1, export => 1 },
-    'future' => { accounts => 1 },
-    'blocked' => { accounts => 1 },
-    'deposits' => {},
-    'cards' => {},
-    'funds' => {},
-    'pension' => {},
-    'notices' => {},
-    'logout' => { login => 0 },
-    'register-device' => { login => 0, args => 1 },
-    'activate-profile' => { args => 1 },
-    'configure' => { login => 0, config => 0 },
-);
-
-my $command_info = $commands{$command_name};
-if (not defined $command_info) {
-    user_error("$command_name: invalid command");
-}
-my $command;
+sub main
 {
-    no strict 'refs';  ## no critic (NoStrict)
-    my $sub_name = "do_$command_name";
-    $sub_name =~ y/-/_/;
-    $command = *{$sub_name};
-}
-my $need_login = $command_info->{login} // 1;
-my @cmd_options;
-if ($command_name =~ m/^debug-/) {
-    $need_login = 0;
-}
-if ($command_info->{config} // 1) {
-    initialize();
-} else {
-    push(@cmd_options,
-        config_path => $opt_config,
-        cookie_jar_path => $opt_cookie_jar,
+    my ($command_name, @args) = parse_args();
+    $command_name //= 'list';
+    debug("selected command: $command_name");
+
+    my %commands = (
+        'debug-noop' => {},
+        'debug-https-get' => { args => 1 },
+        'debug-sms-password' => { args => 1 },
+        'list' => {},
+        'history' => { accounts => 1, dates => 1, ids => 1, export => 1 },
+        'future' => { accounts => 1 },
+        'blocked' => { accounts => 1 },
+        'deposits' => {},
+        'cards' => {},
+        'funds' => {},
+        'pension' => {},
+        'notices' => {},
+        'logout' => { login => 0 },
+        'register-device' => { login => 0, args => 1 },
+        'activate-profile' => { args => 1 },
+        'configure' => { login => 0, config => 0 },
     );
-}
-if ($command_info->{todo} ) {
-    user_error("$command_name: command not implemented");
-}
-if ($command_info->{accounts}) {
-    my @selection = @args;
-    if ($opt_all) {
-        @selection = '*';
+
+    my $command_info = $commands{$command_name};
+    if (not defined $command_info) {
+        user_error("$command_name: invalid command");
     }
-    if (scalar(@selection) < 1) {
-        user_error("$command_name: no account selected");
+    my $command;
+    {
+        no strict 'refs';  ## no critic (NoStrict)
+        my $sub_name = "do_$command_name";
+        $sub_name =~ y/-/_/;
+        $command = *{$sub_name};
     }
-    push(@cmd_options,
-        selection => [@selection],
-        display_name => $opt_all || $opt_multi,
-    );
-}
-if ($command_info->{args}) {
-    push(@cmd_options,
-        args => [@args],
-    );
-}
-if ($need_login) {
-    my $login_info = do_login();
-    push(@cmd_options, login => $login_info);
-    if ($command_info->{accounts}) {
-        my $account_info = do_list(
-            login => $login_info,
-            quiet => 1,
+    my $need_login = $command_info->{login} // 1;
+    my @cmd_options;
+    if ($command_name =~ m/^debug-/) {
+        $need_login = 0;
+    }
+    if ($command_info->{config} // 1) {
+        initialize();
+    } else {
+        push(@cmd_options,
+            config_path => $opt_config,
+            cookie_jar_path => $opt_cookie_jar,
         );
-        push(@cmd_options, accounts => $account_info);
     }
+    if ($command_info->{todo} ) {
+        user_error("$command_name: command not implemented");
+    }
+    if ($command_info->{accounts}) {
+        my @selection = @args;
+        if ($opt_all) {
+            @selection = '*';
+        }
+        if (scalar(@selection) < 1) {
+            user_error("$command_name: no account selected");
+        }
+        push(@cmd_options,
+            selection => [@selection],
+            display_name => $opt_all || $opt_multi,
+        );
+    }
+    if ($command_info->{args}) {
+        push(@cmd_options,
+            args => [@args],
+        );
+    }
+    if ($need_login) {
+        my $login_info = do_login();
+        push(@cmd_options, login => $login_info);
+        if ($command_info->{accounts}) {
+            my $account_info = do_list(
+                login => $login_info,
+                quiet => 1,
+            );
+            push(@cmd_options, accounts => $account_info);
+        }
+    }
+    if ($command_info->{dates}) {
+        push(@cmd_options,
+            start_date => $opt_start_date,
+            end_date => $opt_end_date,
+        );
+    }
+    if ($command_info->{ids}) {
+        push(@cmd_options,
+            display_id => $opt_with_id,
+        );
+    }
+    if ($command_info->{export}) {
+        push(@cmd_options, export => $opt_export);
+    }
+    $command->(@cmd_options);
+    return;
 }
-if ($command_info->{dates}) {
-    push(@cmd_options,
-        start_date => $opt_start_date,
-        end_date => $opt_end_date,
-    );
+
+if (not defined(caller)) {
+    main()
 }
-if ($command_info->{ids}) {
-    push(@cmd_options,
-        display_id => $opt_with_id,
-    );
-}
-if ($command_info->{export}) {
-    push(@cmd_options, export => $opt_export);
-}
-$command->(@cmd_options);
 
 END {
     # catch write errors:
@@ -3117,5 +3126,7 @@ END {
         } // os_error("$cookie_jar_path: $ERRNO");
     }
 }
+
+1;
 
 # vim:ts=4 sts=4 sw=4 et
