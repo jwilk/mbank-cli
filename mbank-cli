@@ -773,6 +773,21 @@ sub format_number
     return $s;
 }
 
+sub wildcards_to_regexp
+{
+    my (@wildcards) = @_;
+    my $re = join('|',
+        map { quotemeta } @wildcards
+    );
+    $re =~ s/\\[*]/.*/g;
+    $re = qr{^(?i:($re))$};
+    return $re;
+}
+
+# =============
+# date and time
+# =============
+
 =begin comments
 
 timestamp_to_date(TIMESTAMP, [time_must_be => 0])
@@ -837,16 +852,9 @@ sub shift_date
     return $date;
 }
 
-sub wildcards_to_regexp
-{
-    my (@wildcards) = @_;
-    my $re = join('|',
-        map { quotemeta } @wildcards
-    );
-    $re =~ s/\\[*]/.*/g;
-    $re = qr{^(?i:($re))$};
-    return $re;
-}
+# ============
+# HTML parsing
+# ============
 
 sub html_class_regexp
 {
