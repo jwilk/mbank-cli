@@ -976,22 +976,26 @@ my $root_url = undef;
 my $base_url = undef;
 my $csite_url = undef;
 
+my @header_xhr = (
+    'X-Requested-With' => 'XMLHttpRequest',
+);
+
 my @json_headers = (
     'Accept' => 'application/json, text/javascript, */*; q=0.01',
     'Content-Type' => 'application/json; charset=UTF-8',
-    'X-Requested-With' => 'XMLHttpRequest',
+    @header_xhr,
 );
 
 my @ajax_headers = (
     'Accept' => '*/*',
     'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
-    'X-Requested-With' => 'XMLHttpRequest',
+    @header_xhr,
 );
 
 my @ajax_html_headers = (
     'Accept' => 'text/html, */*; q=0.01',
     'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
-    'X-Requested-With' => 'XMLHttpRequest',
+    @header_xhr,
 );
 
 sub _extract_login_menu
