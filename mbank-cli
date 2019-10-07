@@ -914,6 +914,17 @@ sub decode_json
     } // return;
 }
 
+sub json_content
+{
+    my ($obj) = @_;
+    wantarray
+        or internal_error('json_content() called in non-array context', 1);
+    return (
+        'Content' => encode_json($obj),
+        'Content-Type' => 'application/json; charset=UTF-8',
+    );
+}
+
 # =====
 # UUIDs
 # =====
@@ -989,22 +1000,8 @@ my @header_xhr = (
     'X-Requested-With' => 'XMLHttpRequest',
 );
 
-my @json_headers = (
+my @header_accept_json = (
     'Accept' => 'application/json, text/javascript, */*; q=0.01',
-    'Content-Type' => 'application/json; charset=UTF-8',
-    @header_xhr,
-);
-
-my @ajax_headers = (
-    'Accept' => '*/*',
-    'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
-    @header_xhr,
-);
-
-my @ajax_html_headers = (
-    'Accept' => 'text/html, */*; q=0.01',
-    'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
-    @header_xhr,
 );
 
 sub _extract_login_menu
@@ -1192,9 +1189,14 @@ sub _do_2fa  ## no critic (ExcessComplexity)
 {
     my ($device_to_add) = @_;
     my $tabid = _get_tabid();
+    my @headers_xhr = (
+        @header_xhr,
+        'X-Tab-Id' => $tabid,
+    );
     my $request = GET(
         "$root_url/api/app/setup/data",
-        @json_headers,
+        @headers_xhr,
+        'Accept' => '*/*',
         'Referer' => "$root_url/authorization",
     );
     my $doc = download($request);
@@ -1203,15 +1205,23 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     my $token = $data->{antiForgeryToken} // '';
     $token =~ m{\A[\w+/=]+\z}
         or scraping_error("login.app-setup.token: $token");
-    my @auth_headers = (
-        @json_headers,
+    push @headers_xhr, (
         'X-Request-Verification-Token' => $token,
-        'X-Tab-Id' => $tabid,
+    );
+    my @header_origin = (
         'Origin' => $root_url,
+    );
+    my @headers_api_auth = (
+        @headers_xhr,
+        @header_origin,
+        'Accept' => '*/*',
+        'data-type' => 'json',
     );
     $request = POST(
         "$base_url/Sca/GetScaAuthorizationData",
-        @auth_headers,
+        @headers_xhr,
+        @header_origin,
+        'Accept' => '*/*',
         'Referer' => "$root_url/authorization",
     );
     $doc = download($request);
@@ -1234,9 +1244,8 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             or user_error('adding trusted device not allowed');
         $request = GET(
             "$root_url/api/sca/TrustedDevices/IsPossibleToAddNextDevice",
-            @json_headers,
-            'X-Request-Verification-Token' => $token,
-            'X-Tab-Id' => $tabid,
+            @headers_xhr,
+            'Accept' => '*/*',
             'Referer' => "$root_url/authorization/unknownDevice",
         );
         $doc = download($request);
@@ -1249,9 +1258,8 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             my $query = 'deviceName=' . uri_escape_utf8($device_to_add);
             $request = GET(
                 "$root_url/api/sca/TrustedDevices?$query",
-                @json_headers,
-                'X-Request-Verification-Token' => $token,
-                'X-Tab-Id' => $tabid,
+                @headers_xhr,
+                'Accept' => '*/*',
                 'Referer' => "$root_url/authorization/secureDevice/set",
             );
             $doc = download($request);
@@ -1280,21 +1288,20 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             'DeviceName' => $device_to_add,
             'IsTheOnlyDeviceUser' => JSON::true,
         };
-        push @auth_headers, (
+        push @headers_api_auth, (
             'Referer' => "$root_url/authorization/secureDevice/confirm",
         );
     } else {
         debug('adding trusted device allowed: ' . ($trusted_add_allowed ? 'yes' : 'no'));
         $auth_type = 'disposable';
-        push @auth_headers, (
+        push @headers_api_auth, (
             'Referer' => "$root_url/authorization/onetime/set",
         );
     }
     $request = POST(
         "$root_url/api/auth/initprepare",
-        @auth_headers,
-        'data-type' => 'json',
-        'Content' => encode_json({
+        @headers_api_auth,
+        json_content({
             'Url' => "sca/authorization/$auth_type",
             'Method' => 'POST',
             'Data' => $auth_data,
@@ -1321,9 +1328,8 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         while (1) {
             $request = POST(
                 "$root_url/api/auth/status",
-                @auth_headers,
-                'data-type' => 'json',
-                'Content' => encode_json({
+                @headers_api_auth,
+                json_content({
                     'TranId' => $tran_id
                 })
             );
@@ -1352,9 +1358,8 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         }
         $request = POST(
             "$root_url/api/auth/execute",
-            @auth_headers,
-            'data-type' => 'json',
-            'Content' => '{}'
+            @headers_api_auth,
+            json_content({})
         );
         $doc = download($request, ignore_errors => 1);
         $data = decode_json($doc->{content})
@@ -1374,9 +1379,8 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             my $sms_password = _ask_for_sms_password($operation_date, $operation_no, $try);
             $request = POST(
                 "$root_url/api/auth/execute",
-                @auth_headers,
-                'data-type' => 'json',
-                'Content' => encode_json({
+                @headers_api_auth,
+                json_content({
                     'Auth' => $sms_password
                 })
             );
@@ -1406,8 +1410,10 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     if (defined($device_to_add)) {
         $request = POST(
             "$base_url/Sca/FinalizeTrustedDeviceAuthorization",
-            @auth_headers,
-            'Content' => encode_json({
+            @headers_xhr,
+            @header_origin,
+            'Accept' => 'application/json, text/plain, */*',
+            json_content({
                 'ScaAuthorizationId' => $sca_auth_id,
                 'currentDfp' => $dfp,
                 'deviceName' => $device_to_add,
@@ -1416,8 +1422,10 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     } else {
         $request = POST(
             "$base_url/Sca/FinalizeAuthorization",
-            @auth_headers,
-            'Content' => encode_json({
+            @headers_xhr,
+            @header_origin,
+            'Accept' => 'application/json, text/plain, */*',
+            json_content({
                 'ScaAuthorizationId' => $sca_auth_id
             })
         );
@@ -1488,9 +1496,10 @@ sub do_login
         };
         $request = POST(
             "$base_url/LoginMain/Account/JsonLogin",
-            @json_headers,
+            @header_xhr,
+            @header_accept_json,
             'Referer' => $login_url,
-            'Content' => encode_json({
+            json_content({
                 UserName => $login,
                 Password => $password,
                 Seed => $seed,
@@ -1543,8 +1552,12 @@ sub do_login
     my %profiles = _extract_login_profiles($html);
     debug('logged in');
     return {
-        tabid => $tabid,
-        arvt => $arvt,
+        headers => [
+            'Referer' => $doc->{url},
+            'X-Tab-Id' => $tabid,
+            'X-Request-Verification-Token' => $arvt,
+            @header_xhr,
+        ],
         menu => \%menu,
         profiles => \%profiles,
         url => $doc->{url},
@@ -1593,11 +1606,9 @@ sub do_list
     check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/MyDesktop/Desktop/GetAccountsList",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @json_headers,
-        'Referer' => $login_info->{url},
-        'Content' => '{}',
+        @{$login_info->{headers}},
+        @header_accept_json,
+        json_content({})
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content})
@@ -2180,11 +2191,9 @@ sub do_future
     check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/FutureOperations/Calendar/OPER_GetFutureTransfers",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @json_headers,
-        'Referer' => $login_info->{url},
-        'Content' => '{"getFilter":true}',
+        @{$login_info->{headers}},
+        @header_accept_json,
+        json_content({getFilter => JSON::true})
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content})
@@ -2239,10 +2248,9 @@ sub do_deposits
     check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/Savings/Deposits/getDepositsList",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @json_headers,
-        'Referer' => $login_info->{url},
+        @{$login_info->{headers}},
+        @header_accept_json,
+        'Content-Type' => 'application/json',
         'Content' => '',
     );
     my $doc = download($request);
@@ -2292,10 +2300,8 @@ sub do_cards
     check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/Cards/Cards/IndexData",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @ajax_html_headers,
-        'Referer' => $login_info->{url},
+        @{$login_info->{headers}},
+        'Accept' => 'text/html, */*; q=0.01',
         'Content' => '',
     );
     my $doc = download($request);
@@ -2345,11 +2351,9 @@ sub _do_funds
     check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/InvestmentFunds/Dashboard/Dashboard",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @ajax_html_headers,
-        'Referer' => $login_info->{url},
-        'Content' => "type=$type",
+        @{$login_info->{headers}},
+        'Accept' => 'text/html, */*; q=0.01',
+        'Content' => ['type' => $type]
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
@@ -2400,11 +2404,12 @@ sub do_notices
     check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/Adv/AdvPlaceholder/GetUpdates",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @json_headers,
-        'Referer' => $login_info->{url},
-        'Content' => '{"placeholderIdList":null,"timestamp":-1}',
+        @{$login_info->{headers}},
+        @header_accept_json,
+        json_content({
+            placeholderIdList => undef,
+            timestamp => 1
+        })
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content})
@@ -2483,11 +2488,9 @@ sub do_activate_profile
     debug("activating profile $code...");
     my $request = POST(
         "$base_url/LoginMain/Account/JsonActivateProfile",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @ajax_headers,
-        'Referer' => $login_info->{url},
-        'Content' => "profileCode=$code",
+        @{$login_info->{headers}},
+        'Accept' => '*/*',
+        'Content' => ['profileCode' => $code],
     );
     my $doc = download($request);
     # It's tempting to do decode_json() here, but actually,
@@ -2505,10 +2508,10 @@ sub _do_lazy_logout
     check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/LoginMain/Account/LazyLogout",
-        'X-Tab-Id' => $login_info->{tabid},
-        'X-Request-Verification-Token' => $login_info->{arvt},
-        @json_headers,
-        'Referer' => $login_info->{url},
+        @{$login_info->{headers}},
+        @header_accept_json,
+        'Content' => '',
+        'Content-Type' => 'application/json',
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content})
