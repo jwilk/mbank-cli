@@ -826,10 +826,22 @@ sub timestamp_to_date
     return $date;
 }
 
+=begin comments
+
+parse_le_date(MONTH_DAY_YEAR_DATE)
+
+    >>> parse_le_date('30-07-2006')
+    '2006-07-30'
+
+    >>> parse_le_date('30.07.2006')
+    '2006-07-30'
+
+=cut
+
 sub parse_le_date
 {
     my ($date) = @_;
-    my ($d, $m, $y) = ($date =~ m/\A(\d\d)-(\d\d)-(\d\d\d\d)\z/)
+    my ($d, undef, $m, $y) = ($date =~ m/\A(\d\d)([.-])(\d\d)\2(\d\d\d\d)\z/)
         or return;
     $date = "$y-$m-$d";
     eval {
