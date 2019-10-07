@@ -115,6 +115,7 @@ BEGIN { $::loading_modules = 0; }  ## no critic (PackageVars)
 
 my $opt_verbose = 0;
 my $opt_debug_dir = undef;
+my $opt_debug_interactive = 0;
 my $bugtracker = 'https://github.com/jwilk/mbank-cli/issues';
 my $bugreport_url_tmpl = "$bugtracker/%d";
 my $bugreport_request = "Please file a bug at <$bugtracker>.";
@@ -512,6 +513,14 @@ sub download
         $request->method,
         $request->uri
     );
+    if ($opt_debug_interactive) {
+        print {*STDERR} $request->dump(maxlength => 0);
+        my $term = term_new();
+        my $ok = $term->readline('Proceed? ', 'y') // '';
+        if ($ok ne 'y') {
+            user_error('aborted by user');
+        }
+    }
     debug($message);
     my $response = $ua->request($request, undef, $http_read_size_hint);
     $response->decode()
@@ -2985,6 +2994,7 @@ sub parse_args
     GetOptions(
         'verbose' => \$opt_verbose,
         'debug=s' => \$debug_dir,
+        'debug-interactive' => \$opt_debug_interactive,
         'config=s' => \$opt_config,
         'cookie-jar=s' => \$opt_cookie_jar,
         'from=s' => sub {
