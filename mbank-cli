@@ -908,7 +908,8 @@ sub encode_json
 
 =begin comments
 
-decode_json(JSON, context => CONTEXT)
+decode_json(JSON_OBJECT, context => CONTEXT) -> hash ref
+decode_json(JSON_ARRAY, type => [], context => CONTEXT) -> array ref
 
 =cut
 
@@ -917,12 +918,23 @@ sub decode_json
     my ($json, %options) = @_;
     my $context = delete $options{context}
         // internal_error('decode_json(): missing required argument: context', 1);
+    my $type = delete $options{type} // {};
     check_for_unexpected_options(%options);
-    return eval {
+    $type = ref $type;
+    my %atypes = (
+        HASH => 'an object',
+        ARRAY => 'an array',
+    );
+    my $atype = $atypes{$type}
+        // internal_error('decode_json(): unknown type', 1);
+    my $obj = eval {
         JSON::decode_json($json);
     } // do {
         scraping_error("$context: $EVAL_ERROR");
-    }
+    };
+    ref($obj) eq $type
+        or scraping_error("$context: not $atype");
+    return $obj;
 }
 
 sub json_content
@@ -1047,9 +1059,7 @@ sub _extract_login_menu
         my ($json) = ($content =~ m/^\s*Ebre[.]Venezia[.]MenuItems\s*=\s*(\[.+\]);\s+$/m)
             or next;
         $json = Encode::encode('UTF-8', $json);
-        $json = decode_json($json, context => 'login.menu.json');
-        ref $json eq 'ARRAY'
-            or scraping_error('login.menu.json: not an array');
+        $json = decode_json($json, type => [], context => 'login.menu.json');
         for my $item (@{$json}) {
             $load_menu->($item);
         }
