@@ -1220,11 +1220,11 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     );
     my $doc = download($request);
     my $data = decode_json($doc->{content}, context => 'login.app-setup');
-    my $token = $data->{antiForgeryToken} // '';
-    $token =~ m{\A[\w+/=]+\z}
-        or scraping_error("login.app-setup.token: $token");
+    my $csrf_token = $data->{antiForgeryToken} // '';
+    $csrf_token =~ m{\A[\w+/=]+\z}
+        or scraping_error("login.app-setup.csrf-token: $csrf_token");
     push @headers_xhr, (
-        'X-Request-Verification-Token' => $token,
+        'X-Request-Verification-Token' => $csrf_token,
     );
     my @header_origin = (
         'Origin' => $root_url,
@@ -1554,10 +1554,10 @@ sub do_login
         name => '__AjaxRequestVerificationToken'
     );
     defined($e_meta)
-        or scraping_error('login.arvt');
-    my $arvt = $e_meta->attr('content') // '';
-    $arvt =~ m{\A[\w/+=]{100,}\z}
-        or scraping_error("login.arvt: $arvt");
+        or scraping_error('login.csrf-token');
+    my $csrf_token = $e_meta->attr('content') // '';
+    $csrf_token =~ m{\A[\w/+=]{20,}\z}
+        or scraping_error("login.csrf-token: $csrf_token");
     my %menu = _extract_login_menu($html);
     my %profiles = _extract_login_profiles($html);
     debug('logged in');
@@ -1565,7 +1565,7 @@ sub do_login
         headers => [
             'Referer' => $doc->{url},
             'X-Tab-Id' => $tabid,
-            'X-Request-Verification-Token' => $arvt,
+            'X-Request-Verification-Token' => $csrf_token,
             @header_xhr,
         ],
         menu => \%menu,
