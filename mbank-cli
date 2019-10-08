@@ -289,6 +289,50 @@ sub check_for_unexpected_options
     return internal_error($message, 1);
 }
 
+=for comment
+
+kwargs(HASHREF, NAME1 => \$VAR1, NAME2 => [\$VAR2, DEFAULT2], ...)
+
+=cut
+
+sub kwargs
+{
+    my ($kwargs, %args) = @_;
+    ref($kwargs) eq 'HASH'
+        or internal_error('kwargs(): invalid argument', 1);
+    my $caller = (caller(1))[3];
+    $caller =~ s/^main:://;
+    while (my ($name, $var) = each %args) {
+        ref($name) eq ''
+            or internal_error('kwargs(): invalid argument', 1);
+        my $value;
+        my $has_default = 0;
+        if (ref($var) eq 'ARRAY') {
+            scalar @{$var} == 2
+                or internal_error('kwargs(): invalid argument', 1);
+            ($var, $value) = @{$var};
+            $has_default = 1;
+        }
+        ref($var) eq 'SCALAR' and not defined(${$var})
+            or internal_error('kwargs(): invalid argument', 1);
+        if (exists $kwargs->{$name}) {
+            $value = delete $kwargs->{$name};
+        } else {
+            $has_default or
+                internal_error("$caller(): missing keyword argument: $name", 1);
+        }
+        ${$var} = $value;
+    }
+    if (%{$kwargs}) {
+        local $LIST_SEPARATOR = ', ';
+        my @names = sort(keys(%{$kwargs}));
+        my $s = 's' x (scalar @names > 1);
+        my $message = "$caller(): invalid keyword argument$s: @names";
+        internal_error($message, 1);
+    }
+    return;
+}
+
 # ====================
 # internationalization
 # ====================
