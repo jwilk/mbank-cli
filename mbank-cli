@@ -906,12 +906,23 @@ sub encode_json
     goto &JSON::encode_json
 }
 
+=begin comments
+
+decode_json(JSON, context => CONTEXT)
+
+=cut
+
 sub decode_json
 {
-    my ($json) = @_;
+    my ($json, %options) = @_;
+    my $context = delete $options{context}
+        // internal_error('decode_json(): missing required argument: context', 1);
+    check_for_unexpected_options(%options);
     return eval {
         JSON::decode_json($json);
-    } // return;
+    } // do {
+        scraping_error("$context: $EVAL_ERROR");
+    }
 }
 
 sub json_content
@@ -1036,8 +1047,7 @@ sub _extract_login_menu
         my ($json) = ($content =~ m/^\s*Ebre[.]Venezia[.]MenuItems\s*=\s*(\[.+\]);\s+$/m)
             or next;
         $json = Encode::encode('UTF-8', $json);
-        $json = decode_json($json)
-            or scraping_error("login.menu.json: $EVAL_ERROR");
+        $json = decode_json($json, context => 'login.menu.json');
         ref $json eq 'ARRAY'
             or scraping_error('login.menu.json: not an array');
         for my $item (@{$json}) {
@@ -1068,8 +1078,7 @@ sub _extract_login_profiles
         my ($js) = ($content =~ m/^\s*Ebre[.]Venezia[.]ProfileData\s*=\s*([{].+[}]);\s*$/m)
             or next;
         $js = unicode_to_bytes($js, 'UTF-8');
-        my $json = decode_json($js)
-            or scraping_error("login.profiles.json: $EVAL_ERROR");
+        my $json = decode_json($js, context => 'login.profiles.json');
         while (my ($key, $value) = each %{$json}) {
             if ($key eq 'iProfiles') {
                 $key = 'personal';
@@ -1200,8 +1209,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         'Referer' => "$root_url/authorization",
     );
     my $doc = download($request);
-    my $data = decode_json($doc->{content})
-        // scraping_error("login.app-setup: $EVAL_ERROR");
+    my $data = decode_json($doc->{content}, context => 'login.app-setup');
     my $token = $data->{antiForgeryToken} // '';
     $token =~ m{\A[\w+/=]+\z}
         or scraping_error("login.app-setup.token: $token");
@@ -1225,8 +1233,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         'Referer' => "$root_url/authorization",
     );
     $doc = download($request);
-    $data = decode_json($doc->{content})
-        // scraping_error("login.sca: $EVAL_ERROR");
+    $data = decode_json($doc->{content}, context => 'login.sca');
     my $sca_auth_id = $data->{ScaAuthorizationId} // '';
     $sca_auth_id =~ m{\A[\w+/=]+\z}
         or scraping_error("login.sca.auth-id: $sca_auth_id");
@@ -1249,8 +1256,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             'Referer' => "$root_url/authorization/unknownDevice",
         );
         $doc = download($request);
-        $data = decode_json($doc->{content})
-            // scraping_error("login.2fa.next-dev: $EVAL_ERROR");
+        $data = decode_json($doc->{content}, context => 'login.2fa.next-dev');
         my $is_valid = $data->{isValid} // '';
         JSON::is_bool($is_valid) and $is_valid
             or scraping_error("login.2fa.next-dev.invalid: $is_valid");
@@ -1263,8 +1269,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                 'Referer' => "$root_url/authorization/secureDevice/set",
             );
             $doc = download($request);
-            $data = decode_json($doc->{content})
-                // scraping_error("login.2fa.trusted-dev: $EVAL_ERROR");
+            $data = decode_json($doc->{content}, context => 'login.2fa.trusted-dev');
             $is_valid = $data->{isValid} // '';
             JSON::is_bool($is_valid)
                 or scraping_error("login.2fa.trusted-dev.invalid: $is_valid");
@@ -1308,8 +1313,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         })
     );
     $doc = download($request);
-    $data = decode_json($doc->{content})
-        // scraping_error("login.2fa.init: $EVAL_ERROR");
+    $data = decode_json($doc->{content}, context => 'login.2fa.init');
     my $error_code = $data->{ErrorCode} // '?';
     $error_code eq ''
         or scraping_error("login.2fa.init.error: $error_code");
@@ -1334,8 +1338,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                 })
             );
             $doc = download($request);
-            $data = decode_json($doc->{content})
-                // scraping_error("login.2fa.status: $EVAL_ERROR");
+            $data = decode_json($doc->{content}, context => 'login.2fa.status');
             $error_code = $data->{ErrorCode};
             defined($error_code)
                 or scraping_error('login.2fa.status.error');
@@ -1362,8 +1365,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             json_content({})
         );
         $doc = download($request, ignore_errors => 1);
-        $data = decode_json($doc->{content})
-            // scraping_error("login.2fa.exec: $EVAL_ERROR");
+        $data = decode_json($doc->{content}, context => 'login.2fa.exec');
         $error_code = $data->{error};
         if (defined($error_code)) {
             scraping_error("login.2fa.exec.error: $error_code")
@@ -1385,8 +1387,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                 })
             );
             $doc = download($request, ignore_errors => 1);
-            $data = decode_json($doc->{content})
-                // scraping_error("login.2fa.exec: $EVAL_ERROR");
+            $data = decode_json($doc->{content}, context => 'login.2fa.exec');
             $error_code = $data->{error};
             if (defined($error_code)) {
                 if ($error_code eq 'QGE0193' or $error_code eq 'QGE0200') {
@@ -1511,8 +1512,7 @@ sub do_login
             }),
         );
         $doc = download($request);
-        my $login_json = decode_json($doc->{content})
-            // scraping_error("login.json: $EVAL_ERROR");
+        my $login_json = decode_json($doc->{content}, context => 'login.json');
         if (not $login_json->{successful}) {
             my $message = $login_json->{errorMessageTitle} // '';
             $message =~ s/\s*$//;
@@ -1611,8 +1611,7 @@ sub do_list
         json_content({})
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content})
-        // scraping_error("list.json: $EVAL_ERROR");
+    my $json = decode_json($doc->{content}, context => 'list.json');
     my @accounts = @{$json->{accountDetailsList}};
     my @result;
     for my $account (@accounts) {
@@ -2196,8 +2195,7 @@ sub do_future
         json_content({getFilter => JSON::true})
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content})
-        // scraping_error("future.json: $EVAL_ERROR");
+    my $json = decode_json($doc->{content}, context => 'future.json');
     my %selected_accounts = select_accounts($account_info, @selection)
         or user_error('future: no matching accounts');
     $display_name ||=
@@ -2254,8 +2252,7 @@ sub do_deposits
         'Content' => '',
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content})
-        // scraping_error("deposits.json: $EVAL_ERROR");
+    my $json = decode_json($doc->{content}, context => 'deposits.json');
     $json = $json->{properties}
         // scraping_error('deposits.properties');
     $json->{footer}->{isListComplete}
@@ -2412,8 +2409,7 @@ sub do_notices
         })
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content})
-        // scraping_error("notices.json: $EVAL_ERROR");
+    my $json = decode_json($doc->{content}, context => 'notices.json');
     my $elements = $json->{Elements}
         // scraping_error('notices.elements');
     for my $element (@{$elements}) {
@@ -2514,8 +2510,7 @@ sub _do_lazy_logout
         'Content-Type' => 'application/json',
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content})
-        // scraping_error("logout.json: $EVAL_ERROR");
+    my $json = decode_json($doc->{content}, context => 'logout.json');
     $json->{lazy}
         or scraping_error('logout.lazy');
     return;
