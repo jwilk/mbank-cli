@@ -276,19 +276,6 @@ sub known_bug
     exit(-1);
 }
 
-sub check_for_unexpected_options
-{
-    my %options = @_;
-    return if not %options;
-    my $message;
-    {
-        local $LIST_SEPARATOR = ', ';
-        my @option_keys = sort(keys(%options));
-        $message = "unexpected options: @option_keys";
-    }
-    return internal_error($message, 1);
-}
-
 =for comment
 
 kwargs(HASHREF, NAME1 => \$VAR1, NAME2 => [\$VAR2, DEFAULT2], ...)
@@ -461,11 +448,10 @@ my $http_timeout = 30;
 sub http_init
 {
     my %options = @_;
-    my $cookie_jar_path = delete $options{cookie_jar}
-        // internal_error('missing cookie_jar');
-    my $ca_path = delete $options{ca}
-        // internal_error('missing ca');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        cookie_jar => \my $cookie_jar_path,
+        ca => \my $ca_path,
+    );
     if ($Net::HTTPS::SSL_SOCKET_CLASS ne 'IO::Socket::SSL') {
         # This should not happen, but better safe than sorry.
         # We absolutely do not want Net::SSL (from the Crypt-SSLeay
@@ -550,8 +536,9 @@ sub http_init
 sub download
 {
     my ($request, %options) = @_;
-    my $ignore_errors = delete($options{ignore_errors});
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        ignore_errors => [\my $ignore_errors, 0],
+    );
     my $message = sprintf(
         '%s %s',
         $request->method,
@@ -783,10 +770,11 @@ my $account_number_re = qr{
 sub format_amount
 {
     my ($s, %options) = @_;
-    my $use_plus = delete($options{plus});
-    my $currency = delete($options{currency});
-    my $fp = delete($options{fp});
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        fp => [\my $fp, 0],
+        plus => [\my $use_plus, 0],
+        currency => [\my $currency, undef],
+    );
     if ($fp) {
         if (not defined($currency)) {
             internal_error('floating-point number, but no currency');
@@ -859,8 +847,9 @@ timestamp_to_date(TIMESTAMP, [time_must_be => 0])
 sub timestamp_to_date
 {
     my ($timestamp, %options) = @_;
-    my $time_must_be = delete($options{time_must_be});
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        time_must_be => [\my $time_must_be, undef],
+    );
     my $time_re = qr/\A/;
     if (defined($time_must_be)) {
         if ($time_must_be == 0) {
@@ -960,10 +949,10 @@ decode_json(JSON_ARRAY, type => [], context => CONTEXT) -> array ref
 sub decode_json
 {
     my ($json, %options) = @_;
-    my $context = delete $options{context}
-        // internal_error('decode_json(): missing required argument: context', 1);
-    my $type = delete $options{type} // {};
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        context => \my $context,
+        type => [\my $type, {}],
+    );
     $type = ref $type;
     my %atypes = (
         HASH => 'an object',
@@ -1030,8 +1019,9 @@ sub gen_uuid
 sub term_new
 {
     my %options = @_;
-    my $readpasswd = delete $options{readpasswd};
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        readpasswd => [\my $readpasswd, 0],
+    );
     state $term = Term::ReadLine->new('mbank-cli');
     if ($readpasswd) {
         if ($OSNAME eq 'MSWin32') {
@@ -1492,9 +1482,10 @@ sub _do_2fa  ## no critic (ExcessComplexity)
 sub do_login
 {
     my %options = @_;
-    my $probe = delete($options{probe});
-    my $register_device = delete($options{register_device});
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        probe => [\my $probe, 0],
+        register_device => [\my $register_device, undef],
+    );
     my $request = GET($base_url);
     my $doc = download($request);
     if ($doc->{url} =~ m{/Login$}) {
@@ -1621,8 +1612,10 @@ sub do_login
 sub do_register_device
 {
     my %options = @_;
-    my @args = @{delete($options{args})};
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        args => \my $args,
+    );
+    my @args = @{$args};
     scalar(@args) <= 1
         or user_error('regsiter-device: too many arguments');
     my ($name) = @args;
@@ -1654,10 +1647,10 @@ sub do_register_device
 sub do_list
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    my $quiet = delete($options{quiet}) // 0;
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        login => \my $login_info,
+        quiet => [\my $quiet, 0],
+    );
     my $request = POST(
         "$base_url/MyDesktop/Desktop/GetAccountsList",
         @{$login_info->{headers}},
@@ -1722,9 +1715,10 @@ sub select_accounts
 sub _clean_history_form
 {
     my ($form, %options) = @_;
-    my $parameters = delete($options{'params'});
-    my $reset = delete($options{'reset'});
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        params => [\my $parameters, undef],
+        reset => [\my $reset, 0],
+    );
     for my $input ($form->inputs) {
         my $name = $input->name // '';
         if ($name =~ m/\Alastdays_\w+\z/) {
@@ -1781,21 +1775,17 @@ sub _prepare_history
 sub do_history
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    my $account_info = delete($options{accounts})
-        // internal_error('missing account info');
-    my $selection = delete($options{selection})
-        // internal_error('missing selection');
+    kwargs(\%options,
+        login => \my $login_info,
+        accounts => \my $account_info,
+        selection => \my $selection,
+        display_name => \my $display_name,
+        display_id => \my $display_id,
+        start_date => [\my $start_date, undef],
+        end_date => [\my $end_date, undef],
+        export => [\my $export, undef],
+    );
     my @selection = @{$selection};
-    my $display_name = delete($options{display_name})
-        // internal_error('missing display_name');
-    my $display_id = delete($options{display_id})
-        // internal_error('missing display_id');
-    my $start_date = delete($options{start_date});
-    my $end_date = delete($options{end_date});
-    my $export = delete($options{export});
-    check_for_unexpected_options(%options);
     my $doc = _prepare_history($login_info);
     my %selected_accounts = select_accounts($account_info, @selection)
         or user_error('history: no matching accounts');
@@ -1826,11 +1816,10 @@ sub do_history
 sub _switch_history_account
 {
     my %options = @_;
-    my $doc = delete($options{document})
-        // internal_error('missing document');
-    my $number = delete($options{'number'})
-        // internal_error('missing account number');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        document => \my $doc,
+        number => \my $number,
+    );
     my $parameters = undef;
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
     my ($e_account_menu) = $html->look_down(id => 'MenuAccountsCombo');
@@ -1867,20 +1856,16 @@ sub _switch_history_account
 sub _do_history_account
 {
     my %options = @_;
-    my $doc = delete($options{document})
-        // internal_error('missing document');
-    my $name = delete($options{'name'})
-        // internal_error('missing account name');
-    my $number = delete($options{'number'})
-        // internal_error('missing account number');
-    my $start_date = delete($options{start_date});
-    my $end_date = delete($options{end_date});
-    my $export = delete($options{export});
-    my $display_name = delete($options{display_name})
-        // internal_error('missing display_name');
-    my $display_id = delete($options{display_id})
-        // internal_error('missing display_id');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        document => \my $doc,
+        name => \my $name,
+        number => \my $number,
+        start_date => [\my $start_date, undef],
+        end_date => [\my $end_date, undef],
+        export => [\my $export, undef],
+        display_name => \my $display_name,
+        display_id => \my $display_id,
+    );
     $doc = _switch_history_account(
         document => $doc,
         number => $number,
@@ -2013,16 +1998,13 @@ sub _do_history_account
 
 sub _do_history_page {
     my %options = @_;
-    my $html = delete($options{html})
-        // internal_error('missing html');
-    my $name = delete($options{name})
-        // internal_error('missing name');
+    kwargs(\%options,
+        html => \my $html,
+        name => \my $name,
+        display_name => \my $display_name,
+        display_id => \my $display_id,
+    );
     $name = unicode_to_bytes($name);
-    my $display_name = delete($options{display_name})
-        // internal_error('missing display_name');
-    my $display_id = delete($options{display_id})
-        // internal_error('missing display_id');
-    check_for_unexpected_options(%options);
     my @e_op_descs = find_html_class($html, 'OperationDescription');
     if (not @e_op_descs) {
         $html->look_down(id => 'account_operations_NoData')
@@ -2129,15 +2111,13 @@ sub _prepare_blocked
 sub do_blocked
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    my $account_info = delete($options{accounts})
-        // internal_error('missing account info');
-    my $selection = delete($options{selection})
-        // internal_error('missing selection');
+    kwargs(\%options,
+        login => \my $login_info,
+        accounts => \my $account_info,
+        selection => \my $selection,
+        display_name => \my $display_name,
+    );
     my @selection = @{$selection};
-    my $display_name = delete($options{display_name})
-        // internal_error('missing display_name');
     my $doc = _prepare_blocked($login_info);
     my %selected_accounts = select_accounts($account_info, @selection)
         or user_error('blocked: no matching accounts');
@@ -2159,15 +2139,12 @@ sub do_blocked
 sub _do_blocked_account
 {
     my %options = @_;
-    my $doc = delete($options{document})
-        // internal_error('missing document');
-    my $name = delete($options{'name'})
-        // internal_error('missing account name');
-    my $number = delete($options{'number'})
-        // internal_error('missing account number');
-    my $display_name = delete($options{display_name})
-        // internal_error('missing display_name');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        document => \my $doc,
+        name => \my $name,
+        number => \my $number,
+        display_name => \my $display_name,
+    );
     $doc = _switch_history_account(
         document => $doc,
         number => $number,
@@ -2232,16 +2209,13 @@ sub _do_blocked_account
 sub do_future
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    my $account_info = delete($options{accounts})
-        // internal_error('missing account info');
-    my $selection = delete($options{selection})
-        // internal_error('missing selection');
+    kwargs(\%options,
+        login => \my $login_info,
+        accounts => \my $account_info,
+        selection => \my $selection,
+        display_name => \my $display_name,
+    );
     my @selection = @{$selection};
-    my $display_name = delete($options{display_name})
-        // internal_error('missing display_name');
-    check_for_unexpected_options(%options);
     my $request = POST(
         "$base_url/FutureOperations/Calendar/OPER_GetFutureTransfers",
         @{$login_info->{headers}},
@@ -2295,9 +2269,9 @@ sub do_future
 sub do_deposits
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        login => \my $login_info,
+    );
     my $request = POST(
         "$base_url/Savings/Deposits/getDepositsList",
         @{$login_info->{headers}},
@@ -2346,9 +2320,9 @@ sub do_deposits
 sub do_cards
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        login => \my $login_info,
+    );
     my $request = POST(
         "$base_url/Cards/Cards/IndexData",
         @{$login_info->{headers}},
@@ -2395,11 +2369,10 @@ sub do_pension
 sub _do_funds
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    my $type = delete($options{type})
-        // internal_error('missing type');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        login => \my $login_info,
+        type => \my $type,
+    );
     my $request = POST(
         "$base_url/InvestmentFunds/Dashboard/Dashboard",
         @{$login_info->{headers}},
@@ -2450,9 +2423,9 @@ sub _do_funds
 sub do_notices
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        login => \my $login_info,
+    );
     my $request = POST(
         "$base_url/Adv/AdvPlaceholder/GetUpdates",
         @{$login_info->{headers}},
@@ -2495,10 +2468,11 @@ sub do_notices
 sub do_activate_profile
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    my @args = @{delete($options{args})};
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        login => \my $login_info,
+        args => \my $args,
+    );
+    my @args = @{$args};
     scalar(@args) > 0
         or user_error('activate-profile: no profile selected');
     scalar(@args) <= 1
@@ -2553,9 +2527,9 @@ sub do_activate_profile
 sub _do_lazy_logout
 {
     my %options = @_;
-    my $login_info = delete($options{login})
-        // internal_error('missing login info');
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        login => \my $login_info,
+    );
     my $request = POST(
         "$base_url/LoginMain/Account/LazyLogout",
         @{$login_info->{headers}},
@@ -2573,8 +2547,9 @@ sub _do_lazy_logout
 sub do_logout
 {
     my %options = @_;
-    my $maybe = delete $options{maybe};
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        maybe => [\my $maybe, 0],
+    );
     my $login_info = do_login(probe => 1);
     if (not defined($login_info)) {
         $ua->cookie_jar->clear_temporary_cookies();
@@ -2609,8 +2584,9 @@ sub do_debug_noop
 sub do_debug_https_get
 {
     my %options = @_;
-    my $urls = delete($options{args});
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        args => \my $urls,
+    );
     my @urls = @{$urls};
     if (not @urls) {
         push(@urls, $base_url);
@@ -2626,8 +2602,9 @@ sub do_debug_https_get
 sub do_debug_sms_password
 {
     my %options = @_;
-    my $args = delete($options{args});
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        args => \my $args,
+    );
     my ($date, $n, $tries) = @{$args};
     $date //= '';
     my ($y, $m, $d) = $date =~ m/\A(\d\d\d\d)-(\d\d)-(\d\d)\z/
@@ -2782,9 +2759,10 @@ sub _configure_cookie_jar
 sub do_configure
 {
     my %options = @_;
-    my $config_path = delete($options{config_path});
-    my $cookie_jar_path = delete($options{cookie_jar_path});
-    check_for_unexpected_options(%options);
+    kwargs(\%options,
+        config_path => \my $config_path,
+        cookie_jar_path => [\my $cookie_jar_path, undef],
+    );
     my $term = term_new(readpasswd => 1);
     _configure_overwrite($term, $config_path);
     my $cc = _configure_country($term);
