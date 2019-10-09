@@ -227,6 +227,7 @@ sub scraping_error
 }
 
 sub scraping_count
+# deprecated in favor of unpack_list()
 {
     my ($array, $n, $message) = @_;
     ref($array) eq 'ARRAY'
@@ -236,6 +237,38 @@ sub scraping_count
         and return @{$array};
     my $s = $n == 1 ? '' : 's';
     return scraping_error("$message: expected $n instance$s, got $m");
+}
+
+=begin comment
+
+unpack_list(ARRAY_OF_REFS, ARRAY, context => CONTEXT)
+
+=cut
+
+sub unpack_list
+{
+    my ($dst, $src, %options) = @_;
+    kwargs(\%options, context => \my $context);
+    ref($dst) eq 'ARRAY'
+        or internal_error('unpack_list(): invalid argument', 1);
+    my @dst = @{$dst};
+    ref($src) eq 'ARRAY'
+        or scraping_error("$context: not an array");
+    my @src = @{$src};
+    my $n = scalar(@dst);
+    my $m = scalar(@src);
+    $n == $m
+        or scraping_error("$context: expected $n elements, got $m");
+    for my $i (0..$n-1) {
+        my $var = pop @dst;
+        my $val = pop @src;
+        defined($var)
+            or next;
+        ref($var) eq 'SCALAR'
+            or internal_error('unpack_list(): invalid argument', 1);
+        ${$var} = $val;
+    }
+    return;
 }
 
 sub os_error
