@@ -1785,9 +1785,8 @@ sub do_history
         end_date => [\my $end_date, undef],
         export => [\my $export, undef],
     );
-    my @selection = @{$selection};
     my $doc = _prepare_history($login_info);
-    my %selected_accounts = select_accounts($account_info, @selection)
+    my %selected_accounts = select_accounts($account_info, @{$selection})
         or user_error('history: no matching accounts');
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
@@ -2117,9 +2116,8 @@ sub do_blocked
         selection => \my $selection,
         display_name => \my $display_name,
     );
-    my @selection = @{$selection};
     my $doc = _prepare_blocked($login_info);
-    my %selected_accounts = select_accounts($account_info, @selection)
+    my %selected_accounts = select_accounts($account_info, @{$selection})
         or user_error('blocked: no matching accounts');
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
@@ -2215,7 +2213,6 @@ sub do_future
         selection => \my $selection,
         display_name => \my $display_name,
     );
-    my @selection = @{$selection};
     my $request = POST(
         "$base_url/FutureOperations/Calendar/OPER_GetFutureTransfers",
         @{$login_info->{headers}},
@@ -2224,7 +2221,7 @@ sub do_future
     );
     my $doc = download($request);
     my $json = decode_json($doc->{content}, context => 'future.json');
-    my %selected_accounts = select_accounts($account_info, @selection)
+    my %selected_accounts = select_accounts($account_info, @{$selection})
         or user_error('future: no matching accounts');
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
