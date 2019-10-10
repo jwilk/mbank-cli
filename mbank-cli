@@ -1005,10 +1005,69 @@ sub has_html_class
 }
 
 sub find_html_class
+# deprecated in favor of:
+# • find_html_elements()
+# • find_html_element()
 {
     my ($element, $class) = @_;
     my $re = html_class_regexp($class);
     return $element->look_down('class', $re);
+}
+
+=begin comment
+
+find_html_elements(id => ID) => (ELEM1, ...)
+find_html_elements(class => CLASSES) => (ELEM1, ...)
+
+=cut
+
+sub find_html_elements
+{
+    my ($root_elt, %options) = @_;
+    kwargs(\%options,
+        id => [\my $id, undef],
+        class => [\my $classes, []],
+    );
+    my @classes;
+    if (ref($classes) eq 'ARRAY') {
+        @classes = @{$classes};
+    } elsif (ref($classes) eq '') {
+        @classes = split(' ', $classes);
+    } else {
+        internal_error('find_html_elements(): invalid argument', 1);
+    }
+    return $root_elt->look_down(sub {
+        my ($elt) = @_;
+        for my $class (@classes) {
+            has_html_class($elt, $class)
+                or return 0;
+        }
+        if (defined($id)) {
+            ($elt->attr('id') // '') eq $id
+                or return 0;
+        }
+        return 1;
+    });
+}
+
+=begin comment
+
+find_html_element(id => ID) -> ELEMENT
+find_html_element(class => CLASSES) -> ELEMENT
+
+=cut
+
+sub find_html_element
+{
+    my ($root_elt, %options) = @_;
+    kwargs(\%options,
+        id => [\my $id, undef],
+        class => [\my $classes, []],
+        context => \my $context,
+    );
+    my @result = find_html_elements($root_elt, id => $id, class => $classes);
+    unpack_list([\my $result], [@result], context => $context);
+    return $result;
 }
 
 # ====
