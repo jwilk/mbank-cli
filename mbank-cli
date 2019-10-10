@@ -247,6 +247,36 @@ sub quote
 
 =begin comment
 
+match(TEXT, qr/REGEXP/, context => CONTEXT) -> TEXT
+match(TEXT, TEXT, context => CONTEXT) -> TEXT
+
+=cut
+
+sub match
+{
+    my ($text, $pattern, %options) = @_;
+    kwargs(\%options, context => \my $context);
+    if (ref($pattern) eq '') {
+        $pattern = qr/\Q$pattern\E/;
+    }
+    is_regexp($pattern)
+        or internal_error('match(): invalid argument', 1);
+    defined($text) and ref($text) eq ''
+        or do {
+            my $qtext = quote($text);
+            scraping_error("$context: $qtext is not a string");
+        };
+    $text =~ m/\A(?:$pattern)\z/
+        or do {
+            my $qtext = quote($text);
+            my $qpattern = quote($pattern);
+            scraping_error("$context: $qtext does not match $qpattern");
+        };
+    return $text;
+}
+
+=begin comment
+
 unpack_list(ARRAY_OF_REFS, ARRAY, context => CONTEXT)
 
 =cut
