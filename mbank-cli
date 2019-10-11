@@ -631,6 +631,19 @@ sub _get_openssl_version
 
 my $openssl_version = _get_openssl_version();
 
+sub _get_openssl_dir
+{
+    $Net::SSLeay::VERSION >= 1.43
+        or return;
+    # https://www.openssl.org/docs/man1.0.2/crypto/SSLeay_version.html
+    # SSLEAY_DIR == 5
+    my $openssl_info = Net::SSLeay::SSLeay_version(5);
+    my ($openssl_dir) = $openssl_info =~ m/\AOPENSSLDIR: "(.*)"\Z/;
+    return $openssl_dir;
+}
+
+my $openssl_dir = _get_openssl_dir();
+
 sub get_default_ca_path
 {
     my ($name, @hashes) = @_;
@@ -641,14 +654,8 @@ sub get_default_ca_path
         return $path;
     }
     my $ssl_cert_dir = $ENV{SSL_CERT_DIR};
-    if (not defined($ssl_cert_dir) and $Net::SSLeay::VERSION >= 1.43) {
-        # https://www.openssl.org/docs/man1.0.2/crypto/SSLeay_version.html
-        # SSLEAY_DIR == 5
-        my $openssl_info = Net::SSLeay::SSLeay_version(5);
-        my ($openssl_dir) = $openssl_info =~ m/\AOPENSSLDIR: "(.*)"\Z/;
-        if (defined($openssl_dir)) {
-            $ssl_cert_dir = "$openssl_dir/certs";
-        }
+    if (defined($openssl_dir)) {
+        $ssl_cert_dir //= "$openssl_dir/certs";
     }
     if (defined($ssl_cert_dir)) {
         for my $hash (@hashes) {
