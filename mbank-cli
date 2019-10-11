@@ -619,6 +619,18 @@ sub simple_download
     return $response;
 }
 
+sub _get_openssl_version
+{
+    $Net::SSLeay::VERSION >= 1.43
+        or return;
+    my $version_info = Net::SSLeay::SSLeay_version();
+    my ($version) = $version_info =~ m/\AOpenSSL (\S+)/
+        or return;
+    return $version;
+}
+
+my $openssl_version = _get_openssl_version();
+
 sub get_default_ca_path
 {
     my ($name, @hashes) = @_;
@@ -2915,10 +2927,8 @@ sub show_version
         my $version = $module->VERSION // '(no version information)';
         say("+ $module $version");
     }
-    if ($Net::SSLeay::VERSION >= 1.43) {
-        my $openssl = Net::SSLeay::SSLeay_version();
-        $openssl =~ s/ xx XXX xxxx\z//;
-        say("  * $openssl");
+    if (defined $openssl_version) {
+        say("  * OpenSSL $openssl_version");
     }
     exit();
 }
