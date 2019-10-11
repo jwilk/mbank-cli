@@ -276,7 +276,7 @@ sub known_bug
     exit(-1);
 }
 
-=for comment
+=begin comment
 
 kwargs(HASHREF, NAME1 => \$VAR1, NAME2 => [\$VAR2, DEFAULT2], ...)
 
@@ -856,7 +856,7 @@ sub wildcards_to_regexp
 # date and time
 # =============
 
-=begin comments
+=begin comment
 
 timestamp_to_date(TIMESTAMP, [time_must_be => 0])
 
@@ -895,7 +895,7 @@ sub timestamp_to_date
     return $date;
 }
 
-=begin comments
+=begin comment
 
 parse_le_date(MONTH_DAY_YEAR_DATE)
 
@@ -966,7 +966,7 @@ sub encode_json
     goto &JSON::encode_json
 }
 
-=begin comments
+=begin comment
 
 decode_json(JSON_OBJECT, context => CONTEXT) -> hash ref
 decode_json(JSON_ARRAY, type => [], context => CONTEXT) -> array ref
