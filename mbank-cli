@@ -589,7 +589,9 @@ sub download
         $rpath = "${path}.headers";
         open($fh, '>', $rpath)
             or os_error("$rpath: $ERRNO");
-        print {$fh} $response->dump(maxlength => 1);
+        my $response_dump = $response->dump(maxlength => 1);
+        $response_dump =~ s/\n\n.*\z//s;
+        print {$fh} $response_dump;
         close($fh)
             or os_error("$rpath: $ERRNO");
     }
