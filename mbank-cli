@@ -538,6 +538,7 @@ sub download
     my ($request, %options) = @_;
     kwargs(\%options,
         ignore_errors => [\my $ignore_errors, 0],
+        redact => [\my $redact, undef],
     );
     my $message = sprintf(
         '%s %s',
@@ -578,7 +579,11 @@ sub download
         my $rpath = "${path}.request";
         open($fh, '>', $rpath)
             or os_error("$rpath: $ERRNO");
-        print {$fh} $request->dump(maxlength => 1);
+        my $request_dump = $request->dump(maxlength => 0);
+        if (defined($redact)) {
+            $request_dump =~ s/$redact/<redacted>/;
+        }
+        print {$fh} $request_dump;
         close($fh)
             or os_error("$rpath: $ERRNO");
         $rpath = "${path}.headers";
@@ -1597,7 +1602,7 @@ sub do_login
                 DfpData => $dfp_data,
             }),
         );
-        $doc = download($request);
+        $doc = download($request, redact => qr/"Password"\s*:\s*\K"(?:[^\\"]|\\.)*"/);
         my $login_json = decode_json($doc->{content}, context => 'login.json');
         if (not $login_json->{successful}) {
             my $message = $login_json->{errorMessageTitle} // '';
