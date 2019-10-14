@@ -1005,9 +1005,7 @@ sub has_html_class
 }
 
 sub find_html_class
-# deprecated in favor of:
-# • find_html_elements()
-# • find_html_element()
+# deprecated in favor of html_find()
 {
     my ($element, $class) = @_;
     my $re = html_class_regexp($class);
@@ -1016,13 +1014,13 @@ sub find_html_class
 
 =begin comment
 
-find_html_elements(id => ID) => (ELEM_1, ...)
-find_html_elements(class => CLASSES) => (ELEM_1, ...)
-find_html_elements(..., n => N, context => CONTEXT) => (ELEM_1, ..., ELEM_N)
+html_find(id => ID) => (ELEM_1, ...)
+html_find(class => CLASSES) => (ELEM_1, ...)
+html_find(..., n => N, context => CONTEXT) => (ELEM_1, ..., ELEM_N)
 
 =cut
 
-sub find_html_elements
+sub html_find
 {
     my ($root_elt, %options) = @_;
     kwargs(\%options,
@@ -1037,7 +1035,7 @@ sub find_html_elements
     } elsif (ref($classes) eq '') {
         @classes = split(' ', $classes);
     } else {
-        internal_error('find_html_elements(): invalid argument', 1);
+        internal_error('html_find(): invalid argument', 1);
     }
     my @result = $root_elt->look_down(sub {
         my ($elt) = @_;
@@ -1051,26 +1049,20 @@ sub find_html_elements
         }
         return 1;
     });
+    if (not wantarray) {
+        $n //= 1;
+    }
     if (defined($n)) {
         defined($context)
-            or internal_error('find_html_elements(): missing keyword argument: context', 1);
+            or internal_error('html_find(): missing keyword argument: context', 1);
         unpack_list([(undef) x $n], [@result], context => $context);
     }
-    return @result;
-}
-
-=begin comment
-
-find_html_element(id => ID) -> ELEMENT
-find_html_element(class => CLASSES) -> ELEMENT
-
-=cut
-
-sub find_html_element
-{
-    my (@args) = @_;
-    my ($elt) = find_html_elements(@args, n => 1);
-    return $elt;
+    if (wantarray) {
+        return @result;
+    } else {
+        my ($result) = @result;
+        return $result;
+    }
 }
 
 # ====
@@ -2471,15 +2463,15 @@ sub do_cards
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_cards = find_html_elements($html, class => 'card-properties');
+    my @e_cards = html_find($html, class => 'card-properties');
     for my $e_card (@e_cards) {
-        my $e_name = find_html_element($e_card, class => 'card-name', context => 'cards.name');
+        my $e_name = html_find($e_card, class => 'card-name', context => 'cards.name');
         my $name = $e_name->as_trimmed_text();
-        my $e_number = find_html_element($e_card, class => 'card-number', context => 'cards.number');
+        my $e_number = html_find($e_card, class => 'card-number', context => 'cards.number');
         my $number = $e_number->as_trimmed_text();
-        my $e_owner = find_html_element($e_card, class => 'card-owner', context => 'cards.owner');
+        my $e_owner = html_find($e_card, class => 'card-owner', context => 'cards.owner');
         my $owner = $e_owner->as_trimmed_text();
-        my $e_amount = find_html_element($e_card, class => 'card-amount', context => 'cards.amount');
+        my $e_amount = html_find($e_card, class => 'card-amount', context => 'cards.amount');
         my $amount = $e_amount->as_trimmed_text();
         $amount = format_amount($amount)
             or scraping_error("cards.amount: $amount");
@@ -2517,7 +2509,7 @@ sub _do_funds
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_funds = find_html_elements($html, class => 'investment-properties');
+    my @e_funds = html_find($html, class => 'investment-properties');
     for my $e_fund (@e_funds) {
         if (has_html_class($e_fund->parent, 'bestFunds')) {
             next;
@@ -2525,10 +2517,10 @@ sub _do_funds
         if (has_html_class($e_fund, 'wallet-properties')) {
             next;
         }
-        my $e_name = find_html_element($e_fund, class => 'investment-name-group', context => 'funds.name');
+        my $e_name = html_find($e_fund, class => 'investment-name-group', context => 'funds.name');
         my $name = $e_name->as_trimmed_text();
         $name = unicode_to_bytes($name);
-        my $e_amounts = find_html_element($e_fund, class => 'investment-actual', context => 'funds.amount');
+        my $e_amounts = html_find($e_fund, class => 'investment-actual', context => 'funds.amount');
         my @e_amounts = $e_amounts->look_down(_tag => 'span');
         my $n_amounts = scalar(@e_amounts);
         ($n_amounts == 1) or ($n_amounts == 2)
