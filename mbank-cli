@@ -1016,6 +1016,7 @@ sub find_html_class
 =begin comment
 
 html_find(id => ID) => (ELEM_1, ...)
+html_find(tag => TAG) => (ELEM_1, ...)
 html_find(class => CLASSES) => (ELEM_1, ...)
 html_find(..., n => N, context => CONTEXT) => (ELEM_1, ..., ELEM_N)
 
@@ -1026,6 +1027,7 @@ sub html_find
     my ($root_elt, %options) = @_;
     kwargs(\%options,
         id => [\my $id, undef],
+        tag => [\my $tag, undef],
         class => [\my $classes, []],
         n => [\my $n, undef],
         context => [\my $context, undef],
@@ -1046,6 +1048,10 @@ sub html_find
         }
         if (defined($id)) {
             ($elt->attr('id') // '') eq $id
+                or return 0;
+        }
+        if (defined($tag)) {
+            ($elt->tag() eq $tag)
                 or return 0;
         }
         return 1;
