@@ -1016,8 +1016,9 @@ sub find_html_class
 
 =begin comment
 
-find_html_elements(id => ID) => (ELEM1, ...)
-find_html_elements(class => CLASSES) => (ELEM1, ...)
+find_html_elements(id => ID) => (ELEM_1, ...)
+find_html_elements(class => CLASSES) => (ELEM_1, ...)
+find_html_elements(..., n => N, context => CONTEXT) => (ELEM_1, ..., ELEM_N)
 
 =cut
 
@@ -1027,6 +1028,8 @@ sub find_html_elements
     kwargs(\%options,
         id => [\my $id, undef],
         class => [\my $classes, []],
+        n => [\my $n, undef],
+        context => [\my $context, undef],
     );
     my @classes;
     if (ref($classes) eq 'ARRAY') {
@@ -1036,7 +1039,7 @@ sub find_html_elements
     } else {
         internal_error('find_html_elements(): invalid argument', 1);
     }
-    return $root_elt->look_down(sub {
+    my @result = $root_elt->look_down(sub {
         my ($elt) = @_;
         for my $class (@classes) {
             has_html_class($elt, $class)
@@ -1048,6 +1051,12 @@ sub find_html_elements
         }
         return 1;
     });
+    if (defined($n)) {
+        defined($context)
+            or internal_error('find_html_elements(): missing keyword argument: context', 1);
+        unpack_list([(undef) x $n], [@result], context => $context);
+    }
+    return @result;
 }
 
 =begin comment
@@ -1059,15 +1068,9 @@ find_html_element(class => CLASSES) -> ELEMENT
 
 sub find_html_element
 {
-    my ($root_elt, %options) = @_;
-    kwargs(\%options,
-        id => [\my $id, undef],
-        class => [\my $classes, []],
-        context => \my $context,
-    );
-    my @result = find_html_elements($root_elt, id => $id, class => $classes);
-    unpack_list([\my $result], [@result], context => $context);
-    return $result;
+    my (@args) = @_;
+    my ($elt) = find_html_elements(@args, n => 1);
+    return $elt;
 }
 
 # ====
