@@ -1734,12 +1734,11 @@ sub do_login
     }
     my $tabid = _get_tabid();
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my ($e_meta) = $html->look_down(
-        _tag => 'meta',
-        name => '__AjaxRequestVerificationToken'
+    my $e_meta = html_find($html,
+        tag => 'meta',
+        name => '__AjaxRequestVerificationToken',
+        context => 'login.csrf-token',
     );
-    defined($e_meta)
-        or scraping_error('login.csrf-token');
     my $csrf_token = $e_meta->attr('content') // '';
     $csrf_token =~ m{\A[\w/+=]{20,}\z}
         or scraping_error("login.csrf-token: $csrf_token");
