@@ -1026,8 +1026,15 @@ html_find(..., n => N, context => CONTEXT) => (ELEM_1, ..., ELEM_N)
 sub html_find
 {
     my ($root_elt, %options) = @_;
+    my @attrs = qw(id name type);
+    my %attrs = ();
+    for my $aname (@attrs) {
+        my $avalue = delete $options{$aname};
+        if (defined($avalue)) {
+            $attrs{$aname} = $avalue;
+        }
+    }
     kwargs(\%options,
-        id => [\my $id, undef],
         tag => [\my $tag, undef],
         class => [\my $classes, []],
         n => [\my $n, undef],
@@ -1047,12 +1054,12 @@ sub html_find
             has_html_class($elt, $class)
                 or return 0;
         }
-        if (defined($id)) {
-            ($elt->attr('id') // '') eq $id
-                or return 0;
-        }
         if (defined($tag)) {
             ($elt->tag() eq $tag)
+                or return 0;
+        }
+        for my $aname (keys %attrs) {
+            ($elt->attr($aname) // '') eq $attrs{$aname}
                 or return 0;
         }
         return 1;
