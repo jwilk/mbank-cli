@@ -1016,10 +1016,9 @@ sub find_html_class
 
 =begin comment
 
-html_find(id => ID) => (ELEM_1, ...)
-html_find(tag => TAG) => (ELEM_1, ...)
-html_find(class => CLASSES) => (ELEM_1, ...)
-html_find(..., n => N, context => CONTEXT) => (ELEM_1, ..., ELEM_N)
+html_find([ATTR => VALUE, ...] [class => CLASSES,] [n => N, context => CONTEXT,]) -> (ELEM_1, ..., ELEM_N)
+
+In scalar context, n = 1 by default.
 
 =cut
 
