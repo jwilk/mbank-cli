@@ -1026,9 +1026,9 @@ html_find(..., n => N, context => CONTEXT) => (ELEM_1, ..., ELEM_N)
 sub html_find
 {
     my ($root_elt, %options) = @_;
-    my @attrs = qw(id name type);
+    my @anames = qw(id name type);
     my %attrs = ();
-    for my $aname (@attrs) {
+    for my $aname (@anames) {
         my $avalue = delete $options{$aname};
         if (defined($avalue)) {
             $attrs{$aname} = $avalue;
