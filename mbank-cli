@@ -2514,7 +2514,7 @@ sub _do_funds
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_funds = find_html_class($html, 'investment-properties');
+    my @e_funds = find_html_elements($html, class => 'investment-properties');
     for my $e_fund (@e_funds) {
         if (has_html_class($e_fund->parent, 'bestFunds')) {
             next;
@@ -2522,12 +2522,10 @@ sub _do_funds
         if (has_html_class($e_fund, 'wallet-properties')) {
             next;
         }
-        my $e_name = find_html_class($e_fund, 'investment-name-group')
-            // scraping_error('funds.name');
+        my $e_name = find_html_element($e_fund, class => 'investment-name-group', context => 'funds.name');
         my $name = $e_name->as_trimmed_text();
         $name = unicode_to_bytes($name);
-        my $e_amounts = find_html_class($e_fund, 'investment-actual')
-            // scraping_error('funds.amount');
+        my $e_amounts = find_html_element($e_fund, class => 'investment-actual', context => 'funds.amount');
         my @e_amounts = $e_amounts->look_down(_tag => 'span');
         my $n_amounts = scalar(@e_amounts);
         ($n_amounts == 1) or ($n_amounts == 2)
