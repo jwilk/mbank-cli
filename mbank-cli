@@ -257,8 +257,9 @@ sub unpack_list
     my @src = @{$src};
     my $n = scalar(@dst);
     my $m = scalar(@src);
+    my $s = $n == 1 ? '' : 's';
     $n == $m
-        or scraping_error("$context: expected $n elements, got $m");
+        or scraping_error("$context: expected $n element$s, got $m");
     for my $i (0..$n-1) {
         my $var = pop @dst;
         my $val = pop @src;
