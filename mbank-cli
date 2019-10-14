@@ -2528,7 +2528,7 @@ sub _do_funds
         my $name = $e_name->as_trimmed_text();
         $name = unicode_to_bytes($name);
         my $e_amounts = html_find($e_fund, class => 'investment-actual', context => 'funds.amount');
-        my @e_amounts = $e_amounts->look_down(_tag => 'span');
+        my @e_amounts = html_find($e_amounts, tag => 'span');
         my $n_amounts = scalar(@e_amounts);
         ($n_amounts == 1) or ($n_amounts == 2)
             or scraping_error("funds.amount#: expected 1 or 2 instances, got $n_amounts");
