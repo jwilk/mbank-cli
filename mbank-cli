@@ -1224,7 +1224,7 @@ sub _extract_login_menu
         }
         $menu{$key} = $url;
     };
-    for my $e_script ($html->look_down(_tag => 'script')) {
+    for my $e_script (html_find($html, tag => 'script')) {
         my @content = $e_script->content_list;
         scalar(@content) == 1
             or next;
@@ -1253,7 +1253,7 @@ sub _extract_login_profiles
         personal => [],
         business => [],
     );
-    for my $e_script ($html->look_down(_tag => 'script')) {
+    for my $e_script (html_find($html, tag => 'script')) {
         my @content = $e_script->content_list;
         scalar(@content) == 1
             or next;
