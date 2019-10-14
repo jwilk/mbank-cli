@@ -1933,12 +1933,7 @@ sub _prepare_history
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my ($e_frame) = $html->look_down(
-        _tag => 'frame',
-        name => 'MainFrame',
-    );
-    defined($e_frame)
-        or scraping_error('history.frame');
+    my $e_frame = html_find($html, tag => 'frame', name => 'MainFrame', context => 'history.frame');
     my $frame_url = $e_frame->attr('src') // '';
     $frame_url =~ s/\A\s+|\s+\z//g;
     $frame_url eq "$module.aspx"  # sanity check
@@ -2000,9 +1995,7 @@ sub _switch_history_account
     );
     my $parameters = undef;
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my ($e_account_menu) = $html->look_down(id => 'MenuAccountsCombo');
-    defined($e_account_menu)
-        or scraping_error('history.account-menu');
+    my $e_account_menu = html_find($html, id => 'MenuAccountsCombo', context => 'history.account-menu');
     my @e_accounts = $e_account_menu->content_list();
     for my $e_account (@e_accounts) {
         my $o_name = $e_account->as_trimmed_text();
@@ -2024,7 +2017,7 @@ sub _switch_history_account
             $doc->{response},
             strict => 1,
         );
-        my ($form) = scraping_count(\@forms, 1, 'history.form#');
+        unpack_list([\my $form], [@forms], context => 'history.form');
         _clean_history_form($form, params => $parameters);
         $doc = download($form->click());
     }
@@ -2052,7 +2045,7 @@ sub _do_history_account
         $doc->{response},
         strict => 1,
     );
-    my ($form) = scraping_count(\@forms, 1, 'history.form#');
+    unpack_list([\my $form], [@forms], context => 'history.form');
     if (defined($start_date) or defined($end_date)) {
         my $min_date = '1901-01-01';
         my $get_limit = sub {
@@ -2104,10 +2097,7 @@ sub _do_history_account
         $set_date->('to', $end_date);
     }
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my $e_submit = $html->look_down(
-        _tag => 'button',
-        id => 'Submit'
-    ) // scraping_error('history.submit');
+    my $e_submit = html_find($html, tag => 'button', id => 'Submit', context => 'history.submit');
     my $onclick = $e_submit->attr('onclick') // '';
     my $default_module = 'account_oper_list';
     my $export_module = 'printout_oper_list';
@@ -2142,10 +2132,7 @@ sub _do_history_account
             display_name => $display_name,
             display_id => $display_id,
         );
-        my ($e_prevpage) = $html->look_down(
-            _tag => 'button',
-            id => 'PrevPage',
-        );
+        my ($e_prevpage) = html_find($html, tag => 'button', id => 'PrevPage');
         if (defined($e_prevpage)) {
             $onclick = $e_prevpage->attr('onclick') // '';
             my $url = $doc->{response}->base;
@@ -2163,7 +2150,7 @@ sub _do_history_account
                 $doc->{response},
                 strict => 1,
             );
-            ($form) = scraping_count(\@forms, 1, 'history.prev.form#');
+            unpack_list([\$form], [@forms], context => 'history.prev.form');
             _clean_history_form($form, params => $parameters);
             $doc = download($form->click());
             next PAGE;
@@ -2183,10 +2170,9 @@ sub _do_history_page {
         display_id => \my $display_id,
     );
     $name = unicode_to_bytes($name);
-    my @e_op_descs = find_html_class($html, 'OperationDescription');
+    my @e_op_descs = html_find($html, class => 'OperationDescription');
     if (not @e_op_descs) {
-        $html->look_down(id => 'account_operations_NoData')
-            or scraping_error('history.empty');
+        html_find($html, id => 'account_operations_NoData', n => 1, context => 'history.empty');
         return;
     }
     for my $e_op_desc (@e_op_descs) {
@@ -2198,31 +2184,23 @@ sub _do_history_page {
         }
         # operation id:
         my $id = '';
-        my @e_checkbox = $e_op->look_down(
-            _tag => 'input',
-            type => 'checkbox',
-        );
+        my @e_checkbox = html_find($e_op, tag => 'input', type => 'checkbox');
         if (@e_checkbox) {
-            my ($e_checkbox) = scraping_count(\@e_checkbox, 1, 'history.checkbox.1#');
+            unpack_list([\my $e_checkbox], [@e_checkbox], context => 'history.checkbox.1');
             my $checkbox_id = $e_checkbox->attr('id') // '';
             ($id) = $checkbox_id =~ qr/\Aaccount_operations_grid_ctl\d+_MCheckBox_\d+_\d+_(\d+)\z/
                 or scraping_error("history.checkbox.id: $checkbox_id");
         }
         # dates:
-        my @e_dates = find_html_class($e_op, 'Date');
-        my ($e_dates) = scraping_count(\@e_dates, 1, 'history.date.1#');
-        @e_dates = $e_dates->content_list();
-        scraping_count(\@e_dates, 2, 'history.date.2#');
+        my $e_dates = html_find($e_op, class => 'Date', context => 'history.date.1');
+        my @e_dates = html_find($e_dates, tag => 'span', n => 2, context => 'history.date.2');
         my @dates = ();
         for my $e_date (@e_dates) {
-            my $date = $e_date->as_trimmed_text();
-            $date = parse_le_date($date)
-                // scraping_error("history.date: $date");
+            my $date = parse_dmy_date($e_date->as_trimmed_text(), context => 'history.date');
             push(@dates, $date);
         }
         # amounts:
-        my @e_amounts = find_html_class($e_op, 'Amount');
-        scraping_count(\@e_amounts, 2, 'history.amount#');
+        my @e_amounts = html_find($e_op, class => 'Amount', n => 2, context => 'history.amount');
         my @amounts;
         for my $e_amount (@e_amounts) {
             my $amount = $e_amount->as_trimmed_text();
@@ -2276,7 +2254,7 @@ sub _prepare_blocked
         $doc->{response},
         strict => 1,
     );
-    my ($form) = scraping_count(\@forms, 1, 'blocked.form#');
+    unpack_list([\my $form], \@forms, context => 'blocked.form');
     _clean_history_form($form,
         params => '',
         reset => 1
@@ -2327,20 +2305,12 @@ sub _do_blocked_account
         number => $number,
     );
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my $nothing_blocked = $html->look_down(
-        _tag => 'div',
-        id => 'witholdingsListHoldings_NoData',
-    );
+    my ($nothing_blocked) = html_find($html, tag => 'div', id => 'witholdingsListHoldings_NoData');
     if ($nothing_blocked) {
         return $doc;
     }
-    my $e_blocked = $html->look_down(
-        _tag => 'div',
-        id => 'witholdingsListHoldings',
-    );
-    $e_blocked
-        or scraping_error('blocked.table');
-    my @e_ops = $e_blocked->look_down(_tag => 'li');
+    my $e_blocked = html_find($html, tag => 'div', id => 'witholdingsListHoldings', context => 'blocked.table');
+    my @e_ops = html_find($e_blocked, tag => 'li');
     @e_ops
         or scraping_error('blocked.table.items');
     for my $e_op (@e_ops) {
@@ -2348,28 +2318,23 @@ sub _do_blocked_account
             next;
         }
         # dates:
-        my @e_dates = find_html_class($e_op, 'Date');
-        scraping_count(\@e_dates, 2, 'blocked.date#');
+        my @e_dates = html_find($e_op, class => 'Date', n => 2, context => 'blocked.date');
         my @dates = ();
         for my $e_date (@e_dates) {
             my $date = $e_date->as_trimmed_text();
-            $date = parse_le_date($date)
-                // scraping_error("blocked.date: $date");
+            $date = parse_dmy_date($date, context => 'blocked.date');
             push(@dates, $date);
         }
         # amount:
-        my @e_amounts = find_html_class($e_op, 'Amount');
-        my ($e_amount) = scraping_count(\@e_amounts, 1, 'blocked.amount#');
+        my $e_amount = html_find($e_op, class => 'Amount', context => 'blocked.amount');
         my $amount = $e_amount->as_trimmed_text();
         $amount = format_amount($amount)
             // scraping_error("blocked.amount: $amount");
         # description:
-        my @e_descriptions = find_html_class($e_op, 'WitholdingDescription');
-        my ($e_description) = scraping_count(\@e_descriptions, 1, 'blocked.description#');
+        my $e_description = html_find($e_op, class => 'WitholdingDescription', context => 'blocked.description');
         my $description = $e_description->as_trimmed_text();
         # type:
-        my @e_types = find_html_class($e_op, 'WitholdingType');
-        my ($e_type) = scraping_count(\@e_types, 1, 'blocked.type#');
+        my $e_type = html_find($e_op, class => 'WitholdingType', context => 'blocked.type');
         my $type = $e_type->as_trimmed_text();
         # print:
         {
