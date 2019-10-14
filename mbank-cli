@@ -933,38 +933,6 @@ sub timestamp_to_date
 
 =begin comment
 
-parse_le_date(MONTH_DAY_YEAR_DATE)
-
-    >>> parse_le_date('30-07-2006')
-    '2006-07-30'
-
-    >>> parse_le_date('30.07.2006')
-    '2006-07-30'
-
-    >>> parse_le_date('30.02.2006')
-    undef
-
-=cut
-
-sub parse_le_date
-# deprecated in favor of parse_dmy_date()
-{
-    my ($date) = @_;
-    my ($d, undef, $m, $y) = ($date =~ m/\A(\d\d)([.-])(\d\d)\2(\d\d\d\d)\z/)
-        or return;
-    $date = "$y-$m-$d";
-    my $pdate;
-    my $ymd = '%Y-%m-%d';
-    eval {
-        $pdate = Time::Piece->strptime($date, $ymd)->strftime($ymd);
-    } or return;
-    $date eq $pdate
-        or return;
-    return $date;
-}
-
-=begin comment
-
 parse_dmy_date(MONTH_DAY_YEAR_DATE, context => CONTEXT)
 
     >>> parse_dmy_date('30-07-2006', context => 'foo')
@@ -984,12 +952,28 @@ sub parse_dmy_date
     kwargs(\%options, context => \my $context);
     my $date;
     if (ref($date) eq '') {
-        $date = parse_le_date($orig_date);
+        $date = _parse_dmy_date($orig_date);
     }
     if (not defined($date)) {
         my $qdate = encode_json($orig_date);
         scraping_error("$context: $qdate is not a valid day-month-year date");
     }
+    return $date;
+}
+
+sub _parse_dmy_date
+{
+    my ($date) = @_;
+    my ($d, undef, $m, $y) = ($date =~ m/\A(\d\d)([.-])(\d\d)\2(\d\d\d\d)\z/)
+        or return;
+    $date = "$y-$m-$d";
+    my $pdate;
+    my $ymd = '%Y-%m-%d';
+    eval {
+        $pdate = Time::Piece->strptime($date, $ymd)->strftime($ymd);
+    } or return;
+    $date eq $pdate
+        or return;
     return $date;
 }
 
