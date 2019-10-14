@@ -2468,19 +2468,15 @@ sub do_cards
     );
     my $doc = download($request);
     my $html = HTML::TreeBuilder->new_from_content($doc->{content});
-    my @e_cards = find_html_class($html, 'card-properties');
+    my @e_cards = find_html_elements($html, class => 'card-properties');
     for my $e_card (@e_cards) {
-        my $e_name = find_html_class($e_card, 'card-name')
-            // scraping_error('cards.name');
+        my $e_name = find_html_element($e_card, class => 'card-name', context => 'cards.name');
         my $name = $e_name->as_trimmed_text();
-        my $e_number = find_html_class($e_card, 'card-number')
-            // scraping_error('cards.number');
+        my $e_number = find_html_element($e_card, class => 'card-number', context => 'cards.number');
         my $number = $e_number->as_trimmed_text();
-        my $e_owner = find_html_class($e_card, 'card-owner')
-            // scraping_error('cards.owner');
+        my $e_owner = find_html_element($e_card, class => 'card-owner', context => 'cards.owner');
         my $owner = $e_owner->as_trimmed_text();
-        my $e_amount = find_html_class($e_card, 'card-amount')
-            // scraping_error('cards.amount');
+        my $e_amount = find_html_element($e_card, class => 'card-amount', context => 'cards.amount');
         my $amount = $e_amount->as_trimmed_text();
         $amount = format_amount($amount)
             or scraping_error("cards.amount: $amount");
