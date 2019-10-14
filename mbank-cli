@@ -2477,7 +2477,7 @@ sub do_notices
         @header_accept_json,
         json_content({
             placeholderIdList => undef,
-            timestamp => 1
+            timestamp => -1
         })
     );
     my $doc = download($request);
