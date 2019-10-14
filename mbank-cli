@@ -226,19 +226,6 @@ sub scraping_error
     exit(3);
 }
 
-sub scraping_count
-# deprecated in favor of unpack_list()
-{
-    my ($array, $n, $message) = @_;
-    ref($array) eq 'ARRAY'
-        or internal_error('not an array');
-    my $m = scalar(@{$array});
-    $n == $m
-        and return @{$array};
-    my $s = $n == 1 ? '' : 's';
-    return scraping_error("$message: expected $n instance$s, got $m");
-}
-
 =begin comment
 
 unpack_list(ARRAY_OF_REFS, ARRAY, context => CONTEXT)
