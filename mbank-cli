@@ -264,8 +264,9 @@ sub unpack_list
         my $val = pop @src;
         defined($var)
             or next;
-        ref($var) eq 'SCALAR'
-            or internal_error('unpack_list(): invalid argument', 1);
+        if (ref($var) eq '') {
+            internal_error('unpack_list(): invalid argument', 1);
+        }
         ${$var} = $val;
     }
     return;
