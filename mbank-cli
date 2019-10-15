@@ -95,7 +95,6 @@ BEGIN {
 
 # 3rd-party modules:
 use HTML::Form ();
-use HTML::HeadParser ();
 use HTML::TreeBuilder ();
 use HTTP::Cookies ();
 use HTTP::Message 5.802 ();

@@ -16,8 +16,6 @@ Requirements
 
   - HTML::Form
 
-  - HTML::HeadParser
-
   - HTML::TreeBuilder
 
   - IO::Socket::SSL (≥ 1.31)
@@ -77,7 +75,7 @@ Cheat sheet for cpanm(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 ::
 
-   cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay UUID::Tiny
+   cpanm HTML::Form HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay UUID::Tiny
    cpanm Term::ReadLine::Gnu  # for account password prompt
    cpanm IPC::Run  # for password management
 
