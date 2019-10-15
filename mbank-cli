@@ -994,6 +994,12 @@ sub shift_date
 # HTML parsing
 # ============
 
+sub html_new
+{
+    my ($s) = @_;
+    return HTML::TreeBuilder->new_from_content($s);
+}
+
 sub html_class_regexp
 {
     my ($class) = @_;
@@ -1725,7 +1731,7 @@ sub do_login
         $doc = download($request);
     }
     my $tabid = _get_tabid();
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $html = html_new($doc->{content});
     my $e_meta = html_find($html,
         tag => 'meta',
         name => '__AjaxRequestVerificationToken',
@@ -1894,7 +1900,7 @@ sub _prepare_history
         'Referer' => $login_info->{url},
     );
     my $doc = download($request);
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $html = html_new($doc->{content});
     my $e_frame = html_find($html, tag => 'frame', name => 'MainFrame', context => 'history.frame');
     my $frame_url = $e_frame->attr('src') // '';
     $frame_url =~ s/\A\s+|\s+\z//g;
@@ -1956,7 +1962,7 @@ sub _switch_history_account
         number => \my $number,
     );
     my $parameters = undef;
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $html = html_new($doc->{content});
     my $e_account_menu = html_find($html, id => 'MenuAccountsCombo', context => 'history.account-menu');
     my @e_accounts = $e_account_menu->content_list();
     for my $e_account (@e_accounts) {
@@ -2058,7 +2064,7 @@ sub _do_history_account
             or user_error('--to date before --from date');
         $set_date->('to', $end_date);
     }
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $html = html_new($doc->{content});
     my $e_submit = html_find($html, tag => 'button', id => 'Submit', context => 'history.submit');
     my $onclick = $e_submit->attr('onclick') // '';
     my $default_module = 'account_oper_list';
@@ -2087,7 +2093,7 @@ sub _do_history_account
     }
     $doc = download($form->click());
     PAGE: while (1) {
-        $html = HTML::TreeBuilder->new_from_content($doc->{content});
+        $html = html_new($doc->{content});
         _do_history_page(
             html => $html,
             name => $name,
@@ -2204,7 +2210,7 @@ sub _prepare_blocked
 {
     my ($login_info) = @_;
     my $doc = _prepare_history($login_info);
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $html = html_new($doc->{content});
     my $module = 'witholdings_list';
     my $url = "/csite/$module.aspx";
     $html->look_down(
@@ -2266,7 +2272,7 @@ sub _do_blocked_account
         document => $doc,
         number => $number,
     );
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $html = html_new($doc->{content});
     my ($nothing_blocked) = html_find($html, tag => 'div', id => 'witholdingsListHoldings_NoData');
     if ($nothing_blocked) {
         return $doc;
@@ -2433,7 +2439,7 @@ sub do_cards
         'Content' => '',
     );
     my $doc = download($request);
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $html = html_new($doc->{content});
     my @e_cards = html_find($html, class => 'card-properties');
     for my $e_card (@e_cards) {
         my $e_name = html_find($e_card, class => 'card-name', context => 'cards.name');
@@ -2479,7 +2485,7 @@ sub _do_funds
         'Content' => ['type' => $type]
     );
     my $doc = download($request);
-    my $html = HTML::TreeBuilder->new_from_content($doc->{content});
+    my $html = html_new($doc->{content});
     my @e_funds = html_find($html, class => 'investment-properties');
     for my $e_fund (@e_funds) {
         if (has_html_class($e_fund->parent, 'bestFunds')) {
