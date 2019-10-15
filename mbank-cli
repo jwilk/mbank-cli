@@ -57,6 +57,7 @@ use Term::ReadLine ();
 use Text::ParseWords ();
 use Time::Piece ();
 use Time::Seconds ();
+use re qw(is_regexp regexp_pattern);
 
 # JSON:
 BEGIN {
@@ -229,6 +230,19 @@ sub scraping_error
     Carp::cluck($message);
     say {*STDERR} $bugreport_request;
     exit(3);
+}
+
+sub quote
+{
+    my ($x) = @_;
+    if (is_regexp($x)) {
+        my ($pattern, $flags) = regexp_pattern($x);
+        $pattern =~ s{(\\.)|/}{ $1 // "\\/" }sge;
+        return "/$pattern/$flags";
+    } else {
+        state $json_encoder = JSON->new->ascii->allow_nonref;
+        return $json_encoder->encode($x);
+    }
 }
 
 =begin comment
