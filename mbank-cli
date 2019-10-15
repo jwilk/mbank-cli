@@ -43,6 +43,7 @@ END {
 }
 
 # core modules:
+use Carp ();
 use Encode ();
 use English qw(-no_match_vars);
 use File::Basename qw(dirname);
