@@ -1668,9 +1668,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     );
     $doc = download($request);
     $data = decode_json($doc->{content}, context => 'login.sca');
-    my $sca_auth_id = $data->{ScaAuthorizationId} // '';
-    $sca_auth_id =~ m{\A[\w+/=]+\z}
-        or scraping_error("login.sca.auth-id: $sca_auth_id");
+    my $sca_auth_id = match($data->{ScaAuthorizationId}, qr{[\w+/=]+}, context => 'login.sca.auth-id');
     my $trusted_add_allowed = $data->{TrustedDeviceAddingAllowed};
     defined($trusted_add_allowed)
         or scraping_error('login.sca.trusted-add');
@@ -1693,7 +1691,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         $data = decode_json($doc->{content}, context => 'login.2fa.next-dev');
         my $is_valid = $data->{isValid} // '';
         JSON::is_bool($is_valid) and $is_valid
-            or scraping_error("login.2fa.next-dev.invalid: $is_valid");
+            or no_match($is_valid, context => 'login.2fa.next-dev.invalid');
         while (1) {
             my $query = 'deviceName=' . uri_escape_utf8($device_to_add);
             $request = GET(
@@ -1706,7 +1704,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             $data = decode_json($doc->{content}, context => 'login.2fa.trusted-dev');
             $is_valid = $data->{isValid} // '';
             JSON::is_bool($is_valid)
-                or scraping_error("login.2fa.trusted-dev.invalid: $is_valid");
+                or no_match($is_valid, context => 'login.2fa.trusted-dev.invalid');
             if ($is_valid) {
                 last;
             } else {
@@ -1748,16 +1746,12 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     );
     $doc = download($request);
     $data = decode_json($doc->{content}, context => 'login.2fa.init');
-    my $error_code = $data->{ErrorCode} // '?';
-    $error_code eq ''
-        or scraping_error("login.2fa.init.error: $error_code");
-    my $auth_mode = $data->{AuthMode} // '';
+    my $error_code = match($data->{ErrorCode}, '', context => 'login.2fa.init.error');
+    my $auth_mode = match($data->{AuthMode}, qr/.+/, context => 'login.2fa.init.auth-mode');
     my $operation_date = $data->{OperationDate} // '';
     $operation_date = timestamp_to_date($operation_date)
         // scraping_error("login.2fa.init.operation-date: $operation_date");
-    my $operation_no = $data->{OperationNumber} // '';
-    $operation_no =~ m/\A\d+\z/
-        or scraping_error("login.2fa.init.operation-no: $operation_no");
+    my $operation_no = match($data->{OperationNumber}, qr/\d+/, context => 'login.2fa.init.operation-no');
     if ($auth_mode eq 'NAM') {
         say {*STDERR} "Waiting for confirmation of operation no $operation_no from $operation_date in the mobile app...";
         my $tran_id = $data->{TranId} // '';
@@ -1773,12 +1767,8 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             );
             $doc = download($request);
             $data = decode_json($doc->{content}, context => 'login.2fa.status');
-            $error_code = $data->{ErrorCode};
-            defined($error_code)
-                or scraping_error('login.2fa.status.error');
-            $error_code eq ''
-                or scraping_error("login.2fa.status.error: $error_code");
-            my $status = $data->{Status} // '';
+            $error_code = match($data->{ErrorCode}, '', context => 'login.2fa.status.error');
+            my $status = match($data->{Status}, qr/\w+/, context => 'login.2fa.status.status');
             debug("2FA mobile auth: $status");
             if ($status eq 'Prepared' or $status eq 'PreAuthorized') {
                 sleep(1)
@@ -1790,7 +1780,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             } elsif ($status eq 'TimeOut') {
                 user_error('login failed: mobile authentication request timed out');
             } else {
-                scraping_error("login.2fa.status.status: $status")
+                no_match($status, context => 'login.2fa.status.status');
             }
         }
         $request = POST(
@@ -1802,13 +1792,9 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         $data = decode_json($doc->{content}, context => 'login.2fa.exec');
         $error_code = $data->{error};
         if (defined($error_code)) {
-            scraping_error("login.2fa.exec.error: $error_code")
+            no_match($error_code, context => 'login.2fa.exec.error');
         } else {
-            $error_code = $data->{ErrorCode};
-            defined($error_code)
-                or scraping_error('login.2fa.exec.error');
-            $error_code eq ''
-                or scraping_error("login.2fa.exec.error: $error_code");
+            match($data->{ErrorCode}, '', context => 'login.2fa.exec.error');
         }
     } elsif ($auth_mode eq 'SMS') {
         for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
@@ -1828,19 +1814,15 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                     say {*STDERR} 'Incorrect SMS password';
                     next;
                 } else {
-                    scraping_error("login.2fa.exec.error: $error_code")
+                    no_match($error_code, context => 'login.2fa.exec.error');
                 }
             } else {
-                $error_code = $data->{ErrorCode};
-                defined($error_code)
-                    or scraping_error('login.2fa.exec.error');
-                $error_code eq ''
-                    or scraping_error("login.2fa.exec.error: $error_code");
+                match($data->{ErrorCode}, '', context => 'login.2fa.exec.error');
                 last;
             }
         }
     } else {
-        scraping_error("login.2fa.init.auth-mode: $auth_mode");
+        no_match($auth_mode, context => 'login.2fa.init.auth-mode');
     }
     if (defined($device_to_add)) {
         $request = POST(
