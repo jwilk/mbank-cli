@@ -2774,7 +2774,8 @@ sub _configure_country
     my $guessed_cc = guess_country() // '';
     my $cc = '';
     until (exists($country_to_language{$cc})) {  ## no critic (Until)
-        $cc = $term->readline('Country (CZ, or SK, or PL): ', uc($guessed_cc));
+        my $countries = join(', or ', map { uc } @known_countries);
+        $cc = $term->readline("Country ($countries): ", uc($guessed_cc));
         $cc = lc($cc // '');
     }
     return $cc;
