@@ -275,6 +275,12 @@ sub match
     return $text;
 }
 
+sub no_match
+{
+    my ($text, %options) = @_;
+    return match($text, qr/(*FAIL)/, %options);
+}
+
 =begin comment
 
 unpack_list(ARRAY_OF_REFS, ARRAY, context => CONTEXT)
