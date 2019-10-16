@@ -425,7 +425,7 @@ my %locale_aliases = (
     'slovak' => 'sk',
 );
 
-my @known_countries = keys(%country_to_language);
+my @known_countries = sort(keys(%country_to_language));
 
 sub guess_country
 {
