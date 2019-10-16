@@ -417,9 +417,11 @@ my %country_to_language = (
     sk => 'sk',  # Slovakia => Slovak
 );
 
+my %language_to_country = reverse(%country_to_language);
+
 my %locale_aliases = (
     'polish' => 'pl',
-    'czech' => 'cz',
+    'czech' => 'cs',
     'slovak' => 'sk',
 );
 
@@ -437,9 +439,9 @@ sub guess_country
     }
     for my $locale (@locales) {
         $locale = $locale_aliases{$locale} // ${locale};
-        (my $cc = $locale) =~ s/_.*//;
-        $cc =~ m/\A[a-z]{2}\Z/ or next;  ## no critic (EnumeratedClasses)
-        if (exists($country_to_language{$cc})) {
+        (my $lang = $locale) =~ s/_.*//;
+        my $cc = $language_to_country{$lang};
+        if (defined($cc)) {
             $cc{$cc} = 1;
         }
     }
