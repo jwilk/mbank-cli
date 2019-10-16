@@ -1513,7 +1513,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     my $auth_mode = $data->{AuthMode} // '';
     my $operation_date = $data->{OperationDate} // '';
     $operation_date = timestamp_to_date($operation_date)
-        or scraping_error("login.2fa.init.operation-date: $operation_date");
+        // scraping_error("login.2fa.init.operation-date: $operation_date");
     my $operation_no = $data->{OperationNumber} // '';
     $operation_no =~ m/\A\d+\z/
         or scraping_error("login.2fa.init.operation-no: $operation_no");
