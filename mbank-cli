@@ -429,7 +429,12 @@ sub guess_country
 {
     my %cc = ();
     my $locales = POSIX::setlocale(POSIX::LC_ALL);
-    my @locales = $locales =~ m/(?:^|;)LC_[A-Z_]+=([^;\s]+)/g;  ## no critic (EnumeratedClasses)
+    my @locales;
+    if ($locales =~ m/=/) {
+        @locales = $locales =~ m/(?:^|;)LC_[A-Z_]+=([^;\s]+)/g;  ## no critic (EnumeratedClasses)
+    } else {
+        @locales = ($locales);
+    }
     for my $locale (@locales) {
         $locale = $locale_aliases{$locale} // ${locale};
         (my $cc = $locale) =~ s/_.*//;
