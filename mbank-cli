@@ -393,8 +393,8 @@ sub _encoding_fallback
 {
     my ($u) = @_;
     return
-      $_encoding_fallback{$u}
-      // sprintf('<U+%04X>', $u);
+        $_encoding_fallback{$u}
+        // sprintf('<U+%04X>', $u);
 }
 
 sub bytes_to_unicode
@@ -1587,7 +1587,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                     say {*STDERR} 'Incorrect SMS password';
                     next;
                 } else {
-                   scraping_error("login.2fa.exec.error: $error_code")
+                    scraping_error("login.2fa.exec.error: $error_code")
                 }
             } else {
                 $error_code = $data->{ErrorCode};
