@@ -1279,12 +1279,10 @@ sub _extract_login_menu
     my $load_menu;
     $load_menu = sub {
         my ($item) = @_;
-        my $key = $item->{'UniqueIdentifier'} // '';
-        $key or scraping_error('login.menu.key');
+        my $key = match($item->{'UniqueIdentifier'}, qr/\S+/, context => 'login.menu.key');
         my $url = $item->{'FullUrl'};
         defined($url) or next;
-        $url =~ m{\A/\S+\z}
-            or scraping_error("login.menu.url: $url");
+        match($url, qr{/\S+}, context => 'login.menu.url');
         my $children = $item->{'Children'};
         ref $children eq 'ARRAY'
             or scraping_error('login.menu.children: not an array');
@@ -1340,7 +1338,7 @@ sub _extract_login_profiles
             } elsif ($key eq 'fProfiles') {
                 $key = 'business';
             } else {
-                scraping_error("login.profiles.key: $key");
+                no_match($key, context => 'login.profiles.key');
             }
             my @js_profiles = @{$value->{profiles}};
             for my $js_profile (@js_profiles) {
@@ -1779,7 +1777,7 @@ sub do_login
             $message = unicode_to_bytes($message);
             user_error("login failed: $message");
         }
-        my $redirect_url = $login_json->{redirectUrl} // '';
+        my $redirect_url = match($login_json->{redirectUrl}, qr/\S+/, context => 'login.redirect-url');
         if ("$root_url$redirect_url" eq $base_url) {
             # yay, no 2FA
             if (defined($register_device)) {
@@ -1788,7 +1786,7 @@ sub do_login
         } elsif ($redirect_url eq '/authorization') {
             _do_2fa($register_device);
         } else {
-            scraping_error("login.redirect-url: $redirect_url");
+            no_match($redirect_url, context => 'login.redirect-url');
         }
         $request = GET($base_url);
         $doc = download($request);
@@ -1800,9 +1798,7 @@ sub do_login
         name => '__AjaxRequestVerificationToken',
         context => 'login.csrf-token',
     );
-    my $csrf_token = $e_meta->attr('content') // '';
-    $csrf_token =~ m{\A[\w/+=]{20,}\z}
-        or scraping_error("login.csrf-token: $csrf_token");
+    my $csrf_token = match($e_meta->attr('content'), qr{[\w/+=]{20,}}, context => 'login.csrf-token');
     my %menu = _extract_login_menu($html);
     my %profiles = _extract_login_profiles($html);
     debug('logged in');
