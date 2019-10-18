@@ -28,6 +28,7 @@ script:
 - make -C doc/ check
 - private/run-perlcritic
 - ./mbank-cli --version
+- perl -pi -e 's/^\s*\Kskip[(](.*),\s+\d+[)]/die($1)/' t/api-guess-country.t  # all needed locales should be available in this env
 - prove --verbose
 
 # vim:ts=2 sts=2 sw=2 et
