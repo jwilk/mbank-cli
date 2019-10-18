@@ -15,7 +15,7 @@ before_install:
 - APT_INSTALL='sudo apt-get install --no-install-recommends'
 - grep -w xenial /etc/apt/sources.list || echo 'deb http://archive.ubuntu.com/ubuntu/ xenial main universe' | sudo tee -a /etc/apt/sources.list
 - sudo apt-get update
-- $APT_INSTALL -t xenial libnss-wrapper libsocket-wrapper
+- $APT_INSTALL -t xenial libnss-wrapper libsocket-wrapper localehelper
 install:
 - export PERL_CPANM_OPT='--no-interactive --no-man-pages --notest --skip-satisfied'
 - cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
@@ -29,6 +29,7 @@ script:
 - private/run-perlcritic
 - ./mbank-cli --version
 - perl -pi -e 's/^\s*\Kskip[(](.*),\s+\d+[)]/die($1)/' t/api-guess-country.t  # all needed locales should be available in this env
-- prove --verbose
+- localehelper='localehelper -x cs_CZ.UTF-8 -x pl_PL.UTF-8 -x sk_SK.UTF-8'
+- $localehelper prove --verbose
 
 # vim:ts=2 sts=2 sw=2 et
