@@ -981,7 +981,7 @@ sub parse_dmy_date
         $date = _parse_dmy_date($orig_date);
     }
     if (not defined($date)) {
-        my $qdate = encode_json($orig_date);
+        my $qdate = quote($orig_date);
         scraping_error("$context: $qdate is not a valid day-month-year date");
     }
     return $date;
