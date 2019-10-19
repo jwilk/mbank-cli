@@ -2455,22 +2455,17 @@ sub do_deposits
         or scraping_error('deposits.incomplete');
     my $deposits = $json->{deposits};
     for my $deposit (@{$deposits}) {
-        my $title = $deposit->{title}
-            // scraping_error('deposits.title');
+        my $title = match($deposit->{title}, qr/.+/, context => 'deposits.title');
         $title = unicode_to_bytes($title);
-        my $type = $deposit->{type}
-            // scraping_error('deposits.type');
+        my $type = match($deposit->{type}, qr/.+/, context => 'deposits.type');
         $type = unicode_to_bytes($type);
         my $end_date = $deposit->{endDate} // '';
         $end_date = timestamp_to_date($end_date, time_must_be => 0)
             // scraping_error("deposits.end-date: $end_date");
-        my $length = $deposit->{depositLength} // '';
-        $length =~ m/\A\d+\z/
-            or scraping_error("deposits.length: $length");
+        my $length = match($deposit->{depositLength}, qr/\d+/, context => 'deposits.length');
         my $start_date = shift_date($end_date, -$length)
             or internal_error("could not shift $end_date by -$length days");
-        my $duration = $deposit->{period}
-            // scraping_error('deposits.duration');
+        my $duration = match($deposit->{period}, qr/.+/, context => 'deposits.duration');
         $duration = unicode_to_bytes($duration);
         my $interest = $deposit->{interestRate} // '';
         $interest = format_number('%.2f', $interest)
