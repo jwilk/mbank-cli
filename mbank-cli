@@ -1426,7 +1426,7 @@ sub _extract_login_profiles
     return %profiles;
 }
 
-sub _get_tabid
+sub get_tabid
 {
     my $tabid;
     $ua->cookie_jar->scan(
@@ -1511,7 +1511,7 @@ sub _ask_for_sms_password
 sub _do_2fa  ## no critic (ExcessComplexity)
 {
     my ($device_to_add) = @_;
-    my $tabid = _get_tabid();
+    my $tabid = get_tabid();
     my @headers_xhr = (
         @header_xhr,
         'X-Tab-Id' => $tabid,
@@ -1852,7 +1852,7 @@ sub do_login
         $request = GET($base_url);
         $doc = download($request);
     }
-    my $tabid = _get_tabid();
+    my $tabid = get_tabid();
     my $html = html_new($doc->{content});
     my ($e_tech_break) = html_find($html,
         tag => 'header',
