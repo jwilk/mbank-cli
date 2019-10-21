@@ -2418,9 +2418,7 @@ sub do_future
     my $transfer_info = $json->{transferInfos}
         // scraping_error('future.transfer');
     for my $transfer (@{$transfer_info}) {
-        my $number = $transfer->{accountNumber} // '';
-        $number =~ m/\A$account_number_re\z/
-            or scraping_error("future.transfer.account-number: $number");
+        my $number = match($transfer->{accountNumber}, $account_number_re, context => 'future.transfer.account-number');
         my $name = $selected_accounts{$number};
         defined($name) or next;
         if ($display_name) {
@@ -2429,25 +2427,17 @@ sub do_future
         my $timestamp = $transfer->{date} // '';
         my $date = timestamp_to_date($timestamp, time_must_be => 0)
             // scraping_error("future.transfer.date: $timestamp");
-        my $recipient = $transfer->{benef}
-            // scraping_error('future.transfer.recipient');
+        my $recipient = match($transfer->{benef}, qr/.+/, context => 'future.transfer.recipient');
         for my $key (qw(benefAddress benefCity)) {
             my $recipient_loc = $transfer->{$key} // '';
             if (length($recipient_loc) > 0) {
                 $recipient .= "; $recipient_loc";
             }
         }
-        my $description = $transfer->{description}
-            // scraping_error('future.transfer.description');
+        my $description = match($transfer->{description}, qr/.+/, context => 'future.transfer.description');
         $description = unicode_to_bytes($description);
-        my $amount = $transfer->{amount}
-            // scraping_error('future.transfer.amount');
-        my $currency = $transfer->{currency}
-            // scraping_error('future.transfer.currency');
-        $amount = format_amount($amount, fp => 1, currency => $currency)
-            // scraping_error("future.transfer.amount: $amount $currency");
-        my $status = $transfer->{transferType}
-            // scraping_error('future.transfer.type');
+        my $amount = format_money($transfer->{amount}, $transfer->{currency}, context => 'future.transfer.amount');
+        my $status = match($transfer->{transferType}, qr/\w+/, context => 'future.transfer.type');
         print("$date\t$recipient\t$description\t$amount\t$status\n");
     }
     return;
