@@ -283,6 +283,31 @@ sub no_match
 
 =begin comment
 
+check_type(LIST, [], context => CONTEXT) => LIST
+check_type(HASH, {}, context => CONTEXT) => HASH
+
+=cut
+
+sub check_type
+{
+    my ($obj, $type, %options) = @_;
+    kwargs(\%options,
+        context => \my $context,
+    );
+    $type = ref($type);
+    my %atypes = (
+        HASH => 'an object',
+        ARRAY => 'an array',
+    );
+    my $atype = $atypes{$type}
+        // internal_error('check_type(): unknown type', 1);
+    ref($obj) eq $type
+        or scraping_error("$context: not $atype");
+    return $obj;
+}
+
+=begin comment
+
 unpack_list(ARRAY_OF_REFS, ARRAY, context => CONTEXT)
 
 =cut
