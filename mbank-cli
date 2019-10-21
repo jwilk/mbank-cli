@@ -1208,21 +1208,12 @@ sub decode_json
         context => \my $context,
         type => [\my $type, {}],
     );
-    $type = ref $type;
-    my %atypes = (
-        HASH => 'an object',
-        ARRAY => 'an array',
-    );
-    my $atype = $atypes{$type}
-        // internal_error('decode_json(): unknown type', 1);
     my $obj = eval {
         JSON::decode_json($json);
     } // do {
         scraping_error("$context: $EVAL_ERROR");
     };
-    ref($obj) eq $type
-        or scraping_error("$context: not $atype");
-    return $obj;
+    return check_type($obj, $type, context => $context);
 }
 
 sub json_content
