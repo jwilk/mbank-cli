@@ -922,6 +922,25 @@ sub format_amount
     return sprintf('%10s %s', $amount, $currency);
 }
 
+sub format_money
+{
+    my ($number, $currency, %options) = @_;
+    kwargs(\%options,
+        context => \my $context
+    );
+    match($number, qr/-?\d+(?:[.,]\d+)?/, context => "$context.number");
+    $number =~ tr/,/./;
+    match($currency, qr/[A-Z]{3}/, context => "$context.currency");  ## no critic (EnumeratedClasses)
+    my $s = eval {
+        sprintf('%10.2f %s', $number, $currency);
+    } // do {
+        my $qnumber = quote($number);
+        my $qcurrency = quote($currency);
+        scraping_error("$context: $qnumber, $qcurrency");
+    };
+    return $s;
+}
+
 sub format_number
 {
     my ($format, $n) = @_;
