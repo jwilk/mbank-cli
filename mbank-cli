@@ -1887,30 +1887,20 @@ sub do_list
     my @accounts = @{$json->{accountDetailsList}};
     my @result;
     for my $account (@accounts) {
-        my $name = $account->{ProductName}
-            // scraping_error('list.product-name');
+        my $name = match($account->{ProductName}, qr/.+/, context => 'list.product-name');
         my $subtitle = $account->{SubTitle} // '';
         if ($subtitle ne '') {
             $name .= " - $subtitle";
         }
-        my $number = $account->{AccountNumber} // '';
-        $number =~ m/\A$account_number_re\z/
-            or scraping_error("list.account-number: $number");
+        my $number = match($account->{AccountNumber}, $account_number_re, context => 'list.account-number');
         push(@result, {
             name => $name,
             number => $number,
         });
         next if $quiet;
-        my $balance = $account->{Balance}
-            // scraping_error('list.balance');
-        my $available = $account->{AvailableBalance}
-            // scraping_error('list.available');
-        my $currency = $account->{Currency}
-            // scraping_error('list.currency');
-        $balance = format_amount($balance, currency => $currency)
-            // scraping_error("list.balance: $balance $currency");
-        $available = format_amount($available, currency => $currency)
-            // scraping_error("list.available: $available $currency");
+        my $currency = $account->{Currency};
+        my $balance = format_money($account->{Balance}, $currency, context => 'list.balance');
+        my $available = format_money($account->{AvailableBalance}, $currency, context => 'list.available');
         $name = unicode_to_bytes($name);
         print("$name\t$number\t$balance\t$available\n");
     }
