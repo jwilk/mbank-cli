@@ -1027,6 +1027,17 @@ sub timestamp_to_date
     return $date;
 }
 
+sub match_ymd_date
+{
+    my ($timestamp, %options) = @_;
+    kwargs(\%options,
+        context => \my $context,
+        time_must_be => [\my $time_must_be, undef],
+    );
+    return timestamp_to_date($timestamp, time_must_be => $time_must_be)
+        // no_match($timestamp, context => $context);
+}
+
 =begin comment
 
 parse_dmy_date(MONTH_DAY_YEAR_DATE, context => CONTEXT)
