@@ -247,7 +247,7 @@ in the following format:
 
 =over 4
 
-I<[account-name]> I<date> I<recipient> I<description> I<amount> I<status>
+I<[account-name]> I<date> I<recipient> I<description> I<amount> I<type>
 
 =back
 

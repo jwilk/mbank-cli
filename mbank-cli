@@ -2427,8 +2427,8 @@ sub do_future
         my $description = match($transfer->{description}, qr/.+/, context => 'future.transfer.description');
         $description = unicode_to_bytes($description);
         my $amount = format_money($transfer->{amount}, $transfer->{currency}, context => 'future.transfer.amount');
-        my $status = match($transfer->{transferType}, qr/\w+/, context => 'future.transfer.type');
-        print("$date\t$recipient\t$description\t$amount\t$status\n");
+        my $type = match($transfer->{transferType}, qr/\w+/, context => 'future.transfer.type');
+        print("$date\t$recipient\t$description\t$amount\t$type\n");
     }
     return;
 }
