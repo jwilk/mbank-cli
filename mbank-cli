@@ -1889,6 +1889,7 @@ sub do_login
             'X-Request-Verification-Token' => $csrf_token,
             @header_xhr,
         ],
+        csrf_token => $csrf_token,
         menu => \%menu,
         profiles => \%profiles,
         url => $doc->{url},
