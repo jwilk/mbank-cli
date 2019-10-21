@@ -1086,6 +1086,16 @@ sub _parse_dmy_date
 sub shift_date
 {
     my ($date, $offset) = @_;
+    my $new_date = _shift_date($date, $offset);
+    if (not defined($new_date)) {
+        internal_error("shift_date(): could not shift $date by $offset days");
+    }
+    return $new_date;
+}
+
+sub _shift_date
+{
+    my ($date, $offset) = @_;
     my $tp;
     eval {
         $tp = Time::Piece->strptime($date, '%Y-%m-%d');
@@ -2478,8 +2488,7 @@ sub do_deposits
         $end_date = timestamp_to_date($end_date, time_must_be => 0)
             // scraping_error("deposits.end-date: $end_date");
         my $length = match($deposit->{depositLength}, qr/\d+/, context => 'deposits.length');
-        my $start_date = shift_date($end_date, -$length)
-            or internal_error("could not shift $end_date by -$length days");
+        my $start_date = shift_date($end_date, -$length);
         my $duration = match($deposit->{period}, qr/.+/, context => 'deposits.duration');
         $duration = unicode_to_bytes($duration);
         my $interest = $deposit->{interestRate} // '';
