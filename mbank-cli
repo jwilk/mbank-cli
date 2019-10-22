@@ -57,6 +57,7 @@ use Symbol ();
 use Term::ReadLine ();
 use Text::ParseWords ();
 use Time::HiRes ();
+use Time::Local ();
 use Time::Piece ();
 use Time::Seconds ();
 use re qw(is_regexp regexp_pattern);
@@ -1105,6 +1106,34 @@ sub _shift_date
     $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
         or return;
     return $date;
+}
+
+=for comment
+
+local_midnight_to_utc(DATE) -> UTC_TIMESTAMP
+
+    >>> local_midnight_to_utc('2006-07-30')
+    2006-07-29T22:00:00.000Z
+
+    >>> local_midnight_to_utc('2009-12-08')
+    2009-12-07T23:00:00.000Z
+
+=cut
+
+sub local_midnight_to_utc
+{
+    my ($date) = @_;
+    local $ENV{TZ} = ':Europe/Warsaw';
+    my $tp = Time::Piece->strptime($date, '%Y-%m-%d');
+    my $localtime = Time::Local::timelocal(0, 0, 0, $tp->mday, $tp->_mon, $tp->year);
+    $tp = Time::Piece->gmtime($localtime);
+    my $datetime = $tp->datetime;
+    if ($datetime =~ /T[0:]+\z/) {
+        # Polish time zone offset is never 0,
+        # so something must have gone awry.
+        internal_error("local_midnight_to_utc(): cloud not set TZ=$ENV{TZ}");
+    }
+    return "$datetime.000Z";
 }
 
 =begin comment
