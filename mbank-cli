@@ -2448,6 +2448,72 @@ sub _do_blocked_account
     return $doc;
 }
 
+sub do_blocked2019
+{
+    my %options = @_;
+    kwargs(\%options,
+        login => \my $login_info,
+        accounts => \my $account_info,
+        selection => \my $selection,
+        display_name => \my $display_name,
+    );
+    my %selected_accounts = select_accounts($account_info, @{$selection})
+        or user_error('blocked2019: no matching accounts');
+    $display_name ||=
+        (scalar(keys(%selected_accounts)) > 1);
+    my @headers = (
+        @header_xhr,
+        Referer => "$root_url/history/locks",
+        'X-Tab-Id' => get_tabid(),
+        'Accept' => '*/*',
+    );
+    my $request = GET(
+        "$base_url/Pfm/HistoryApi/GetLocksFilters",
+        @headers,
+    );
+    my $doc = download($request);
+    my $json = decode_json($doc->{content}, context => 'blocked2019.filters');
+    my $products = check_type($json->{products}, [], context => 'blocked2019.products');
+    my %products = ();
+    for my $product (@{$products}) {
+        my $contract_no = match($product->{contractNumber}, qr/[\w-]+/, context => 'blocked2019.product.contract-no');
+        my $alias = match($product->{contractAlias}, qr{[\w/+=]+}, context => 'blocked2019.product.alias');
+        my $currency = match($product->{contractCurrency}, qr/[A-Z]{3}/, context => 'blocked2019.product.currency');  ## no critic (EnumeratedClasses)
+        $products{$contract_no} = {
+            alias => $alias,
+            currency => $currency,
+        }
+    }
+    for my $number (sort keys %selected_accounts) {
+        $number =~ tr/ //d;
+        my $product = $products{$number};
+        if (not defined($product)) {
+            no_match($number, context => 'blocked2019.product.for');
+        }
+        my $currency = $product->{currency};
+        my $qalias = uri_escape_utf8($product->{alias});
+        my $query = "accountNumber=$qalias&accountCurrency=$currency";
+        $request = GET(
+            "$base_url/Pfm/HistoryApi/GetLocksOperations?$query",
+            @headers,
+        );
+        $doc = download($request);
+        my $ops = decode_json($doc->{content}, context => 'blocked2019.ops');
+        my $blocked_ops = check_type($ops->{transactionsBlocked}, [], context => 'blocked2019.ops.blocked');
+        for my $op (@{$blocked_ops}) {
+            my $date1 = match_ymd_date($op->{registerDate}, context => 'blocked2019.op.date1');
+            my $date2 = match_ymd_date($op->{endDate}, context => 'blocked2019.op.date2');
+            my $amount = format_money($op->{amount}, $op->{currency}, context => 'blocked2019.op.amount');
+            my $description = match($op->{description}, qr/.+/, context => 'blocked2019.op.description');
+            my $type = match($op->{lockType}, qr/.+/, context => 'blocked2019.op.type');
+            # FIXME? There's both "type" and "lockType".
+            # What's the difference? Should we show both?
+            say("$date1\t$date2\t$amount\t$description\t$type");
+        }
+    }
+    return;
+}
+
 sub do_future
 {
     my %options = @_;
@@ -3287,6 +3353,7 @@ sub main
         'history' => { accounts => 1, dates => 1, ids => 1, export => 1 },
         'future' => { accounts => 1 },
         'blocked' => { accounts => 1 },
+        'blocked2019' => { accounts => 1 },
         'deposits' => {},
         'cards' => {},
         'funds' => {},
