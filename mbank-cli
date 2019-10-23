@@ -108,6 +108,7 @@ use Encode::Locale ();
 use HTML::Form ();
 use HTML::TreeBuilder 5 ();
 use HTTP::Cookies ();
+use HTTP::Date ();
 use HTTP::Message 5.802 ();
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL 1.81 ();
@@ -1106,6 +1107,22 @@ sub _shift_date
     $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
         or return;
     return $date;
+}
+
+=begin comment
+
+parse_http_date(HTTP_DATE_HEADER, context => CONTEXT) -> Time::Piece object
+
+=cut
+
+sub parse_http_date
+{
+    my ($s, %options) = @_;
+    kwargs(\%options, context => \my $context);
+    match($s, qr/.+/, context => $context);
+    my $uts = HTTP::Date::str2time($s)
+        // no_match($s, context => $context);
+    return Time::Piece->gmtime($uts)
 }
 
 =for comment
