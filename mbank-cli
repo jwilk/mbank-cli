@@ -1056,7 +1056,7 @@ sub parse_dmy_date
     my ($orig_date, %options) = @_;
     kwargs(\%options, context => \my $context);
     my $date;
-    if (ref($date) eq '') {
+    if (ref($orig_date) eq '') {
         $date = _parse_dmy_date($orig_date);
     }
     if (not defined($date)) {
