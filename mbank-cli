@@ -1110,6 +1110,28 @@ sub _shift_date
 
 =for comment
 
+local_date(TIME_PIECE_OBJECT) -> DATE
+
+=cut
+
+sub local_date
+{
+    my ($tp) = @_;
+    ref($tp) eq 'Time::Piece'
+        or internal_error('local_date(): invalid argument');
+    my $uts = $tp->epoch;
+    local $ENV{TZ} = ':Europe/Warsaw';
+    $tp = Time::Piece->localtime($uts);
+    if ($tp->tzoffset == 0) {
+        # Polish time zone offset is never 0,
+        # so something must have gone awry.
+        internal_error("local_midnight_to_utc(): cloud not set TZ=$ENV{TZ}");
+    }
+    return $tp->ymd;
+}
+
+=for comment
+
 local_midnight_to_utc(DATE) -> UTC_TIMESTAMP
 
     >>> local_midnight_to_utc('2006-07-30')
