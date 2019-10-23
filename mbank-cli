@@ -2582,6 +2582,265 @@ sub do_blocked2019
     return;
 }
 
+sub do_history2019
+{
+    my %options = @_;
+    kwargs(\%options,
+        login => \my $login_info,
+        accounts => \my $account_info,
+        selection => \my $selection,
+        display_name => \my $display_name,
+        display_id => \my $display_id,
+        start_date => [\my $start_date, undef],
+        end_date => [\my $end_date, undef],
+        export => [\my $export, undef],
+    );
+    my %selected_accounts = select_accounts($account_info, @{$selection})
+        or user_error('history2019: no matching accounts');
+    $display_name ||=
+        (scalar(keys(%selected_accounts)) > 1);
+    my @headers = (
+        @header_xhr,
+        'X-Tab-Id' => get_tabid(),
+        'Referer' => "$root_url/history",  # must be last!
+    );
+    my @export_headers = @headers;
+    $export_headers[-1] .= '/operationsSummary';
+    my $request = GET(
+        "$base_url/Pfm/HistoryApi/GetHistoryModeInfo?shouldOverWriteFilters=true",
+        @headers,
+        'Accept' => '*/*',
+    );
+    my $doc = download($request);
+    my $mode_info = decode_json($doc->{content}, context => 'history2019.mode-info');
+    my $min_date = match_ymd_date($mode_info->{pfmStartDate}, time_must_be => 0, context => 'history2019.min-date');
+    debug("min-date: $min_date");
+    my $server_datetime = $doc->{response}->headers->header('Date');
+    $server_datetime = parse_http_date($server_datetime, context => 'history2019.max-date');
+    my $max_date = local_date($server_datetime);
+    debug("max-date: $max_date");
+    my $paging = 1;
+    if (not defined($start_date) and not defined($end_date)) {
+        $paging = 0;
+        $end_date = $max_date;
+        if (defined($export)) {
+            $start_date = shift_date($max_date, -30);
+        } else {
+            $start_date = $min_date;
+        }
+    }
+    if (($start_date // '') lt $min_date) {
+        $start_date = $min_date;
+    }
+    if (($end_date // 'z') gt $max_date) {
+        $end_date = $max_date;
+    }
+    defined($start_date) and defined($end_date)
+        or internal_error('missing date definitions');
+    debug("start-date = $start_date");
+    debug("end-date = $end_date");
+    if (defined($export)) {
+        my @accounts = keys(%selected_accounts);
+        if (@accounts != 1) {
+            user_error('history2019: exactly one account required for --export');
+        }
+        my ($account_no) = @accounts;
+        return _do_history2019_export(
+            login => $login_info,
+            headers => [@export_headers],
+            account_no => $account_no,
+            start_date => $start_date,
+            end_date => $end_date,
+            export => $export,
+        )
+    }
+    $request = GET(
+        "$base_url/Pfm/HistoryApi/GetPfmInitialData?shouldOverWriteFilters=true",
+        @headers,
+        'Accept' => '*/*',
+    );
+    $doc = download($request);
+    my $pfm_data = decode_json($doc->{content}, context => 'history2019.pfm-data');
+    my $products = check_type($pfm_data->{pfmProducts}, [], context => 'history2019.products');
+    my %products;
+    for my $product (@{$products}) {
+        my $contract_no = match($product->{contractNumber}, qr/[\w-]+/, context => 'history2019.product.contract-no');
+        my $alias = match($product->{id}, qr{\d+}, context => 'history2019.product.id');
+        $products{$contract_no} = $alias;
+    }
+    for my $account_no (sort(keys(%selected_accounts))) {
+        my $account_name = $selected_accounts{$account_no};
+        $account_no =~ tr/ //d;
+        my $product_id = $products{$account_no};
+        if (not defined($product_id)) {
+            no_match($account_no, context => 'history2019.product.for');
+        }
+        _do_history2019_account(
+            headers => [@headers],
+            account_name => $account_name,
+            product_id => $product_id,
+            start_date => $start_date,
+            end_date => $end_date,
+            paging => $paging,
+            display_name => $display_name,
+            display_id => $display_id,
+        )
+    }
+    return;
+}
+
+sub _do_history2019_account
+{
+    my %options = @_;
+    kwargs(\%options,
+        headers => \my $headers,
+        product_id => \my $product_id,
+        account_name => \my $account_name,
+        start_date => \my $start_date,
+        end_date => \my $end_date,
+        paging => \my $paging,
+        display_name => \my $display_name,
+        display_id => \my $display_id,
+    );
+    $account_name = unicode_to_bytes($account_name);
+    my @headers = @{$headers};
+    my @params = (
+        productIds => $product_id,
+        amountFrom => 'null',
+        amountTo => 'null',
+        useAbsoluteSearch => 'false',
+        currency => '',
+        categories => '',
+        operationTypes => '',
+        searchText => '',
+        dateFrom => local_midnight_to_utc($start_date),
+        dateTo => local_midnight_to_utc($end_date),
+        standingOrderId => '',
+        showDebitTransactionTypes => 'false',
+        showCreditTransactionTypes => 'false',
+        showIrrelevantTransactions => 'true',
+        showSavingsAndInvestments => 'true',
+        saveShowIrrelevantTransactions => 'false',
+        saveShowSavingsAndInvestments => 'false',
+        selectedSuggestionId => '',
+        selectedSuggestionType => '',
+        showUncategorizedTransactions => 'false',
+        debitCardNumber => '',
+        counterpartyAccountNumbers => '',
+        sortingOrder => 'ByDate',
+    );
+    my $query = '';
+    while (my ($k, $v) = splice(@params, 0, 2)) {
+        $query .= "&$k=" . uri_escape_utf8($v);
+    }
+    $query =~ s/\A&//;
+    my $url = "$base_url/Pfm/HistoryApi/GetOperationsPfm?$query";
+    PAGE: while(1) {
+        my $request = GET(
+            $url,
+            @headers,
+            'Accept' => '*/*',
+        );
+        my $doc = download($request);
+        my $ops = decode_json($doc->{content}, context => 'history2019.ops');
+        exists($ops->{nextPageUrl})
+            or scraping_error('history2019.ops.next-page');
+        my $next_page_url = $ops->{nextPageUrl};
+        $ops = check_type($ops->{transactions}, [], context => 'history2019.ops.list');
+        for my $op (@{$ops}) {
+            my $id = match($op->{operationNumber}, qr/\d+/, context => 'history2019.op.id');
+            my $type = match($op->{operationType}, qr/\S+/, context => 'history2019.op.type');
+            if ($type eq 'NotBookedCardPayment') {
+                # Apparently pending card payment identifiers belong in a
+                # different namespace than other operation identifiers.
+                # They are unlikely to be useful, so hide them.
+                $id = '';
+            }
+            my $date = match_ymd_date($op->{transactionDate}, time_must_be => 0, context => 'history2019.op.date');
+            my $currency = $op->{currency};
+            my $amount = format_money($op->{amount}, $currency, context => 'history2019.op.amount');
+            my $balance = $op->{balance};
+            if (defined($balance)) {
+                $balance = format_money($balance, $currency, context => 'history2019.op.balance');
+            } else {
+                $balance = '';
+            }
+            my $description = match($op->{description}, qr/.+/, context => 'history2019.op.description');
+            $description = unicode_to_bytes($description);
+            my $line = '';
+            if ($display_name) {
+                $line .= "$account_name\t";
+            }
+            if ($display_id) {
+                $line .= "$id\t";
+            }
+            $line .= "$type\t$date\t$amount\t$balance\t$description";
+            say $line;
+        }
+        defined($next_page_url)
+            or return;
+        match($next_page_url, qr{Pfm/HistoryApi/GetOperationsPfm[?]\S+}, context => 'history2019.ops.next-page');
+        if ($paging) {
+            $url = "$base_url/$next_page_url";
+            next PAGE;
+        } else {
+            return;
+        }
+    }
+    return;
+}
+
+sub _do_history2019_export
+{
+    my %options = @_;
+    kwargs(\%options,
+        login => \my $login_info,
+        headers => \my $headers,
+        account_no => \my $account_no,
+        start_date => \my $start_date,
+        end_date => \my $end_date,
+        export => \my $export,
+    );
+    my @headers = @{$headers};
+    my $request = GET(
+        "$base_url/Pfm/HistoryApi/GetHostInitialData",
+        @headers,
+        'Accept' => '*/*',
+    );
+    my $doc = download($request);
+    my $host_data = decode_json($doc->{content}, context => 'history2019.host-data');
+    my $products = check_type($host_data->{hostProducts}, [], context => 'history2019.products');
+    my %products;
+    for my $product (@{$products}) {
+        my $contract_no = match($product->{contractNumber}, qr/[\w-]+/, context => 'history2019.product.contract-no');
+        my $alias = match($product->{contractAlias}, qr{[\w/+=]+}, context => 'history2019.product.alias');
+        $products{$contract_no} = $alias;
+    }
+    $account_no =~ tr/ //d;
+    my $product = $products{$account_no};
+    if (not defined($product)) {
+        no_match($account_no, context => 'history2019.product.for');
+    }
+    $request = POST(
+        "$base_url/Pfm/HistoryApi/GetHostTransactionsSummary",
+        @headers,
+        'X-Request-Verification-Token' => $login_info->{csrf_token},
+        'Accept' => 'application/json, text/plain, */*',
+        json_content({
+            accountNumber => $product,
+            dateFrom => local_midnight_to_utc($start_date),
+            dateTo => local_midnight_to_utc($end_date),
+            saveFileType => $export,
+            operationType => 'ALL000000',
+        })
+    );
+    my $response = simple_download($request);
+    # FIXME: The whole file is loaded into memory.
+    # Instead, we should read and write it in chunks.
+    print {*STDOUT} $response->content;
+    return;
+}
+
 sub do_future
 {
     my %options = @_;
@@ -3419,6 +3678,7 @@ sub main
         'debug-sms-password' => { args => 1 },
         'list' => {},
         'history' => { accounts => 1, dates => 1, ids => 1, export => 1 },
+        'history2019' => { accounts => 1, dates => 1, ids => 1, export => 1 },
         'future' => { accounts => 1 },
         'blocked' => { accounts => 1 },
         'blocked2019' => { accounts => 1 },
