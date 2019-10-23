@@ -1028,9 +1028,8 @@ sub timestamp_to_date
     $time =~ $time_re
         or return;
     my $pdate;
-    my $ymd = '%Y-%m-%d';
     eval {
-        $pdate = Time::Piece->strptime($date, $ymd)->strftime($ymd);
+        $pdate = Time::Piece->strptime($date, '%Y-%m-%d')->ymd;
     } or return;
     $date eq $pdate
         or return;
@@ -1074,9 +1073,8 @@ sub _parse_dmy_date
         or return;
     $date = "$y-$m-$d";
     my $pdate;
-    my $ymd = '%Y-%m-%d';
     eval {
-        $pdate = Time::Piece->strptime($date, $ymd)->strftime($ymd);
+        $pdate = Time::Piece->strptime($date, '%Y-%m-%d')->ymd;
     } or return;
     $date eq $pdate
         or return;
