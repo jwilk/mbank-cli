@@ -3194,7 +3194,7 @@ sub parse_args
 {
     local $SIG{__WARN__} = sub {
         my ($message) = @_;
-        $message =~ s/\A([[:upper:]])/lc($1)/e;
+        $message = lcfirst($message);
         $message =~ s/\n+\z//;
         user_error($message);
     };
