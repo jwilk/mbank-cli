@@ -3012,7 +3012,8 @@ sub expand_tilde
 sub unexpand_tilde
 {
     my ($path) = @_;
-    $path =~ s{\A\Q$ENV{HOME}\E/}{~/};
+    my ($HOME) = <~>;
+    $path =~ s{\A\Q$HOME\E/}{~/};
     return $path;
 }
 
@@ -3024,7 +3025,8 @@ sub _xdg_home
         # “All paths […] must be absolute.
         # If an implementation encounters a relative path […]
         # it should consider the path invalid and ignore it.
-        $home = "$ENV{HOME}/$default";
+        my ($HOME) = <~>;
+        $home = "$HOME/$default";
     }
     $home =~ s{[^/]\K/+\z}{};  # strip trailing slashes
     return $home;
