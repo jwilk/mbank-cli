@@ -25,7 +25,7 @@ Requirements
 
   - JSON or JSON::PP (the latter is a core module since Perl 5.14)
 
-  - LWP::UserAgent (≥ 5.802)
+  - LWP::UserAgent (≥ 6)
 
   - LWP::Protocol::https
 

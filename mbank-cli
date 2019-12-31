@@ -101,6 +101,7 @@ BEGIN {
 }
 
 # 3rd-party modules:
+use Encode::Locale ();
 use HTML::Form ();
 use HTML::TreeBuilder 5 ();
 use HTTP::Cookies ();
@@ -108,7 +109,7 @@ use HTTP::Message 5.802 ();
 use HTTP::Request::Common qw(GET POST);
 use URI::Escape qw(uri_escape_utf8);
 use IO::Socket::SSL 1.81 ();
-use LWP::UserAgent ();
+use LWP::UserAgent 6 ();
 use LWP::Protocol::https ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay ();
@@ -440,18 +441,6 @@ sub kwargs
 # internationalization
 # ====================
 
-my $_locale_encoding;
-eval {
-    require Encode::Locale;
-    $_locale_encoding = 'locale';
-} or do {
-    # Encode::Locale is a dependency of LWP (>= 6.0),
-    # but it might be unavailable on older systems.
-    require I18N::Langinfo;
-    I18N::Langinfo->import(qw(langinfo CODESET));
-    $_locale_encoding = langinfo(CODESET());
-};
-
 my %_encoding_fallback = (
     0x104 => 'A', 0x105 => 'a', # letter A with ogonek
     0x0C1 => 'A', 0x0E1 => 'a', # letter A with acute
@@ -494,14 +483,14 @@ sub _encoding_fallback
 sub bytes_to_unicode
 {
     my ($u, $encoding) = @_;
-    $encoding //= $_locale_encoding;
+    $encoding //= 'locale';
     return Encode::decode($encoding, $u);
 }
 
 sub unicode_to_bytes
 {
     my ($s, $encoding) = @_;
-    $encoding //= $_locale_encoding;
+    $encoding //= 'locale';
     return Encode::encode($encoding, $s, \&_encoding_fallback);
 }
 
@@ -605,10 +594,6 @@ sub http_init
             ip_in_cn => 0,
         },
     );
-    # The most straight-forward way to set SSL options is to use
-    # LWP::UserAgent::ssl_opts. But this is only supported by LWP (>= 6.0).
-    # Use IO::Socket::SSL::set_defaults() instead.
-    IO::Socket::SSL::set_defaults(@ssl_options);
     my @cookie_jar_options = (
         ignore_discard => 1,
         hide_cookie2 => 1,
@@ -632,15 +617,14 @@ sub http_init
     if ($IO::Socket::SSL::VERSION >= 1.969) {
         # LWP::protocol::https (>= 6.0) stomps on SSL_verifycn_scheme, and
         # possibly also other settings: https://bugs.debian.org/747225
+        IO::Socket::SSL::set_defaults(@ssl_options);
         IO::Socket::SSL::set_args_filter_hack('use_defaults');
         # TODO: Work around the bug also for earlier versions of
         # IO::Socket::SSL, which don't support set_args_filter_hack().
     }
-    if ($LWP::UserAgent::VERSION >= 6) {
-        $ua->ssl_opts(
-            @ssl_options,
-        )
-    };
+    $ua->ssl_opts(
+        @ssl_options,
+    );
     $ua->default_header(
         'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Encoding' => 'gzip, deflate',
