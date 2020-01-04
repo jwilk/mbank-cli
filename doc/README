@@ -31,7 +31,7 @@ Requirements
 
   - Net::HTTPS
 
-  - Net::SSLeay
+  - Net::SSLeay (≥ 1.43)
 
   - Term::ReadLine::Gnu (optional: for account password prompt)
 

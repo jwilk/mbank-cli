@@ -112,7 +112,7 @@ use IO::Socket::SSL 1.81 ();
 use LWP::UserAgent 6 ();
 use LWP::Protocol::https ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
-use Net::SSLeay ();
+use Net::SSLeay 1.43 ();
 
 BEGIN { $::loading_modules = 0; }  ## no critic (PackageVars)
 
@@ -728,8 +728,6 @@ sub simple_download
 
 sub _get_openssl_version
 {
-    $Net::SSLeay::VERSION >= 1.43
-        or return;
     my $version_info = Net::SSLeay::SSLeay_version();
     my ($version) = $version_info =~ m/\AOpenSSL (\S+)/
         or return;
@@ -740,8 +738,6 @@ my $openssl_version = _get_openssl_version();
 
 sub _get_openssl_dir
 {
-    $Net::SSLeay::VERSION >= 1.43
-        or return;
     defined($openssl_version)
         or return;
     my $SSLEAY_DIR;
