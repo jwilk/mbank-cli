@@ -107,7 +107,7 @@ use HTTP::Cookies ();
 use HTTP::Message 5.802 ();
 use HTTP::Request::Common qw(GET POST);
 use URI::Escape qw(uri_escape_utf8);
-use IO::Socket::SSL 1.31 ();
+use IO::Socket::SSL 1.81 ();
 use LWP::UserAgent ();
 use LWP::Protocol::https ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
@@ -588,13 +588,8 @@ sub http_init
         # https://bugs.debian.org/788698
         delete $ENV{$key};
     }
-    my $ssl_version;
-    if ($IO::Socket::SSL::VERSION >= 1.70) {
-        # TLS v1.0 or later
-        $ssl_version = 'SSLv23:!SSLv2:!SSLv3';
-    }
     my @ssl_options = (
-        SSL_version => $ssl_version,
+        SSL_version => 'SSLv23:!SSLv2:!SSLv3',
         SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
         SSL_ca_file => $ca_path,
         SSL_ca_path => undef,
@@ -612,10 +607,8 @@ sub http_init
     );
     # The most straight-forward way to set SSL options is to use
     # LWP::UserAgent::ssl_opts. But this is only supported by LWP (>= 6.0).
-    # Use IO::Socket::SSL::set_ctx_defaults() instead.
-    # [set_ctx_defaults() is a deprecated alias for set_defaults().
-    # The latter function is not available in IO::Socket::SSL (<< 1.81).]
-    IO::Socket::SSL::set_ctx_defaults(@ssl_options);
+    # Use IO::Socket::SSL::set_defaults() instead.
+    IO::Socket::SSL::set_defaults(@ssl_options);
     my @cookie_jar_options = (
         ignore_discard => 1,
         hide_cookie2 => 1,

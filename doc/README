@@ -18,7 +18,7 @@ Requirements
 
   - HTML::TreeBuilder (≥ 5)
 
-  - IO::Socket::SSL (≥ 1.31)
+  - IO::Socket::SSL (≥ 1.81)
 
   - IPC::Run (optional: for password encryption, or for password manager
     support)
