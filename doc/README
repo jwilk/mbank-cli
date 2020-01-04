@@ -16,7 +16,7 @@ Requirements
 
   - HTML::Form
 
-  - HTML::TreeBuilder
+  - HTML::TreeBuilder (≥ 5)
 
   - IO::Socket::SSL (≥ 1.31)
 

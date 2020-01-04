@@ -102,7 +102,7 @@ BEGIN {
 
 # 3rd-party modules:
 use HTML::Form ();
-use HTML::TreeBuilder ();
+use HTML::TreeBuilder 5 ();
 use HTTP::Cookies ();
 use HTTP::Message 5.802 ();
 use HTTP::Request::Common qw(GET POST);
