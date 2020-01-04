@@ -108,12 +108,12 @@ use HTML::TreeBuilder 5 ();
 use HTTP::Cookies ();
 use HTTP::Message 5.802 ();
 use HTTP::Request::Common qw(GET POST);
-use URI::Escape qw(uri_escape_utf8);
 use IO::Socket::SSL 1.81 ();
 use LWP::UserAgent 6 ();
 use LWP::Protocol::https ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
 use Net::SSLeay 1.43 ();
+use URI::Escape qw(uri_escape_utf8);
 
 BEGIN { $::loading_modules = 0; }  ## no critic (PackageVars)
 
