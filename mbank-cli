@@ -1821,7 +1821,7 @@ sub do_login
             user_error("login failed: $message");
         }
         my $redirect_url = match($login_json->{redirectUrl}, qr/\S+/, context => 'login.redirect-url');
-        if ("$root_url$redirect_url" eq $base_url) {
+        if ($redirect_url eq '/dashboard') {
             # yay, no 2FA
             if (defined($register_device)) {
                 user_error('device already registered');
