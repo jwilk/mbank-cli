@@ -270,7 +270,11 @@ sub match
         or do {
             my $qtext = quote($text);
             my $qpattern = quote($pattern);
-            scraping_error("$context: $qtext does not match $qpattern");
+            my $message = "$qtext does not match $qpattern";
+            if ($qpattern eq '/(*FAIL)/') {
+                $message =~ s/\s+\S+$//;
+            }
+            scraping_error("$context: $message");
         };
     return $text;
 }
