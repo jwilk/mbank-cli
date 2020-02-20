@@ -5,7 +5,7 @@ mbank-cli (2.2.2) UNRELEASED; urgency=low
   * Logging in has been fixed.
     https://github.com/jwilk/mbank-cli/issues/88
 
-  * Printing non-ASCII account names in the “history” commands has been fixed.
+  * Printing non-ASCII account names in the “history” command has been fixed.
 
   Minor bug fixes:
 
