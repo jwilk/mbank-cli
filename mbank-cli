@@ -810,6 +810,10 @@ my @gpg_cmdline =
     Text::ParseWords::shellwords($ENV{MBANK_CLI_GPG} // 'gpg') or
     user_error('cannot parse $MBANK_CLI_GPG');  ## no critic (InterpolationOfMetachars)
 
+if (not defined($ENV{GPG_TTY})) {
+    $ENV{GPG_TTY} = POSIX::ttyname(POSIX::STDIN_FILENO);  ## no critic (LocalizedPunctuationVars)
+}
+
 sub read_config
 {
     my ($path) = @_;
