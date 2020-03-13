@@ -1,6 +1,11 @@
 mbank-cli (2.2.3) UNRELEASED; urgency=low
 
-  * 
+  Bug fixes:
+
+  * The GPG_TTY environment variable might be needed for GnuPG to ask for the
+    private key passphrase. mbank-cli will now set this variable automatically
+    if it's not set already.
+    https://github.com/jwilk/mbank-cli/issues/90
 
  -- Jakub Wilk <jwilk@jwilk.net>  Wed, 11 Mar 2020 09:06:02 +0100
 
