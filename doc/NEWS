@@ -1,4 +1,4 @@
-mbank-cli (2.2.3) UNRELEASED; urgency=low
+mbank-cli (2.2.3) unstable; urgency=low
 
   Bug fixes:
 
@@ -7,7 +7,7 @@ mbank-cli (2.2.3) UNRELEASED; urgency=low
     if it's not set already.
     https://github.com/jwilk/mbank-cli/issues/90
 
- -- Jakub Wilk <jwilk@jwilk.net>  Wed, 11 Mar 2020 09:06:02 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Fri, 13 Mar 2020 18:02:49 +0100
 
 mbank-cli (2.2.2) unstable; urgency=low
 
