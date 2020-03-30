@@ -173,6 +173,16 @@ sub config_error
     return user_error($message);
 }
 
+sub server_error
+{
+    my ($message) = @_;
+    if (defined($message)) {
+        write_log($message);
+        say {*STDERR} "mbank-cli: $message";
+    }
+    exit(2);
+}
+
 sub http_error
 {
     my ($request, $response) = @_;
@@ -202,7 +212,7 @@ sub http_error
     write_log($message);
     local $Carp::CarpLevel = 1;
     Carp::cluck($message);
-    exit(2);
+    return server_error();
 }
 
 sub http_decoding_error
@@ -216,7 +226,7 @@ sub http_decoding_error
     write_log($message);
     local $Carp::CarpLevel = 1;
     Carp::cluck($message);
-    exit(2);
+    return server_error();
 }
 
 sub scraping_error
