@@ -1125,6 +1125,10 @@ sub _shift_date
 # HTML parsing
 # ============
 
+# TreeBuilder needs some nudging to understand newfangled HTML 5 tags
+# https://github.com/kentfredric/HTML-Tree/pull/3
+$HTML::TreeBuilder::isBodyElement{header} = 1;  ## no critic (PackageVars)
+
 sub html_new
 {
     my ($s) = @_;
@@ -1852,6 +1856,14 @@ sub do_login
     }
     my $tabid = _get_tabid();
     my $html = html_new($doc->{content});
+    my ($e_tech_break) = html_find($html,
+        tag => 'header',
+        class => 'tech-break',
+        context => 'login.tech-break'
+    );
+    if (defined($e_tech_break)) {
+        server_error('service is temporarily unavailable');
+    }
     my $e_meta = html_find($html,
         tag => 'meta',
         name => '__AjaxRequestVerificationToken',
