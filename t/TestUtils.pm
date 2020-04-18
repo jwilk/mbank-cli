@@ -66,6 +66,7 @@ sub start_https_server
     my ($cert_file, @options) = @_;
     my @ipv4_opts = ();
     $cert_file = cert_file($cert_file);
+    stat($cert_file) or die "$cert_file: $ERRNO";
     my $help;
     IPC::Run::run(['openssl', 's_server', '-help'], '>&', \$help);
     if ($help =~ /\s-4\s/) {
