@@ -523,7 +523,7 @@ sub guess_country
     }
     for my $locale (@locales) {
         $locale = $locale_aliases{$locale} // ${locale};
-        (my $lang = $locale) =~ s/_.*//;
+        my $lang = $locale =~ s/_.*//r;
         my $cc = $language_to_country{$lang};
         if (defined($cc)) {
             $cc{$cc} = 1;
@@ -2923,7 +2923,7 @@ sub _configure_password
 sub _configure_cookie_jar
 {
     my ($term, $login, $default_cookie_jar_path) = @_;
-    (my $sanitized_login = $login) =~ s/\W/_/g;
+    my $sanitized_login = $login =~ s/\W/_/rg;
     my $xdg_data_home = xdg_data_home();
     my $cookie_home = unexpand_tilde($xdg_data_home) . '/mbank-cli';
     $default_cookie_jar_path //= "$cookie_home/$sanitized_login.cookies";
