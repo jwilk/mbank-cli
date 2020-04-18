@@ -32,6 +32,7 @@ use warnings (
     FATAL => qw(numeric)
 );
 use charnames ':full';
+use re '/a';
 no encoding;
 
 BEGIN { $::loading_modules = 1; }  ## no critic (PackageVars)
