@@ -12,7 +12,7 @@ which is subject to change unexpectedly.
 Requirements
 ------------
 
-- Perl (≥ 5.10) with the following Perl modules:
+- Perl (≥ 5.14) with the following Perl modules:
 
   - HTML::Form
 

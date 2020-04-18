@@ -24,7 +24,7 @@
 # https://www.nntp.perl.org/group/perl.perl5.porters/2010/08/msg162729.html
 no lib '.';
 
-use v5.10;
+use v5.14;
 
 use strict;
 use warnings (
