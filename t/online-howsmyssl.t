@@ -25,6 +25,8 @@ use FindBin ();
 use lib $FindBin::Bin;
 use TestUtils;
 
+my $je = JSON::PP->new->ascii->pretty;
+
 my $config_file = create_config(<<"EOF");
 Country pl
 CookieJar <tmp>/cookies
@@ -48,7 +50,7 @@ SKIP: {
     my $result = decode_json $stdout;
     if (not cmp_ok($result->{'rating'}, 'eq', 'Probably Okay', 'www.howsmyssl.com rating')) {
         delete $result->{'given_cipher_suites'};
-        note(JSON::PP->new->ascii->pretty->encode($result));
+        note($je->encode($result));
     }
 }
 
