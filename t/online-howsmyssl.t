@@ -19,7 +19,7 @@ if ($ENV{MBANK_CLI_ONLINE_TESTS}) {
 }
 
 use IPC::Run ();
-use JSON qw(decode_json to_json);
+use JSON::PP qw(decode_json);
 
 use FindBin ();
 use lib $FindBin::Bin;
@@ -48,7 +48,7 @@ SKIP: {
     my $result = decode_json $stdout;
     if (not cmp_ok($result->{'rating'}, 'eq', 'Probably Okay', 'www.howsmyssl.com rating')) {
         delete $result->{'given_cipher_suites'};
-        note(to_json($result, { ascii => 1, pretty => 1 }));
+        note(JSON::PP->new->ascii->pretty->encode($result));
     }
 }
 
