@@ -56,7 +56,7 @@ CentOS 7::
    yum install perl-Term-ReadLine-Gnu  # for account password prompt
    yum install perl-IPC-Run  # for password management
 
-Debian 7 (wheezy) or newer; Ubuntu 14.04 (trusty) or newer::
+Debian 8 (jessie) or newer; Ubuntu 14.04 (trusty) or newer::
 
    apt-get install libwww-perl libhtml-form-perl
    apt-get install libterm-readline-gnu-perl  # for account password prompt
