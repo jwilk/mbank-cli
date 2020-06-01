@@ -12,10 +12,11 @@ use v5.10;
 
 use Test::More;
 
-if ($ENV{MBANK_CLI_ONLINE_TESTS}) {
+my $var = 'MBANK_CLI_ONLINE_TESTS';
+if ($ENV{$var}) {
     plan tests => 9;
 } else {
-    plan skip_all => 'set MBANK_CLI_ONLINE_TESTS=1 to enable online tests';
+    plan skip_all => "set $var=1 to enable online tests";
 }
 
 use English qw(-no_match_vars);
