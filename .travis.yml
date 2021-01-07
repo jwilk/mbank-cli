@@ -8,13 +8,11 @@ addons:
   apt:
     packages:
     - build-essential
+    - libnss-wrapper
+    - libsocket-wrapper
     - libssl-dev
+    - localehelper
     - python-docutils
-before_install:
-- APT_INSTALL='sudo apt-get install --no-install-recommends'
-- grep -w xenial /etc/apt/sources.list || echo 'deb http://archive.ubuntu.com/ubuntu/ xenial main universe' | sudo tee -a /etc/apt/sources.list
-- sudo apt-get update
-- $APT_INSTALL -t xenial libnss-wrapper libsocket-wrapper localehelper
 install:
 - export PERL_CPANM_OPT='--no-interactive --no-man-pages --notest --skip-satisfied'
 - cpanm HTML::Form HTML::HeadParser HTML::TreeBuilder IO::Socket::SSL IPC::Run JSON LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay
