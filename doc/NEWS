@@ -1,4 +1,4 @@
-mbank-cli (2.2.4) UNRELEASED; urgency=low
+mbank-cli (2.2.4) unstable; urgency=low
 
   Bug fixes:
 
@@ -15,7 +15,7 @@ mbank-cli (2.2.4) UNRELEASED; urgency=low
     + LWP::UserAgent >= 6;
     + Net::SSLeay 1.43.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 14 Mar 2020 11:28:53 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Tue, 24 Aug 2021 19:55:55 +0200
 
 mbank-cli (2.2.3) unstable; urgency=low
 
