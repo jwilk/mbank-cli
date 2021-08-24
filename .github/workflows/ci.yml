@@ -1,0 +1,47 @@
+name: CI
+on:
+- push
+- pull_request
+jobs:
+  main:
+    strategy:
+      matrix:
+        os:
+        - ubuntu-18.04
+        - ubuntu-20.04
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v2
+    - name: install deps
+      run: sudo apt-get install
+        libwww-perl
+        libhtml-form-perl
+        libperl-critic-perl
+        libperl-minimumversion-perl
+        libipc-run-perl
+        libnss-wrapper
+        libsocket-wrapper
+        localehelper
+        python-docutils
+    - name: build documentation
+      run: |
+        make -C doc/
+    - name: check documentation
+      run: |
+        make -C doc/ check
+    - name: perlcritic
+      run: |
+        private/run-perlcritic
+    - name: smoke test
+      run: |
+        ./mbank-cli --version
+    - name: prepare tests
+      run: |
+        make -C t/certs/
+        perl -pi -e 's/^\s*\Kskip[(](.*),\s+\d+[)]/die($1)/' t/api-guess-country.t  # all needed locales should be available in this env
+    - name: run tests
+      run: |
+        localehelper='localehelper -x cs_CZ.UTF-8 -x pl_PL.UTF-8 -x sk_SK.UTF-8'
+        $localehelper prove --verbose
+
+# vim:ts=2 sts=2 sw=2 et
