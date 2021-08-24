@@ -1,6 +1,19 @@
 mbank-cli (2.2.4) UNRELEASED; urgency=low
 
-  * 
+  Bug fixes:
+
+  * An overzealous check for stray cookies has been removed.
+    https://github.com/jwilk/mbank-cli/issues/95
+
+  Other changes:
+
+  * Software requirements have been raised.
+    The following version are now required:
+    + Perl >= 5.14;
+    + HTML::TreeBuilder >= 5;
+    + IO::Socket::SSL >= 1.81;
+    + LWP::UserAgent >= 6;
+    + Net::SSLeay 1.43.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Sat, 14 Mar 2020 11:28:53 +0100
 
