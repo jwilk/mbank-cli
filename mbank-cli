@@ -3182,15 +3182,6 @@ sub initialize
         cookie_jar => $cookie_jar_path,
         ca => $ca_path,
     );
-    $ua->cookie_jar->scan(
-        # sanity check
-        sub {
-            my ($version, $key, $value, $path, $domain) = @_;
-            if ($domain ne $mbank_host) {
-                user_error("$cookie_jar_path: found cookies for unexpected domain: $domain (!= $mbank_host)")
-            }
-        }
-    );
     return;
 }
 
