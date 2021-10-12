@@ -8,6 +8,7 @@ mbank-cli (2.2.4) unstable; urgency=low
   Other changes:
 
   * Software requirements have been raised.
+    https://github.com/jwilk/mbank-cli/issues/86
     The following versions are now required:
     + Perl >= 5.14;
     + HTML::TreeBuilder >= 5;
