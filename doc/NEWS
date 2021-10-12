@@ -8,7 +8,7 @@ mbank-cli (2.2.4) unstable; urgency=low
   Other changes:
 
   * Software requirements have been raised.
-    The following version are now required:
+    The following versions are now required:
     + Perl >= 5.14;
     + HTML::TreeBuilder >= 5;
     + IO::Socket::SSL >= 1.81;
