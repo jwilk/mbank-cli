@@ -2395,6 +2395,7 @@ sub _do_blocked_account
         # description:
         my $e_description = html_find($e_op, class => 'WitholdingDescription', context => 'blocked.description');
         my $description = $e_description->as_trimmed_text();
+        $description = unicode_to_bytes($description);
         # type:
         my $e_type = html_find($e_op, class => 'WitholdingType', context => 'blocked.type');
         my $type = $e_type->as_trimmed_text();
