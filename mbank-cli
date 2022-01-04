@@ -2362,6 +2362,7 @@ sub _do_blocked_account
         number => \my $number,
         display_name => \my $display_name,
     );
+    $name = unicode_to_bytes($name);
     $doc = _switch_history_account(
         document => $doc,
         number => $number,
