@@ -1,6 +1,13 @@
 mbank-cli (2.2.5) UNRELEASED; urgency=low
 
-  * 
+  Major bug fixes:
+
+  * Printing non-ASCII account names and descriptions in the “blocked” command
+    has been fixed.
+
+  Documentation improvements:
+
+  * The heartbleed.com URL in doc/SECURITY has been updated to use HTTPS.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Thu, 27 Jan 2022 21:24:08 +0100
 
