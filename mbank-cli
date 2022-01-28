@@ -2767,6 +2767,11 @@ sub _do_history2019_account
             }
             my $description = match($op->{description}, qr/.+/, context => 'history2019.op.description');
             $description = unicode_to_bytes($description);
+            my $comment = $op->{comment};
+            if (defined($comment)) {
+                match($comment, qr/.+/, context => 'history2019.op.comment');
+                $comment = unicode_to_bytes($comment);
+            };
             my $line = '';
             if ($display_name) {
                 $line .= "$account_name\t";
@@ -2775,6 +2780,9 @@ sub _do_history2019_account
                 $line .= "$id\t";
             }
             $line .= "$type\t$date\t$amount\t$balance\t$description";
+            if (defined($comment)) {
+                $line .= "\t$comment";
+            }
             say $line;
         }
         defined($next_page_url)
