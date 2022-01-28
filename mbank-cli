@@ -3707,10 +3707,9 @@ sub main
     }
     my $command;
     {
-        no strict 'refs';  ## no critic (NoStrict)
         my $sub_name = "do_$command_name";
         $sub_name =~ y/-/_/;
-        $command = *{$sub_name};
+        $command = $::{$sub_name};
     }
     my $need_login = $command_info->{login} // 1;
     my @cmd_options;
