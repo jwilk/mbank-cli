@@ -2546,7 +2546,7 @@ sub do_blocked2019
     for my $product (@{$products}) {
         my $contract_no = match($product->{contractNumber}, qr/[\w-]+/, context => 'blocked2019.product.contract-no');
         my $alias = match($product->{contractAlias}, qr{[\w/+=]+}, context => 'blocked2019.product.alias');
-        my $currency = match($product->{contractCurrency}, qr/[A-Z]{3}/, context => 'blocked2019.product.currency');  ## no critic (EnumeratedClasses)
+        my $currency = match($product->{contractCurrency}, qr/(?:[A-Z]{3})?/, context => 'blocked2019.product.currency');  ## no critic (EnumeratedClasses)
         $products{$contract_no} = {
             alias => $alias,
             currency => $currency,
