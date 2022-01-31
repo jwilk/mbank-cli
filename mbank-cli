@@ -2573,6 +2573,7 @@ sub do_blocked2019
             my $date2 = match_ymd_date($op->{endDate}, context => 'blocked2019.op.date2');
             my $amount = format_money($op->{amount}, $op->{currency}, context => 'blocked2019.op.amount');
             my $description = match($op->{description}, qr/.+/, context => 'blocked2019.op.description');
+            $description = unicode_to_bytes($description);
             my $type = match($op->{lockType}, qr/.+/, context => 'blocked2019.op.type');
             # FIXME? There's both "type" and "lockType".
             # What's the difference? Should we show both?
