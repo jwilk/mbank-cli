@@ -1016,7 +1016,7 @@ sub timestamp_to_date
             internal_error('invalid time_must_be');
         }
     }
-    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d(?:[.]\d+)?)\z/)
+    my ($date, $time) = ($timestamp =~ m/\A(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d(?:[.]\d+)?)(?:[+-]\d\d:\d\d)?\z/)
         or return;
     $time =~ $time_re
         or return;
