@@ -27,7 +27,7 @@ jobs:
         libnss-wrapper
         libsocket-wrapper
         localehelper
-        python-docutils
+        python3-docutils
     - name: build documentation
       run: |
         make -C doc/
