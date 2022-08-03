@@ -616,7 +616,8 @@ sub http_init
         protocols_allowed => ['https'],
         timeout => $http_timeout,
         keep_alive => 1,
-        parse_head => 0,
+        parse_head => 0,  # <head> parsing doesn't work anyway:
+                          # https://github.com/libwww-perl/libwww-perl/issues/216
     );
     if ($IO::Socket::SSL::VERSION >= 1.969) {
         # LWP::protocol::https (>= 6.0) stomps on SSL_verifycn_scheme, and
