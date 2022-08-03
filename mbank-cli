@@ -616,7 +616,7 @@ sub http_init
         protocols_allowed => ['https'],
         timeout => $http_timeout,
         keep_alive => 1,
-        parse_head => 0,  # <head> parsing doesn't work anyway:
+        parse_head => 0,  # <head> parsing doesn't work with compressed responses anyway:
                           # https://github.com/libwww-perl/libwww-perl/issues/216
     );
     if ($IO::Socket::SSL::VERSION >= 1.969) {
