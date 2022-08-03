@@ -601,7 +601,6 @@ sub http_init
     my @cookie_jar_options = (
         ignore_discard => 1,
         hide_cookie2 => 1,
-        parse_head => 0,
     );
     if ($cookie_jar_path ne '/dev/null') {
         # TODO: implement auto-logout if cookie jar is /dev/null
@@ -617,6 +616,7 @@ sub http_init
         protocols_allowed => ['https'],
         timeout => $http_timeout,
         keep_alive => 1,
+        parse_head => 0,
     );
     if ($IO::Socket::SSL::VERSION >= 1.969) {
         # LWP::protocol::https (>= 6.0) stomps on SSL_verifycn_scheme, and
