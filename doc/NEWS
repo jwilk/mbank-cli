@@ -2,6 +2,9 @@ mbank-cli (2.3) UNRELEASED; urgency=low
 
   Bug fixes:
 
+  * Scraping error during 2FA has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/100
+
   * Printing non-ASCII account names and descriptions in the “blocked” command
     has been fixed.
 
