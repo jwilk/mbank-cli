@@ -1,9 +1,19 @@
 mbank-cli (2.3) UNRELEASED; urgency=low
 
-  Major bug fixes:
+  Bug fixes:
 
   * Printing non-ASCII account names and descriptions in the “blocked” command
     has been fixed.
+
+  Internal changes:
+
+  * The “blocked” command now uses the new API introduced in 2019.
+
+  New features:
+
+  * The “history2019” command has been added.
+    This is an experimental variant of the “history” command
+    that uses the new API introduced in 2019.
 
   Documentation improvements:
 
