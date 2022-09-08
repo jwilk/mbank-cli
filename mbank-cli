@@ -2405,119 +2405,7 @@ sub _do_history_page {
     return;
 }
 
-sub _prepare_blocked
-{
-    my ($login_info) = @_;
-    my $doc = _prepare_history($login_info);
-    my $html = html_new($doc->{content});
-    my $module = 'witholdings_list';
-    my $url = "/csite/$module.aspx";
-    $html->look_down(
-        _tag => 'a',
-        onclick => qr/\A\QdoSubmit('$url','','POST','',false,true,false,null);\E/,
-    )
-        or scraping_error('blocked.module');
-    my @forms = HTML::Form->parse(
-        $doc->{response},
-        strict => 1,
-    );
-    unpack_list([\my $form], \@forms, context => 'blocked.form');
-    _clean_history_form($form,
-        params => '',
-        reset => 1
-    );
-    $form->action("$csite_url/$module.aspx");
-    $doc = download($form->click);
-    return $doc;
-}
-
 sub do_blocked
-{
-    my %options = @_;
-    kwargs(\%options,
-        login => \my $login_info,
-        accounts => \my $account_info,
-        selection => \my $selection,
-        display_name => \my $display_name,
-    );
-    my $doc = _prepare_blocked($login_info);
-    my %selected_accounts = select_accounts($account_info, @{$selection})
-        or user_error('blocked: no matching accounts');
-    $display_name ||=
-        (scalar(keys(%selected_accounts)) > 1);
-    for my $number (sort keys %selected_accounts) {
-        $doc = _do_blocked_account(
-            document => $doc,
-            number => $number,
-            name => $selected_accounts{$number},
-            display_name => $display_name,
-        );
-        defined($doc)
-            or internal_error('missing document');
-    }
-    return;
-}
-
-sub _do_blocked_account
-{
-    my %options = @_;
-    kwargs(\%options,
-        document => \my $doc,
-        name => \my $name,
-        number => \my $number,
-        display_name => \my $display_name,
-    );
-    $name = unicode_to_bytes($name);
-    $doc = _switch_history_account(
-        document => $doc,
-        number => $number,
-    );
-    my $html = html_new($doc->{content});
-    my ($nothing_blocked) = html_find($html, tag => 'div', id => 'witholdingsListHoldings_NoData');
-    if ($nothing_blocked) {
-        return $doc;
-    }
-    my $e_blocked = html_find($html, tag => 'div', id => 'witholdingsListHoldings', context => 'blocked.table');
-    my @e_ops = html_find($e_blocked, tag => 'li');
-    @e_ops
-        or scraping_error('blocked.table.items');
-    for my $e_op (@e_ops) {
-        if (has_html_class($e_op, 'header')) {
-            next;
-        }
-        # dates:
-        my @e_dates = html_find($e_op, class => 'Date', n => 2, context => 'blocked.date');
-        my @dates = ();
-        for my $e_date (@e_dates) {
-            my $date = $e_date->as_trimmed_text();
-            $date = parse_dmy_date($date, context => 'blocked.date');
-            push(@dates, $date);
-        }
-        # amount:
-        my $e_amount = html_find($e_op, class => 'Amount', context => 'blocked.amount');
-        my $amount = $e_amount->as_trimmed_text();
-        $amount = format_amount($amount)
-            // scraping_error("blocked.amount: $amount");
-        # description:
-        my $e_description = html_find($e_op, class => 'WitholdingDescription', context => 'blocked.description');
-        my $description = $e_description->as_trimmed_text();
-        $description = unicode_to_bytes($description);
-        # type:
-        my $e_type = html_find($e_op, class => 'WitholdingType', context => 'blocked.type');
-        my $type = $e_type->as_trimmed_text();
-        # print:
-        {
-            local $LIST_SEPARATOR = "\t";
-            if ($display_name) {
-                print("$name\t");
-            }
-            print("@dates\t$amount\t$description\t$type\n");
-        }
-    }
-    return $doc;
-}
-
-sub do_blocked2019
 {
     my %options = @_;
     kwargs(\%options,
@@ -3691,7 +3579,6 @@ sub main
         'history2019' => { accounts => 1, dates => 1, ids => 1, export => 1 },
         'future' => { accounts => 1 },
         'blocked' => { accounts => 1 },
-        'blocked2019' => { accounts => 1 },
         'deposits' => {},
         'cards' => {},
         'funds' => {},
