@@ -3310,6 +3310,7 @@ sub show_help
 Usage:
   mbank-cli [list]
   mbank-cli history [--from <start-date> [--to <end-date>]] [--with-id] [--export <format>] {<account> | -M <account>... | -A}
+  mbank-cli history2019 [--from <start-date> [--to <end-date>]] [--with-id] [--export <format>] {<account> | -M <account>... | -A}
   mbank-cli future [[--from <start-date>] --to <end-date>] {<account> | -M <account>... | -A}
   mbank-cli blocked {<account> | -M <account>... | -A}
   mbank-cli deposits

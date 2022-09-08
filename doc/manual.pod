@@ -15,6 +15,9 @@ B<mbank-cli> [B<list>] [I<option>...]
 B<mbank-cli> B<history> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--with-id>] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
 
 =item *
+B<mbank-cli> B<history2019> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--with-id>] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
+
+=item *
 B<mbank-cli> B<future> [I<option>...] [[B<--from> I<start-date>] B<--to> I<end-date>] {I<account> | B<-M> I<account>...  | B<-A>}
 
 =item *
@@ -236,6 +239,19 @@ but it should be redirected to a file.
 Example:
 
     $ mbank-cli history eKonto --from 2013-01-01 --to 2013-12-31 --export PDF eKonto > history-2013.pdf
+
+=head2 The “history2019” command
+
+Syntax:
+B<mbank-cli> B<history2019> [I<option>...] [B<--from> I<start-date> [B<--to> I<end-date>] ] [B<--with-id>] [B<--export> I<format>] {I<account> | B<-M> I<account>...  | B<-A>}
+
+This is an experimental variant of the “history” command
+that uses new API introduced in 2019.
+
+Print the history of the selected account(s),
+in the following format:
+
+I<[account-name]> I<[id]> I<type> I<date> I<amount> I<balance> I<description> I<[comment]>
 
 =head2 The “future” command
 
