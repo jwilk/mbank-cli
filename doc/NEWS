@@ -1,4 +1,4 @@
-mbank-cli (2.3) UNRELEASED; urgency=low
+mbank-cli (2.3) unstable; urgency=low
 
   Bug fixes:
 
@@ -22,7 +22,7 @@ mbank-cli (2.3) UNRELEASED; urgency=low
 
   * The heartbleed.com URL in doc/SECURITY has been updated to use HTTPS.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 09 Sep 2022 00:01:55 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Fri, 09 Sep 2022 00:16:26 +0200
 
 mbank-cli (2.2.4) unstable; urgency=low
 
