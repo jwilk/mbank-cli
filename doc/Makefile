@@ -50,7 +50,7 @@ check-pod: manual.pod
 
 .PHONY: check-rst
 check-rst:
-	grep -rwl 'ft[=]rst' | xargs -t -I{} $(rst2xml) {} /dev/null
+	grep -rwl 'ft[=]rst' | xargs -t -I{} $(rst2xml) {} > /dev/null
 
 .error = GNU make is required
 
