@@ -1148,7 +1148,7 @@ sub local_date
     return $tp->ymd;
 }
 
-=for comment
+=begin comment
 
 local_midnight_to_utc(DATE) -> UTC_TIMESTAMP
 
