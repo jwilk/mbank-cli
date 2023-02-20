@@ -265,6 +265,7 @@ sub quote
 match(TEXT, qr/REGEXP/, context => CONTEXT) -> TEXT
 match(TEXT, TEXT, context => CONTEXT) -> TEXT
 
+=end comment
 =cut
 
 sub match
@@ -305,6 +306,7 @@ sub no_match
 check_type(LIST, [], context => CONTEXT) => LIST
 check_type(HASH, {}, context => CONTEXT) => HASH
 
+=end comment
 =cut
 
 sub check_type
@@ -329,6 +331,7 @@ sub check_type
 
 unpack_list(ARRAY_OF_REFS, ARRAY, context => CONTEXT)
 
+=end comment
 =cut
 
 sub unpack_list
@@ -401,6 +404,7 @@ sub known_bug
 
 kwargs(HASHREF, NAME1 => \$VAR1, NAME2 => [\$VAR2, DEFAULT2], ...)
 
+=end comment
 =cut
 
 sub kwargs
@@ -1001,6 +1005,7 @@ timestamp_to_date(TIMESTAMP, [time_must_be => 0])
     >>> timestamp_to_date('2006-07-30T00:00:00', time_must_be => 0)
     '2006-07-30'
 
+=end comment
 =cut
 
 sub timestamp_to_date
@@ -1054,6 +1059,7 @@ parse_dmy_date(MONTH_DAY_YEAR_DATE, context => CONTEXT)
     >>> parse_dmy_date('30.02.2006', context => 'foo')
     Scraping error: foo: "30.02.2006" is not a valid day-month-year date
 
+=end comment
 =cut
 
 sub parse_dmy_date
@@ -1114,6 +1120,7 @@ sub _shift_date
 
 parse_http_date(HTTP_DATE_HEADER, context => CONTEXT) -> Time::Piece object
 
+=end comment
 =cut
 
 sub parse_http_date
@@ -1158,6 +1165,7 @@ local_midnight_to_utc(DATE) -> UTC_TIMESTAMP
     >>> local_midnight_to_utc('2009-12-08')
     2009-12-07T23:00:00.000Z
 
+=end comment
 =cut
 
 sub local_midnight_to_utc
@@ -1189,6 +1197,7 @@ Like Tor Browser, we support only 100ms accuracy:
     >>> js_time()
     1570127042900
 
+=end comment
 =cut
 
 sub js_time
@@ -1232,6 +1241,7 @@ html_find([ATTR => VALUE, ...] [class => CLASSES,] [n => N, context => CONTEXT,]
 
 In scalar context, n = 1 by default.
 
+=end comment
 =cut
 
 sub html_find
@@ -1305,6 +1315,7 @@ sub encode_json
 decode_json(JSON_OBJECT, context => CONTEXT) -> hash ref
 decode_json(JSON_ARRAY, type => [], context => CONTEXT) -> array ref
 
+=end comment
 =cut
 
 sub decode_json
