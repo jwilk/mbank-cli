@@ -1133,10 +1133,11 @@ sub parse_http_date
     return Time::Piece->gmtime($uts)
 }
 
-=for comment
+=begin comment
 
 local_date(TIME_PIECE_OBJECT) -> DATE
 
+=end comment
 =cut
 
 sub local_date
