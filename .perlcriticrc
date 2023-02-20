@@ -10,6 +10,9 @@ verbose = %f:%l: [%p] %m\n
 [ControlStructures::ProhibitCascadingIfElse]
 max_elsif = 5
 
+[-Documentation::PodSpelling]
+# Pod::Spell can misparse mbank-cli code
+
 [-Documentation::RequirePodSections]
 # our POD contains only comments
 
