@@ -2445,7 +2445,7 @@ sub do_blocked
     my $products = check_type($json->{products}, [], context => 'blocked2019.products');
     my %products = ();
     for my $product (@{$products}) {
-        my $contract_no = match($product->{contractNumber}, qr/[\w-]+/, context => 'blocked2019.product.contract-no');
+        my $contract_no = match($product->{contractNumber}, qr{[\w/-]+}, context => 'blocked2019.product.contract-no');
         my $alias = match($product->{contractAlias}, qr{[\w/+=]+}, context => 'blocked2019.product.alias');
         my $currency = match($product->{contractCurrency}, qr/(?:[A-Z]{3})?/, context => 'blocked2019.product.currency');  ## no critic (EnumeratedClasses)
         $products{$contract_no} = {
@@ -2566,7 +2566,7 @@ sub do_history2019
     my $products = check_type($pfm_data->{pfmProducts}, [], context => 'history2019.products');
     my %products;
     for my $product (@{$products}) {
-        my $contract_no = match($product->{contractNumber}, qr/[\w-]+/, context => 'history2019.product.contract-no');
+        my $contract_no = match($product->{contractNumber}, qr{[\w/-]+}, context => 'history2019.product.contract-no');
         my $alias = match($product->{id}, qr{\d+}, context => 'history2019.product.id');
         $products{$contract_no} = $alias;
     }
@@ -2722,7 +2722,7 @@ sub _do_history2019_export
     my $products = check_type($host_data->{hostProducts}, [], context => 'history2019.products');
     my %products;
     for my $product (@{$products}) {
-        my $contract_no = match($product->{contractNumber}, qr/[\w-]+/, context => 'history2019.product.contract-no');
+        my $contract_no = match($product->{contractNumber}, qr{[\w/-]+}, context => 'history2019.product.contract-no');
         my $alias = match($product->{contractAlias}, qr{[\w/+=]+}, context => 'history2019.product.alias');
         $products{$contract_no} = $alias;
     }
