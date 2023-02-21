@@ -23,8 +23,6 @@ Requirements
   - IPC::Run (optional: for password encryption, or for password manager
     support)
 
-  - JSON or JSON::PP (the latter is a core module since Perl 5.14)
-
   - LWP::UserAgent (≥ 6)
 
   - LWP::Protocol::https
@@ -67,7 +65,7 @@ Cheat sheet for cpanm(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 ::
 
-   cpanm HTML::Form HTML::TreeBuilder IO::Socket::SSL JSON::PP LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay UUID::Tiny
+   cpanm HTML::Form HTML::TreeBuilder IO::Socket::SSL LWP::UserAgent LWP::Protocol::https Net::HTTPS Net::SSLeay UUID::Tiny
    cpanm Term::ReadLine::Gnu  # for account password prompt
    cpanm IPC::Run  # for password management
 
