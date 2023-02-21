@@ -287,7 +287,7 @@ sub match
             my $qtext = quote($text);
             my $qpattern = quote($pattern);
             my $message = "$qtext does not match $qpattern";
-            if ($qpattern eq '/(*FAIL)/') {
+            if ($qpattern eq quote(qr/(*FAIL)/)) {
                 $message =~ s/\s+\S+$//;
             }
             scraping_error("$context: $message");
