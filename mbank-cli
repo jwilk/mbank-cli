@@ -951,7 +951,8 @@ sub format_money
     kwargs(\%options,
         context => \my $context
     );
-    match($number, qr/-?\d+(?:[.,]\d+)?/, context => "$context.number");
+    match($number, qr/-?[\d ]+(?:[.,]\d+)?/, context => "$context.number");
+    $number =~ s/ //g;
     $number =~ tr/,/./;
     match($currency, qr/[A-Z]{3}/, context => "$context.currency");  ## no critic (EnumeratedClasses)
     my $s = eval {
