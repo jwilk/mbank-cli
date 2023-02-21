@@ -2138,6 +2138,9 @@ sub do_history
         end_date => [\my $end_date, undef],
         export => [\my $export, undef],
     );
+    if (defined($export)) {
+        goto &do_history2019;
+    }
     my $doc = _prepare_history($login_info);
     my %selected_accounts = select_accounts($account_info, @{$selection})
         or user_error('history: no matching accounts');
