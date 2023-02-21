@@ -2550,14 +2550,16 @@ sub do_history2019
             user_error('history2019: exactly one account required for --export');
         }
         my ($account_no) = @accounts;
-        return _do_history2019_export(
+        my $export = _do_history2019_export(
             login => $login_info,
             headers => [@export_headers],
             account_no => $account_no,
             start_date => $start_date,
             end_date => $end_date,
             export => $export,
-        )
+        );
+        print {*STDOUT} $export;
+        return;
     }
     $request = GET(
         "$base_url/Pfm/HistoryApi/GetPfmInitialData?shouldOverWriteFilters=true",
@@ -2750,8 +2752,7 @@ sub _do_history2019_export
     my $response = simple_download($request);
     # FIXME: The whole file is loaded into memory.
     # Instead, we should read and write it in chunks.
-    print {*STDOUT} $response->content;
-    return;
+    return $response->content;
 }
 
 sub do_future
