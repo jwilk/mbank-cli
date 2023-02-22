@@ -2167,7 +2167,7 @@ sub do_history  ## no critic (RequireArgUnpacking)
                     $line = "$account_name\t$line";
                 }
                 if ($display_id) {
-                    internal_error('--with-id is not implemented')
+                    known_bug(102, 'history --with-id is not implemented')
                 }
                 $line = unicode_to_bytes($line);
                 push @lines, $line;
