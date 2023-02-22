@@ -1,8 +1,28 @@
 mbank-cli (2.4) UNRELEASED; urgency=low
 
-  * 
+  Major bug fixes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Wed, 22 Feb 2023 15:42:46 +0100
+  * The “history” command has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/101
+
+    The format of operation descriptions may be slightly different than in the
+    previous versions.
+
+    The --with-id option remains broken.
+
+  * In “blocked” and “history2019”, parsing contract numbers
+    has been fixed to allow “/” characters.
+
+  Minor bug fixes:
+
+  * Error handling has been improved.
+
+  Documentation improvements:
+
+  * JSON::PP is no longer explicitly mentioned as a dependency.
+    (This module has been part of Perl since v5.14.)
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 22 Feb 2023 21:00:29 +0100
 
 mbank-cli (2.3) unstable; urgency=low
 
