@@ -35,6 +35,9 @@ max_mccabe = 30
 # all our modules are private
 # see also https://bugs.debian.org/706266
 
+[RegularExpressions::ProhibitCaptureWithoutTest]
+exception_source = scraping_error
+
 [RegularExpressions::ProhibitComplexRegexes]
 max_characters = 100
 

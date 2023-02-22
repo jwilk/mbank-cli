@@ -247,6 +247,14 @@ sub scraping_error
     exit(3);
 }
 
+sub normalize_whitespace
+{
+    my ($s) = @_;
+    $s =~ s/\s+/ /g;
+    $s =~ s/\A\s+|\s+\z//g;
+    return $s;
+}
+
 sub quote
 {
     my ($x) = @_;
@@ -2071,62 +2079,31 @@ sub select_accounts
     return %result;
 }
 
-sub _clean_history_form
+sub parse_csv_line
 {
-    my ($form, %options) = @_;
+    my ($line, %options) = @_;
     kwargs(\%options,
-        params => [\my $parameters, undef],
-        reset => [\my $reset, 0],
+        columns => \my $columns,
+        context => \my $context,
     );
-    for my $input ($form->inputs) {
-        my $name = $input->name // '';
-        if ($name =~ m/\Alastdays_\w+\z/) {
-            $input->disabled(1);
-        }
-        if ($reset and $name !~ m/\A__/) {
-            $input->disabled(1);
-        }
+    my @columns = reverse @{$columns};
+    my %item;
+    while ($line =~ m/\G([^;"]+|(?:"[^"]*")+);/gc) {
+        my $s = $1;
+        $s =~ s/\A"|"\Z//g;
+        $s =~ s/""/"/g;
+        my $column = pop @columns;
+        defined($column)
+            or no_match($line, context => "$context.line.extra-col");
+        $item{$column} = $s;
     }
-    if (defined($parameters)) {
-        my $input = $form->find_input('__PARAMETERS')
-            // scraping_error('history.form.params');
-        $input->readonly
-            or scraping_error('history.form.params.ro');
-        $input->readonly(0);
-        $input->value($parameters);
-        $input->readonly(1);
+    if ($line =~ m/\G(.+)\z/s) {
+        no_match($line, context => "$context.line.junk");
     }
-    return;
+    return \%item;
 }
 
-sub _prepare_history
-{
-    my ($login_info) = @_;
-    my $module = 'account_oper_list';
-    my $frameset_url = "frames.aspx?module=$module";
-    my $menu_url = $login_info->{menu}->{hosthistory} // '';
-    $menu_url eq "/csite/$frameset_url"  # sanity check
-        or scraping_error("history.menu: $menu_url");
-    my $request = GET(
-        "$csite_url/$frameset_url",
-        'Referer' => $login_info->{url},
-    );
-    my $doc = download($request);
-    my $html = html_new($doc->{content});
-    my $e_frame = html_find($html, tag => 'frame', name => 'MainFrame', context => 'history.frame');
-    my $frame_url = $e_frame->attr('src') // '';
-    $frame_url =~ s/\A\s+|\s+\z//g;
-    $frame_url eq "$module.aspx"  # sanity check
-        or scraping_error("history.frame.url: $frame_url");
-    $request = GET(
-        "$csite_url/$frame_url",
-        'Referer' => $doc->{url},
-    );
-    $doc = download($request);
-    return $doc;
-}
-
-sub do_history
+sub do_history  ## no critic (RequireArgUnpacking)
 {
     my %options = @_;
     kwargs(\%options,
@@ -2139,286 +2116,71 @@ sub do_history
         end_date => [\my $end_date, undef],
         export => [\my $export, undef],
     );
-    if (defined($export)) {
-        goto &do_history2019;
-    }
-    my $doc = _prepare_history($login_info);
-    my %selected_accounts = select_accounts($account_info, @{$selection})
-        or user_error('history: no matching accounts');
-    $display_name ||=
-        (scalar(keys(%selected_accounts)) > 1);
-    if (defined($export)) {
-        if (scalar(keys(%selected_accounts)) != 1) {
-            user_error('history: exactly one account required for --export');
-        }
-    }
-    for my $number (sort keys %selected_accounts) {
-        $doc = _do_history_account(
-            document => $doc,
-            number => $number,
-            name => $selected_accounts{$number},
-            display_name => $display_name,
-            display_id => $display_id,
-            start_date => $start_date,
-            end_date => $end_date,
-            export => $export,
+    my $convert_csv = sub {
+        my %soptions = @_;
+        kwargs(\%soptions,
+            account_no => \my $account_no,
+            account_name => \my $account_name,
+            csv => \my $csv,
         );
-        defined($doc)
-            or internal_error('missing document');
-    }
-    return;
-}
-
-sub _switch_history_account
-{
-    my %options = @_;
-    kwargs(\%options,
-        document => \my $doc,
-        number => \my $number,
-    );
-    my $parameters = undef;
-    my $html = html_new($doc->{content});
-    my $e_account_menu = html_find($html, id => 'MenuAccountsCombo', context => 'history.account-menu');
-    my @e_accounts = $e_account_menu->content_list();
-    for my $e_account (@e_accounts) {
-        my $o_name = $e_account->as_trimmed_text();
-        my ($o_number) = ($o_name =~ m/- ($account_number_re)\z/)
-            or scraping_error("history.account.number: $o_name");
-        if ($number eq $o_number) {
-            if ($e_account->attr('selected')) {
-                $parameters = ''
-            } else {
-                $parameters = $e_account->attr('value');
-            }
-            last;
-        }
-    }
-    defined($parameters)
-        or scraping_error("history.account.phantom: $number");
-    if (length($parameters) > 0) {
-        my @forms = HTML::Form->parse(
-            $doc->{response},
-            strict => 1,
-        );
-        unpack_list([\my $form], [@forms], context => 'history.form');
-        _clean_history_form($form, params => $parameters);
-        $doc = download($form->click());
-    }
-    return $doc;
-}
-
-sub _do_history_account
-{
-    my %options = @_;
-    kwargs(\%options,
-        document => \my $doc,
-        name => \my $name,
-        number => \my $number,
-        start_date => [\my $start_date, undef],
-        end_date => [\my $end_date, undef],
-        export => [\my $export, undef],
-        display_name => \my $display_name,
-        display_id => \my $display_id,
-    );
-    $doc = _switch_history_account(
-        document => $doc,
-        number => $number,
-    );
-    my @forms = HTML::Form->parse(
-        $doc->{response},
-        strict => 1,
-    );
-    unpack_list([\my $form], [@forms], context => 'history.form');
-    if (defined($start_date) or defined($end_date)) {
-        my $min_date = '1901-01-01';
-        my $get_limit = sub {
-            my ($var) = @_;
-            my $min_date_nh = $min_date;
-            $min_date_nh =~ s/-//g;
-            my $regexp_template =
-                "DateValidator(theform.daterange_${var}_day, '$min_date_nh', '<YYYY><MM><DD>', '', '')";
-            # Replace <YYYYY> with (\d\d\d\d), <MM> with (\d\d), and so on;
-            # treat everything else literally:
-            my $regexp = "\\b\Q$regexp_template\E";
-            $regexp =~ s/\\<([YMD]+)\\>/'(' . ('\d' x length($1)) . ')'/eg;
-            my @limit = ($doc->{content} =~ $regexp)
-                or return;
-            return join('-', @limit);
-        };
-        my $set_date = sub {
-            my ($var, $date) = @_;
-            $date =~ m/\A\d\d\d\d-\d\d-\d\d\z/
-                or internal_error("invalid date: $date");
-            my ($y, $m, $d) = split(m/-/, $date);
-            $m =~ s/\A0//;
-            $d =~ s/\A0//;
-            $form->value("daterange_${var}_day", $d);
-            $form->value("daterange_${var}_month", $m);
-            $form->value("daterange_${var}_year", $y);
-            $form->value('rangepanel_group', 'daterange_radio');
-            return;
-        };
-        my $now = my $start_limit = $get_limit->('from')
-            // scraping_error('history.limit.start');
-        my $end_limit = $get_limit->('to')
-            // scraping_error('history.limit.end');
-        # start date:
-        $start_date //= $now;
-        $min_date le $start_date
-            or user_error('--from date too far in the past');
-        $start_date le $start_limit
-            or user_error('--from date in the future');
-        $set_date->('from', $start_date);
-        # end date:
-        $end_date //= $now;
-        $min_date le $end_date
-            or user_error('--to date too far in the past');
-        $end_date le $end_limit
-            or user_error('--to date too far in the future');
-        $start_date le $end_date
-            or user_error('--to date before --from date');
-        $set_date->('to', $end_date);
-    }
-    my $html = html_new($doc->{content});
-    my $e_submit = html_find($html, tag => 'button', id => 'Submit', context => 'history.submit');
-    my $onclick = $e_submit->attr('onclick') // '';
-    my $default_module = 'account_oper_list';
-    my $export_module = 'printout_oper_list';
-    $onclick eq "return OperationHistoryExport(export_oper_history_check, '/csite/$export_module.aspx', '/csite/$default_module.aspx')"
-        or scraping_error("history.submit.onclick: $onclick");
-    my $i_export = $form->find_input('export_oper_history_check')
-        // scraping_error('history.form.export');
-    if (defined($export)) {
-        $i_export->check();
-        my $i_export_format = $form->find_input('export_oper_history_format')
-            // scraping_error('history.form.export-format');
-        $i_export_format->value($export);
-        $form->action("$csite_url/$export_module.aspx");
-    } else {
-        $i_export->value(undef);
-        $form->action("$csite_url/$default_module.aspx");
-    }
-    _clean_history_form($form);
-    if (defined($export)) {
-        my $response = simple_download($form->click());
-        # FIXME: The whole file is loaded into memory.
-        # Instead, we should read and write it in chunks.
-        print {*STDOUT} $response->content;
-        return 1;
-    }
-    $doc = download($form->click());
-    PAGE: while (1) {
-        $html = html_new($doc->{content});
-        _do_history_page(
-            html => $html,
-            name => $name,
-            display_name => $display_name,
-            display_id => $display_id,
-        );
-        my ($e_prevpage) = html_find($html, tag => 'button', id => 'PrevPage');
-        if (defined($e_prevpage)) {
-            $onclick = $e_prevpage->attr('onclick') // '';
-            my $url = $doc->{response}->base;
-            $url =~ s{\A.*?(?=/csite/)}{};
-            my $regexp_template =
-                "doSubmit('$url','','POST','<params>',true,false,true,null);";
-            # Replace <params> with ([^']*); treat everything else literally:
-            my $regexp = "\\A\Q$regexp_template\E";
-            $regexp =~ s/\\<params\\>/([^']*)/g;
-            $regexp !~ m/</
-                or internal_error("unexpected character in regexp: $regexp");
-            my ($parameters) = ($onclick =~ $regexp)
-                or scraping_error("history.prev.onclick: $onclick");
-            @forms = HTML::Form->parse(
-                $doc->{response},
-                strict => 1,
+        $csv =~ s/\r\n/\n/g;
+        $csv =~ s/.*[0-9] ([A-Z]{3});\n\n#[^\n]+;\n//sm  ## no critic (EnumeratedClasses)
+            or scraping_error('history.csv.currency');
+        my $currency = $1;
+        $csv = Encode::decode('Windows-1250', $csv);
+        my @csv = split(/\n/, $csv); # assume no embedded newlines
+        $csv = undef;
+        my @lines;
+        for my $line (@csv) {
+            my $item = parse_csv_line($line,
+                columns => [qw(date1 date2 desc title peer peer_account_no amount balance)],
+                context => 'history.csv'
             );
-            unpack_list([\$form], [@forms], context => 'history.prev.form');
-            _clean_history_form($form, params => $parameters);
-            $doc = download($form->click());
-            next PAGE;
-        } else {
-            last PAGE;
-        }
-    }
-    return $doc;
-}
-
-sub _do_history_page {
-    my %options = @_;
-    kwargs(\%options,
-        html => \my $html,
-        name => \my $name,
-        display_name => \my $display_name,
-        display_id => \my $display_id,
-    );
-    $name = unicode_to_bytes($name);
-    my @e_op_descs = html_find($html, class => 'OperationDescription');
-    if (not @e_op_descs) {
-        html_find($html, id => 'account_operations_NoData', n => 1, context => 'history.empty');
-        return;
-    }
-    for my $e_op_desc (@e_op_descs) {
-        my $e_op = $e_op_desc->parent;
-        $e_op->tag eq 'li'
-            or scraping_error('history.table');
-        if (has_html_class($e_op, 'header')) {
-            next;
-        }
-        # operation id:
-        my $id = '';
-        my @e_checkbox = html_find($e_op, tag => 'input', type => 'checkbox');
-        if (@e_checkbox) {
-            unpack_list([\my $e_checkbox], [@e_checkbox], context => 'history.checkbox.1');
-            my $checkbox_id = $e_checkbox->attr('id') // '';
-            ($id) = $checkbox_id =~ qr/\Aaccount_operations_grid_ctl\d+_MCheckBox_\d+_\d+_(\d+)\z/
-                or scraping_error("history.checkbox.id: $checkbox_id");
-        }
-        # dates:
-        my $e_dates = html_find($e_op, class => 'Date', context => 'history.date.1');
-        my @e_dates = html_find($e_dates, tag => 'span', n => 2, context => 'history.date.2');
-        my @dates = ();
-        for my $e_date (@e_dates) {
-            my $date = parse_dmy_date($e_date->as_trimmed_text(), context => 'history.date');
-            push(@dates, $date);
-        }
-        # amounts:
-        my @e_amounts = html_find($e_op, class => 'Amount', n => 2, context => 'history.amount');
-        my @amounts;
-        for my $e_amount (@e_amounts) {
-            my $amount = $e_amount->as_trimmed_text();
-            $amount = format_amount($amount)
-                // scraping_error("history.amount: $amount");
-            push(@amounts, $amount);
-        }
-        # details:
-        my @e_details = $e_op_desc->content_list();
-        my $n_details = scalar(@e_details);
-        $n_details >= 3
-            or scraping_error("history.details#: expected >= 3 instances, got $n_details");
-        my @details;
-        for my $e_detail (@e_details) {
-            if (has_html_class($e_detail, 'FilterType')) {
-                next;
+            if (not scalar keys %{$item}) {
+                last;
             }
-            my $detail = $e_detail->as_trimmed_text();
-            $detail =~ s/\N{SOFT HYPHEN}//g;
-            $detail = unicode_to_bytes($detail);
-            push(@details, $detail);
-        }
-        # print:
-        {
-            local $LIST_SEPARATOR = "\t";
-            if ($display_name) {
-                print("$name\t");
+            my @dates;
+            for my $key (qw(date1 date2)) {
+                my $date = $item->{$key};
+                $date = match_ymd_date("${date}T00:00:00", context => "history.$key");
+                push @dates, $date;
             }
-            if ($display_id) {
-                print("$id\t");
+            my @amounts;
+            for my $key (qw(amount balance)) {
+                my $amount = $item->{$key};
+                $amount = format_money($amount, $currency, context => "history.$key");
+                push @amounts, $amount;
             }
-            print("@dates\t@amounts\t@details\n");
+            my @details;
+            push @details, normalize_whitespace($item->{desc});
+            push @details, normalize_whitespace($item->{peer});
+            my $peer_account_no = $item->{peer_account_no};
+            if ($peer_account_no =~ m/\A'([^']*)'\z/) {
+                $peer_account_no = $1;
+            }
+            push @details, $peer_account_no;
+            push @details, normalize_whitespace($item->{title});
+            {
+                local $LIST_SEPARATOR = "\t";
+                my $line = "@dates\t@amounts\t@details";
+                if ($display_name) {
+                    $line = "$account_name\t$line";
+                }
+                if ($display_id) {
+                    internal_error('--with-id is not implemented')
+                }
+                $line = unicode_to_bytes($line);
+                push @lines, $line;
+            }
         }
+        for my $line (reverse @lines) {
+            say $line;
+        }
+    };
+    if (not defined($export)) {
+        push @_, (export => $convert_csv);
     }
-    return;
+    goto &do_history2019;
 }
 
 sub do_blocked
@@ -2545,6 +2307,25 @@ sub do_history2019
         or internal_error('missing date definitions');
     debug("start-date = $start_date");
     debug("end-date = $end_date");
+    if (ref($export) eq 'CODE') {
+        for my $account_no (sort(keys(%selected_accounts))) {
+            my $account_name = $selected_accounts{$account_no};
+            my $csv = _do_history2019_export(
+                login => $login_info,
+                headers => [@export_headers],
+                account_no => $account_no,
+                start_date => $start_date,
+                end_date => $end_date,
+                export => 'CSV',
+            );
+            $export->(
+                account_no => $account_no,
+                account_name => $account_name,
+                csv => $csv,
+            )
+        }
+        return;
+    }
     if (defined($export)) {
         my @accounts = keys(%selected_accounts);
         if (@accounts != 1) {
