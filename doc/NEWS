@@ -1,4 +1,4 @@
-mbank-cli (2.4) UNRELEASED; urgency=low
+mbank-cli (2.4) unstable; urgency=low
 
   Major bug fixes:
 
@@ -23,7 +23,7 @@ mbank-cli (2.4) UNRELEASED; urgency=low
   * JSON::PP is no longer explicitly mentioned as a dependency.
     (This module has been part of Perl since v5.14.)
 
- -- Jakub Wilk <jwilk@jwilk.net>  Wed, 22 Feb 2023 21:00:29 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 22 Feb 2023 21:16:16 +0100
 
 mbank-cli (2.3) unstable; urgency=low
 
