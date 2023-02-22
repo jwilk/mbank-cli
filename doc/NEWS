@@ -9,6 +9,7 @@ mbank-cli (2.4) UNRELEASED; urgency=low
     previous versions.
 
     The --with-id option remains broken.
+    https://github.com/jwilk/mbank-cli/issues/102
 
   * In “blocked” and “history2019”, parsing contract numbers
     has been fixed to allow “/” characters.
