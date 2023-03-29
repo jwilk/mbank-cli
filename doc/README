@@ -35,6 +35,8 @@ Requirements
 
   - UUID::Tiny (not needed on Linux)
 
+- the Time Zone Database
+
 - GnuPG (optional: for password encryption)
 
 Cheat sheet for free software distributions
