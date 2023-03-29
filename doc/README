@@ -58,7 +58,7 @@ CentOS 7::
 
 Debian 8 (jessie) or newer; Ubuntu 14.04 (trusty) or newer::
 
-   apt-get install libwww-perl libhtml-form-perl
+   apt-get install libwww-perl libhtml-form-perl tzdata
    apt-get install libterm-readline-gnu-perl  # for account password prompt
    apt-get install libipc-run-perl  # for password management
    apt-get install gnupg  # for password encryption
