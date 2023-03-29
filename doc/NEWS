@@ -1,3 +1,9 @@
+mbank-cli (2.4.1) UNRELEASED; urgency=low
+
+  * 
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Wed, 29 Mar 2023 21:57:48 +0200
+
 mbank-cli (2.4) unstable; urgency=low
 
   Major bug fixes:
