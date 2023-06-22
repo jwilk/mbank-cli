@@ -1,9 +1,13 @@
 name: CI
 on:
-- push
-- pull_request
+  push:
+  pull_request:
+  schedule:
+  - cron: '27 6 * * *'
 jobs:
-  main:
+
+  offline:
+    if: ${{ ! github.event.schedule }}
     strategy:
       matrix:
         os:
@@ -47,5 +51,27 @@ jobs:
       run: |
         localehelper='localehelper -x cs_CZ.UTF-8 -x pl_PL.UTF-8 -x sk_SK.UTF-8'
         $localehelper prove --verbose
+
+  online:
+    strategy:
+      matrix:
+        os:
+        - ubuntu-20.04
+        - ubuntu-22.04
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v3
+    - name: set up APT
+      run: |
+        printf 'Apt::Install-Recommends "false";\n' | sudo tee -a /etc/apt/apt.conf
+        sudo apt-get update
+    - name: install deps
+      run: sudo apt-get install
+        libwww-perl
+        libhtml-form-perl
+        libipc-run-perl
+    - name: run tests
+      run: |
+        MBANK_CLI_ONLINE_TESTS=1 prove --verbose t/online-*.t
 
 # vim:ts=2 sts=2 sw=2 et
