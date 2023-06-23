@@ -565,7 +565,7 @@ and will be automatically decrypted when needed.
 It is recommended to encrypt only the password.
 This is what the “B<configure>” command does.
 
-=head2 Session cookie store (a.k.a. cookie jar)
+=head2 Session cookie store (aka cookie jar)
 
 Session cookies are stored on disk,
 so that subsequent invocations of the program can reuse existing session,
