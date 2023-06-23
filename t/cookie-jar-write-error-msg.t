@@ -31,7 +31,7 @@ my $cli = IPC::Run::start(
     '2>', \$stderr,
 );
 $cli->finish();
-cmp_ok($cli->result, '==', 4, 'failed with exit code 4');
+cmp_ok($cli->result, '==', 4, 'exit code 4');
 cmp_ok($stdout, 'eq', '', 'empty stdout');
 like($stderr, qr{/nonexistent/cookies\b}, 'cookie jar write error message');
 

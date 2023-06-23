@@ -42,7 +42,7 @@ my $cli = IPC::Run::start(
     '2>', \$stderr,
 );
 $cli->finish();
-cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
+cmp_ok($cli->result, '==', 2, 'exit code 2');
 cmp_ok($stdout, 'eq', '', 'empty stdout');
 like($stderr, qr/\b(unsupported protocol|wrong version number|00000000)\b/, 'unsupported protocol');
 

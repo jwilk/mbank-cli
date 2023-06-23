@@ -42,7 +42,7 @@ TODO: {
         # https://bugs.debian.org/747225
         if $LWP::VERSION >= 6  ## no critic (PostfixControl)
         and $IO::Socket::SSL::VERSION < 1.969;
-    cmp_ok($cli->result, '==', 2, 'failed with exit code 2');
+    cmp_ok($cli->result, '==', 2, 'exit code 2');
     cmp_ok($stdout, 'eq', '', 'empty stdout');
     like($stderr,
         qr/\b(hostname verification|certificate verify|IO::Socket::IP configuration) failed\b/,
