@@ -38,7 +38,7 @@ ca.crt: ca.rsa ca.cnf
 # =======================
 
 server-self-signed.tmp.cnf: server.cnf
-	sed -e '/^$(JCN) =/d' < $(<) > $(@)
+	sed -e '/^$(JCN) = [0-9]/d' < $(<) > $(@)
 
 server-self-signed.crt: server-self-signed.rsa server-self-signed.tmp.cnf
 	openssl req -x509 -new \
@@ -53,7 +53,7 @@ server-self-signed.crt: server-self-signed.rsa server-self-signed.tmp.cnf
 # ===================
 
 server-default.tmp.cnf: server.cnf
-	sed -e '/^$(JCN) =/d' < $(<) > $(@)
+	sed -e '/^$(JCN) = [0-9]/d' < $(<) > $(@)
 
 server-default.req: server-default.rsa server-default.tmp.cnf
 	openssl req -new \
@@ -75,7 +75,7 @@ server-default.crt: server-default.req server.cnf ca.pem
 # ====================
 
 server-wildcard.tmp.cnf: server.cnf
-	sed -e '/^$(JCN) =/d' -e 's/online[.]/*./g' < $(<) > $(@)
+	sed -e '/^$(JCN) = [0-9]/d' -e 's/online[.]/*./g' < $(<) > $(@)
 
 server-wildcard.req: server-wildcard.rsa server-wildcard.tmp.cnf
 	openssl req -new \
