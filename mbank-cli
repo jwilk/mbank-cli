@@ -155,13 +155,20 @@ sub debug
     return;
 }
 
-sub user_error
+sub warning
 {
     my ($message) = @_;
     if (defined($message)) {
         write_log($message);
         say {*STDERR} "mbank-cli: $message";
     }
+    return;
+}
+
+sub user_error
+{
+    my ($message) = @_;
+    warning($message);
     exit(1);
 }
 
@@ -181,10 +188,7 @@ sub config_error
 sub server_error
 {
     my ($message) = @_;
-    if (defined($message)) {
-        write_log($message);
-        say {*STDERR} "mbank-cli: $message";
-    }
+    warning($message);
     exit(2);
 }
 
@@ -403,8 +407,7 @@ sub known_bug
     my ($bugno, $message) = @_;
     my $url = sprintf($bugreport_url_tmpl, $bugno);
     $message .= "; see <$url>";
-    write_log($message);
-    say {*STDERR} "mbank-cli: $message";
+    warning($message);
     exit(-1);
 }
 
