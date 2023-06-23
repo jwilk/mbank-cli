@@ -528,6 +528,13 @@ The remaining lines are I<key>-I<value> pairs:
 
 =over 4
 
+=item CAfile I<path>
+
+Trust only CA certificates from this file.
+It's a good idea to pin to just one CA certificate:
+
+    CAfile /usr/share/ca-certificates/mozilla/DigiCert_High_Assurance_EV_Root_CA.crt
+
 =item CookieJar I<path>
 
 Location of the session cookie store.

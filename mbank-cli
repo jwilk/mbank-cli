@@ -599,12 +599,6 @@ sub http_init
     my @ssl_options = (
         SSL_version => 'SSLv23:!SSLv2:!SSLv3',
         SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
-        SSL_ca_file => $ca_path,
-        SSL_ca_path => undef,
-            # If SSL_ca_path is not set explicitly to undef,
-            # IO::Socket::SSL::set_args_filter_hack('use_defaults') fails to
-            # correctly restore SSL_ca_* settings:
-            # https://bugs.debian.org/750642
         SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_PEER,
         SSL_verifycn_scheme => {
             check_cn => 0,
@@ -613,6 +607,16 @@ sub http_init
             ip_in_cn => 0,
         },
     );
+    if (defined($ca_path)) {
+        push(@ssl_options,
+            SSL_ca_file => $ca_path,
+            SSL_ca_path => undef,
+            # If SSL_ca_path is not set explicitly to undef,
+            # IO::Socket::SSL::set_args_filter_hack('use_defaults') fails to
+            # correctly restore SSL_ca_* settings:
+            # https://bugs.debian.org/750642
+        );
+    }
     my @cookie_jar_options = (
         ignore_discard => 1,
         hide_cookie2 => 1,
@@ -3282,19 +3286,11 @@ sub initialize
     my $ca_path = get_config_var($cfg, 'cafile', \undef);
     if (defined($ca_path)) {
         $ca_path = expand_tilde($ca_path);
-    } else {
-        $ca_path = get_default_ca_path(
-            'DigiCert High Assurance EV Root CA',
-            # openssl x509 -subject_hash -noout
-            '244b5494',
-            # openssl x509 -subject_hash_old -noout
-            '81b9768f',
-        );
-    }
-    if (not -r $ca_path) {
-        os_error("$ca_path: $ERRNO");
-    }
-    debug("cafile = $ca_path");
+        if (not -r $ca_path) {
+            os_error("$ca_path: $ERRNO");
+        }
+        debug("cafile = $ca_path");
+    };
     my $tld = get_config_var($cfg, 'country')
         // config_error($cfg, 'missing country');
     $tld = lc $tld;

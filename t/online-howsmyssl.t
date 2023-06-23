@@ -31,7 +31,6 @@ my $je = JSON::PP->new->ascii->pretty;
 my $config_file = create_config(<<"EOF");
 Country pl
 CookieJar <tmp>/cookies
-CAfile <test>/howsmyssl-ca.crt
 EOF
 
 my ($stdout, $stderr);
