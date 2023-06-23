@@ -70,6 +70,10 @@ jobs:
         libwww-perl
         libhtml-form-perl
         libipc-run-perl
+    - name: prepare tests
+      run: |
+        # faster than building our own CA cert:
+        perl -pi -e 's#^CAfile \K<certs>/.*#/usr/share/ca-certificates/mozilla/Amazon_Root_CA_1.crt#i' t/online-bad-ca.t
     - name: run tests
       run: |
         MBANK_CLI_ONLINE_TESTS=1 prove --verbose t/online-*.t
