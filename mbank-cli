@@ -95,6 +95,7 @@ use HTTP::Date ();
 use HTTP::Message 5.802 ();
 use HTTP::Request::Common qw(GET POST);
 use IO::Socket::SSL 1.81 ();
+use IO::Socket::SSL::Utils ();
 use LWP::UserAgent 6 ();
 use LWP::Protocol::https ();
 use Net::HTTPS ();  # must be loaded after IO::Socket::SSL
@@ -611,6 +612,51 @@ sub http_init
         # https://bugs.debian.org/788698
         delete $ENV{$key};
     }
+    my $vfy_cb = sub {
+        my ($ok, undef, undef, undef, $cert_ptr, $depth) = @_;
+        my @errors;
+        if ($depth == 0) {
+            my $info = IO::Socket::SSL::Utils::CERT_asHash($cert_ptr);
+            my $subject = $info->{subject};
+            my @expected = (
+                businessCategory => 'Private Organization',
+                jurisdictionCountryName => 'PL',
+                serialNumber => '0000025237',
+                countryName => 'PL',
+                stateOrProvinceName => 'mazowieckie',
+                localityName => 'Warszawa',
+                organizationName => 'mBank S.A.',
+            );
+            while (my ($key, $exp_value) = splice(@expected, 0, 2)) {
+                my $value = $subject->{$key};
+                if (($value // '') ne $exp_value) {
+                    my $msg = sprintf("bad $key %s, expected %s", quote($value), quote($exp_value));
+                    push(@errors, $msg);
+                }
+            }
+            my $ev_policy_oid = '2.23.140.1.1';
+            my $ev_policy_seen = 0;
+            for my $ext (@{$info->{ext}}) {
+                $ext->{oid} eq 'X509v3 Certificate Policies'
+                    or next;
+                $ext->{data} =~ m/^Policy: \Q$ev_policy_oid\E$/m
+                    or next;
+                $ev_policy_seen = 1;
+                last;
+            }
+            if (not $ev_policy_seen) {
+                push(@errors, "missing CA/Browser Forum's EV policy $ev_policy_oid");
+            }
+        }
+        if (@errors) {
+            my $msg = "EV certifcate check failed:\n";
+            for my $error (@errors) {
+                $msg .= "* $error\n";
+            }
+            die $msg;  ## no critic (Carping)
+        }
+        return $ok;
+    };
     my @ssl_options = (
         SSL_version => 'SSLv23:!SSLv2:!SSLv3',
         SSL_cipher_list => 'HIGH:!aNULL:!eNULL',
@@ -621,6 +667,7 @@ sub http_init
             wildcards_in_cn => 0,
             ip_in_cn => 0,
         },
+        SSL_verify_callback => $vfy_cb,
     );
     if (defined($ca_path)) {
         push(@ssl_options,
