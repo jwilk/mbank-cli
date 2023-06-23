@@ -3,7 +3,7 @@ on:
   push:
   pull_request:
   schedule:
-  - cron: '27 6 * * *'
+  - cron: '27 4 * * *'  # 06:27 (+02:00) or 05:27 (+01:00) every day
 jobs:
 
   offline:
