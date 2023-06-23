@@ -1,4 +1,4 @@
-# Copyright © 2014-2018 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2014-2023 Jakub Wilk <jwilk@jwilk.net>
 # SPDX-License-Identifier: MIT
 
 export RANDFILE = /dev/null
