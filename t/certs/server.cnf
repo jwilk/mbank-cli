@@ -8,28 +8,22 @@ jurisdictionCountryName = PL
 businessCategory = Private Organization
 serialNumber = 0000025237
 C = PL
-postalCode = 00-950
 ST = mazowieckie
 L = Warszawa
-street = Senatorska 18
 O = mBank S.A.
-OU = DIN
 CN = online.mbank.pl
 
 [x509_ext]
+authorityKeyIdentifier = keyid
+subjectKeyIdentifier = hash
 subjectAltName = DNS:online.mbank.pl
-basicConstraints = CA:false
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth, clientAuth
-certificatePolicies = @cert_policies
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid
-crlDistributionPoints = crl_distribution_points
-authorityInfoAccess = OCSP;URI:http://EVSecure-ocsp.verisign.com,caIssuers;URI:http://EVSecure-aia.verisign.com/EVSecure2006.cer
+crlDistributionPoints = URI:http://crl3.digicert.com/sha2-ev-server-g3.crl, URI:http://crl4.digicert.com/sha2-ev-server-g3.crl
+certificatePolicies = 2.16.840.1.114412.2.1,@ev_policy
+authorityInfoAccess = OCSP;URI:http://ocsp.digicert.com,caIssuers;URI:http://cacerts.digicert.com/DigiCertSHA2ExtendedValidationServerCA.crt
+basicConstraints = CA:false
 
-[cert_policies]
-policyIdentifier = 2.16.840.1.113733.1.7.23.6
-CPS = https://www.verisign.com/cps
-
-[crl_distribution_points]
-fullname = URI:http://EVSecure-crl.verisign.com/EVSecure2006.crl
+[ev_policy]
+policyIdentifier = 2.23.140.1.1
+CPS = http://www.digicert.com/CPS
