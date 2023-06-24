@@ -2136,14 +2136,14 @@ sub do_history  ## no critic (RequireArgUnpacking)
         my @lines;
         for my $line (@csv) {
             my $item = parse_csv_line($line,
-                columns => [qw(date1 date2 desc title peer peer_account_no amount balance)],
+                columns => [qw(bk_date op_date desc title peer peer_account_no amount balance)],
                 context => 'history.csv'
             );
             if (not scalar keys %{$item}) {
                 last;
             }
             my @dates;
-            for my $key (qw(date1 date2)) {
+            for my $key (qw(op_date bk_date)) {
                 my $date = $item->{$key};
                 $date = match_ymd_date("${date}T00:00:00", context => "history.$key");
                 push @dates, $date;
