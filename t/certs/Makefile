@@ -3,8 +3,6 @@
 
 export RANDFILE = /dev/null
 
-JCN = $(shell openssl asn1parse < jurisdictionCountryName.asn1 | grep -o -w jurisdictionCountryName)
-
 .PHONY: all
 all: server-self-signed.pem server-default.pem server-wildcard.pem
 
@@ -37,13 +35,10 @@ ca.crt: ca.rsa ca.cnf
 # self-signed certificate
 # =======================
 
-server-self-signed.tmp.cnf: server.cnf
-	sed -e '/^$(JCN) = [0-9]/d' < $(<) > $(@)
-
-server-self-signed.crt: server-self-signed.rsa server-self-signed.tmp.cnf
+server-self-signed.crt: server-self-signed.rsa server.cnf
 	openssl req -x509 -new \
 		-key server-self-signed.rsa \
-		-config server-self-signed.tmp.cnf \
+		-config server.cnf \
 		$(x509_options) \
 		$(x509_serial) \
 		-out $(@)
@@ -52,13 +47,10 @@ server-self-signed.crt: server-self-signed.rsa server-self-signed.tmp.cnf
 # default certificate
 # ===================
 
-server-default.tmp.cnf: server.cnf
-	sed -e '/^$(JCN) = [0-9]/d' < $(<) > $(@)
-
-server-default.req: server-default.rsa server-default.tmp.cnf
+server-default.req: server-default.rsa server.cnf
 	openssl req -new \
 		-key server-default.rsa \
-		-config server-default.tmp.cnf \
+		-config server.cnf \
 		$(x509_options) \
 		-out $(@)
 
@@ -75,7 +67,7 @@ server-default.crt: server-default.req server.cnf ca.pem
 # ====================
 
 server-wildcard.tmp.cnf: server.cnf
-	sed -e '/^$(JCN) = [0-9]/d' -e 's/online[.]/*./g' < $(<) > $(@)
+	sed -e 's/online[.]/*./g' < $(<) > $(@)
 
 server-wildcard.req: server-wildcard.rsa server-wildcard.tmp.cnf
 	openssl req -new \
