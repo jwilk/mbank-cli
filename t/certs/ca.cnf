@@ -1,5 +1,4 @@
 [req]
-oid_section = new_oids
 distinguished_name = req_dn
 prompt = no
 x509_extensions = req_ext
