@@ -1,8 +1,19 @@
 mbank-cli (2.5) UNRELEASED; urgency=low
 
-  * 
+  Security changes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Mon, 26 Jun 2023 10:10:21 +0200
+  * The system CA certificate store is now used by default.
+    https://github.com/jwilk/mbank-cli/issues/62
+
+    The “CAfile” configuration directive, which can be used to bring back the
+    previous behavior of trusting just one CA, has been documented.
+
+  Major bug fixes:
+
+  * In mbank-cli 2.4, the “history” command swapped the order of dates.
+    This bug has been fixed.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 26 Jun 2023 10:29:49 +0200
 
 mbank-cli (2.4) unstable; urgency=low
 
