@@ -1,4 +1,4 @@
-# Copyright © 2009-2022 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2009-2023 Jakub Wilk <jwilk@jwilk.net>
 # SPDX-License-Identifier: MIT
 
 version = $(shell head -n1 NEWS | cut -d ' ' -f2 | tr -d '()')
