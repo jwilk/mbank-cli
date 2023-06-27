@@ -14,7 +14,7 @@ all: mbank-cli.1
 clean:
 	rm -f *.1 *.tmp
 
-mbank-cli.1: manual.pod
+mbank-cli.1: manual.pod NEWS
 	perl -p -e 's/L<([a-z_-]+)[(]([0-9]+)[)]>/B<\1>(\2)/g' $(<) \
 	| pod2man --utf8 -q none -c '' -n MBANK-CLI -r 'mbank-cli $(version)' \
 	> $(@).tmp
