@@ -533,7 +533,7 @@ The remaining lines are I<key>-I<value> pairs:
 Trust only CA certificates from this file.
 It's a good idea to pin to just one CA certificate:
 
-    CAfile /usr/share/ca-certificates/mozilla/DigiCert_High_Assurance_EV_Root_CA.crt
+    CAfile /usr/share/ca-certificates/mozilla/DigiCert_Global_Root_G2.crt
 
 =item CookieJar I<path>
 
