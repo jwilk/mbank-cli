@@ -531,7 +531,7 @@ The remaining lines are I<key>-I<value> pairs:
 =item CAfile I<path>
 
 Trust only CA certificates from this file.
-It's a good idea to pin to just one CA certificate:
+It's a good idea to pin to just one CA certificate, e.g.:
 
     CAfile /usr/share/ca-certificates/mozilla/DigiCert_Global_Root_G2.crt
 
