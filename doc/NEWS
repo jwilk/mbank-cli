@@ -13,6 +13,14 @@ mbank-cli (2.5) UNRELEASED; urgency=low
   * In mbank-cli 2.4, the “history” command swapped the order of dates.
     This bug has been fixed.
 
+  Documentation improvements:
+
+  * The Time Zone Database requirement is now documented.
+
+  Build system improvements:
+
+  * Top-level Makefile has been added.
+
  -- Jakub Wilk <jwilk@jwilk.net>  Mon, 26 Jun 2023 10:29:49 +0200
 
 mbank-cli (2.4) unstable; urgency=low
