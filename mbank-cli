@@ -2567,6 +2567,7 @@ sub do_future
                 $recipient .= "; $recipient_loc";
             }
         }
+        $recipient = unicode_to_bytes($recipient);
         my $description = match($transfer->{description}, qr/.+/, context => 'future.transfer.description');
         $description = unicode_to_bytes($description);
         my $amount = format_money($transfer->{amount}, $transfer->{currency}, context => 'future.transfer.amount');
