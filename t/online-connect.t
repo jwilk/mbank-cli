@@ -42,7 +42,7 @@ EOF
     );
     $cli->finish();
     cmp_ok($cli->result, '==', 0, 'no error');
-    like($stdout, qr/<html>/i, 'HTML output');
+    like($stdout, qr/<html\b/i, 'HTML output');
     cmp_ok($stderr, 'eq', '', 'empty stderr');
     unlink(tmp_dir . '/cookies') or die $ERRNO;
 
