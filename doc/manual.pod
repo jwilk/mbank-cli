@@ -169,7 +169,7 @@ in the following format:
 
 =over 4
 
-I<[account-name]> I<[id]> I<date> I<accounting-date> I<amount> I<balance> I<description>
+I<[account-name]> I<[id]> I<date> I<booking-date> I<amount> I<balance> I<description>
 
 =back
 
