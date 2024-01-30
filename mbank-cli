@@ -1493,23 +1493,23 @@ sub _extract_login_profiles
                 no_match($key, context => 'login.profiles.key');
             }
             my @js_profiles = @{$value->{profiles}};
+            my $n = 0;
             for my $js_profile (@js_profiles) {
                 my $code = $js_profile->{profileCode}
                     // scraping_error('login.profiles.profile-code');
                 push(@{$profiles{$key}}, $code);
-            }
-            if ($key eq 'business') {
-                my $n = 0;
-                for my $js_profile (@js_profiles) {
-                    my $name = $js_profile->{firmName}
+                $n++;
+                my $name;
+                if ($key eq 'business') {
+                    $name = $js_profile->{firmName}
                         // scraping_error('login.profiles.company-name');
-                    my $code = $js_profile->{profileCode};
-                    push(@{$profiles{$name}}, $code);
-                    $n += 1;
+                } else {
+                    $name = "$key/$code";
                 }
-                if ($n > 1) {
-                    delete $profiles{$key};
-                }
+                push(@{$profiles{$name}}, $code);
+            }
+            if ($n > 1) {
+                delete $profiles{$key};
             }
         }
         last;
@@ -2781,11 +2781,11 @@ sub do_activate_profile
     my %profiles = %{$login_info->{profiles}};
     my $sortkey = sub {
         my ($key) = @_;
-        my %map = (
-            personal => "\000",
-            business => "\001",
-        );
-        return $map{$key} // $key;
+        $key =~ s{\Apersonal(?:/?|\z)}{\000};
+        if ($key eq 'business') {
+            $key = "\001";
+        }
+        return $key;
     };
     if (not exists($profiles{$name})) {
         my $profiles = join(', or ',
