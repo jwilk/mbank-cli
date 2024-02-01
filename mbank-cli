@@ -2587,9 +2587,9 @@ sub do_future
         or no_match($max_date, context => 'future.filters.min-max-date');
     $def_start_date le $def_end_date
         or no_match($def_end_date, context => 'future.filters.def-start-end-date');
-    $min_date le $def_start_date le $max_date
+    $min_date le $def_start_date and $def_start_date le $max_date
         or no_match($def_start_date, context => 'future.filters.def-start-date');
-    $min_date le $def_end_date le $max_date
+    $min_date le $def_end_date and $def_end_date le $max_date
         or no_match($def_end_date, context => 'future.filters.def-end-date');
     my $start_date = $def_start_date;
     my $end_date = $def_end_date;
