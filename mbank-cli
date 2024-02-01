@@ -1981,7 +1981,7 @@ sub do_register_device
     );
     my @args = @{$args};
     scalar(@args) <= 1
-        or user_error('regsiter-device: too many arguments');
+        or user_error('register-device: too many arguments');
     my ($name) = @args;
     $name //= 'CLI';
     $name = bytes_to_unicode($name);
