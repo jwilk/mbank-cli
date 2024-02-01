@@ -2532,6 +2532,8 @@ sub do_future
         accounts => \my $account_info,
         selection => \my $selection,
         display_name => \my $display_name,
+        start_date => [\my $start_date, undef],
+        end_date => [\my $end_date, undef],
     );
     my $tabid = get_tabid();
     my @headers_xhr = (
@@ -2583,6 +2585,8 @@ sub do_future
         push @dates, $date;
     }
     my ($min_date, $max_date, $def_start_date, $def_end_date) = @dates;
+    debug("min-date = $min_date");
+    debug("max-date = $max_date");
     $min_date le $max_date
         or no_match($max_date, context => 'future.filters.min-max-date');
     $def_start_date le $def_end_date
@@ -2591,8 +2595,29 @@ sub do_future
         or no_match($def_start_date, context => 'future.filters.def-start-date');
     $min_date le $def_end_date and $def_end_date le $max_date
         or no_match($def_end_date, context => 'future.filters.def-end-date');
-    my $start_date = $def_start_date;
-    my $end_date = $def_end_date;
+    $start_date //= $def_start_date;
+    if ($start_date lt $min_date) {
+        $start_date = $min_date;
+    } elsif ($start_date gt $max_date) {
+        debug('start-date < max-date');
+        # FIXME?
+        return;
+    }
+    $end_date //= $def_end_date;
+    debug("start-date = $start_date");
+    if ($end_date gt $max_date) {
+        $end_date = $max_date;
+    } elsif ($end_date lt $min_date) {
+        debug('end-date < min-date');
+        # FIXME?
+        return;
+    }
+    debug("end-date = $end_date");
+    if ($start_date gt $end_date) {
+        debug('start-date > end-date');
+        # FIXME?
+        return;
+    }
     my $transfers = $json->{transferInfos};
     my %selected_accounts = select_accounts($account_info, @{$selection})
         or user_error('future: no matching accounts');
@@ -3253,7 +3278,7 @@ sub show_help
 Usage:
   mbank-cli [list]
   mbank-cli history [--from <start-date> [--to <end-date>]] [--with-id] [--export <format>] {<account> | -M <account>... | -A}
-  mbank-cli future {<account> | -M <account>... | -A}
+  mbank-cli future [[--from <start-date>] --to <end-date>] {<account> | -M <account>... | -A}
   mbank-cli blocked {<account> | -M <account>... | -A}
   mbank-cli deposits
   mbank-cli funds
@@ -3423,7 +3448,7 @@ sub main
         'list' => {},
         'history' => { accounts => 1, dates => 1, ids => 1, export => 1 },
         'history2019' => { accounts => 1, dates => 1, ids => 1, export => 1 },
-        'future' => { accounts => 1 },
+        'future' => { accounts => 1, dates => 1 },
         'blocked' => { accounts => 1 },
         'deposits' => {},
         'cards' => {},
