@@ -401,7 +401,7 @@ B<mbank-cli> B<activate-profile> {B<personal> | B<business> | I<company-name>}
 Activate the personal profile, or a business profile.
 
 This is an experimental command.
-It is provided only a stop-gap solution
+It is provided only as a stop-gap solution
 until mbank-cli is taught to activate profiles automatically.
 
 Examples:
