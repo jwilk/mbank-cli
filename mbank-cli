@@ -1495,14 +1495,12 @@ sub _extract_login_profiles
             my @js_profiles = @{$value->{profiles}};
             my $n = 0;
             for my $js_profile (@js_profiles) {
-                my $code = $js_profile->{profileCode}
-                    // scraping_error('login.profiles.profile-code');
+                my $code = match($js_profile->{profileCode}, qr/.+/, context => 'login.profiles.profile-code');
                 push(@{$profiles{$key}}, $code);
                 $n++;
                 my $name;
                 if ($key eq 'business') {
-                    $name = $js_profile->{firmName}
-                        // scraping_error('login.profiles.company-name');
+                    $name = match($js_profile->{firmName}, qr/.+/, context => 'login.profiles.company-name');
                 } else {
                     $name = "$key/$code";
                 }
