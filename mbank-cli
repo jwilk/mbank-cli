@@ -2533,43 +2533,101 @@ sub do_future
         selection => \my $selection,
         display_name => \my $display_name,
     );
-    my $request = POST(
-        "$base_url/FutureOperations/Calendar/OPER_GetFutureTransfers",
-        @{$login_info->{headers}},
-        @header_accept_json,
-        json_content({getFilter => JSON::true})
+    my $tabid = get_tabid();
+    my @headers_xhr = (
+        @header_xhr,
+        'X-Tab-Id' => $tabid,
+    );
+    my $request = GET(
+        "$root_url/api/app/setup/data",
+        @headers_xhr,
+        'Accept' => '*/*',
+        'Referer' => "$root_url/dashboard",
     );
     my $doc = download($request);
-    my $json = decode_json($doc->{content}, context => 'future.json');
+    my $data = decode_json($doc->{content}, context => 'future.app-setup');
+    my $csrf_token = match($data->{antiForgeryToken}, qr{[\w/+=]{20,}}, context => 'future.app-setup.csrf-token');
+    @headers_xhr = (
+        @headers_xhr,
+        'X-Request-Verification-Token' => $csrf_token,
+    );
+    my @headers = (
+        @headers_xhr,
+        'Accept' => 'application/json, text/plain, */*',
+        'Origin' => $root_url,
+        'Referer' => "$root_url/futurepaymentsnew",
+    );
+    $request = POST(
+        "$root_url/api/operations/futureOperations/filters",
+        @headers,
+        json_content({'accounts' => []}),
+    );
+    $doc = download($request);
+    my $json = decode_json($doc->{content}, context => 'future.filters');
+    my $masked_number_re = qr/(\d\d)(\d\d) [.][.][][.] (\d\d\d\d)/;
+    my %filter_accounts;
+    my $i = 0;
+    for my $account (@{$account_info}) {
+        my $filter_account = $json->{filters}->{filterAccounts}[$i];
+        my $masked_number = match($filter_account->{maskedNumber}, $masked_number_re, context => 'future.filters.masked.format');
+        $masked_number =~ m/\A$masked_number_re\z/
+            or die;  ## no critic (Carping)
+        match($account->{number}, qr/$1 $2[ \d]+$3/, context => 'future.filters.masked.consistency');
+        $filter_accounts{$account->{number}} = $filter_account;
+        $i++;
+    }
+    my $filter_dates = $json->{filters}->{filterPeriod};
+    my @dates;
+    for my $key (qw(minFrom maxTo defaultFrom defaultTo)) {
+        my $date = match_ymd_date($filter_dates->{$key}, time_must_be => 0, context => 'future.filters.dates');
+        push @dates, $date;
+    }
+    my ($min_date, $max_date, $start_date, $end_date) = @dates;
+    my $transfers = $json->{transferInfos};
     my %selected_accounts = select_accounts($account_info, @{$selection})
         or user_error('future: no matching accounts');
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
-    my $transfer_info = $json->{transferInfos}
-        // scraping_error('future.transfer');
-    for my $transfer (@{$transfer_info}) {
-        my $number = match($transfer->{accountNumber}, $account_number_re, context => 'future.transfer.account-number');
-        my $name = $selected_accounts{$number};
-        defined($name) or next;
-        if ($display_name) {
-            print("$name\t");
-        }
-        my $timestamp = $transfer->{date} // '';
-        my $date = timestamp_to_date($timestamp, time_must_be => 0)
-            // scraping_error("future.transfer.date: $timestamp");
-        my $recipient = match($transfer->{benef}, qr/.+/, context => 'future.transfer.recipient');
-        for my $key (qw(benefAddress benefCity)) {
-            my $recipient_loc = $transfer->{$key} // '';
-            if (length($recipient_loc) > 0) {
-                $recipient .= "; $recipient_loc";
+    while (my ($number, $name) = each %selected_accounts) {
+        # FIXME! Looping over the account numbers is wasteful.
+        # How to extract account numbers from /futureOperations output?
+        my $filter_account = $filter_accounts{$number};
+        $json = {
+            from => "${start_date}T00:00:00.000",
+            to => "${end_date}T00:00:00.000",
+            searchFilter => '',
+            accountNumbers => [$filter_account],
+        };
+        $request = POST(
+            "$root_url/api/operations/futureOperations",
+            @headers,
+            json_content($json),
+        );
+        $doc = download($request);
+        $json = decode_json($doc->{content}, context => 'future.json');
+        my $transfer_info = $json->{transferInfos}
+            // scraping_error('future.transfer');
+        for my $transfer (@{$transfer_info}) {
+            if ($display_name) {
+                print("$name\t");
             }
+            my $timestamp = $transfer->{date} // '';
+            my $date = timestamp_to_date($timestamp, time_must_be => 0)
+                // scraping_error("future.transfer.date: $timestamp");
+            my $recipient = match($transfer->{benef}, qr/.+/, context => 'future.transfer.recipient');
+            for my $key (qw(benefAddress benefCity)) {
+                my $recipient_loc = $transfer->{$key} // '';
+                if (length($recipient_loc) > 0) {
+                    $recipient .= "; $recipient_loc";
+                }
+            }
+            $recipient = unicode_to_bytes($recipient);
+            my $description = match($transfer->{description}, qr/.+/, context => 'future.transfer.description');
+            $description = unicode_to_bytes($description);
+            my $amount = format_money($transfer->{amount}, $transfer->{currency}, context => 'future.transfer.amount');
+            my $type = match($transfer->{transferType}, qr/\w+/, context => 'future.transfer.type');
+            print("$date\t$recipient\t$description\t$amount\t$type\n");
         }
-        $recipient = unicode_to_bytes($recipient);
-        my $description = match($transfer->{description}, qr/.+/, context => 'future.transfer.description');
-        $description = unicode_to_bytes($description);
-        my $amount = format_money($transfer->{amount}, $transfer->{currency}, context => 'future.transfer.amount');
-        my $type = match($transfer->{transferType}, qr/\w+/, context => 'future.transfer.type');
-        print("$date\t$recipient\t$description\t$amount\t$type\n");
     }
     return;
 }
