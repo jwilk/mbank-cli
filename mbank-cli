@@ -2582,7 +2582,9 @@ sub do_future
         my $date = match_ymd_date($filter_dates->{$key}, time_must_be => 0, context => 'future.filters.dates');
         push @dates, $date;
     }
-    my ($min_date, $max_date, $start_date, $end_date) = @dates;
+    my ($min_date, $max_date, $def_start_date, $def_end_date) = @dates;
+    my $start_date = $def_start_date;
+    my $end_date = $def_end_date;
     my $transfers = $json->{transferInfos};
     my %selected_accounts = select_accounts($account_info, @{$selection})
         or user_error('future: no matching accounts');
