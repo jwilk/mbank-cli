@@ -1615,9 +1615,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     );
     my $doc = download($request);
     my $data = decode_json($doc->{content}, context => 'login.app-setup');
-    my $csrf_token = $data->{antiForgeryToken} // '';
-    $csrf_token =~ m{\A[\w/+=]{20,}\z}
-        or scraping_error("login.app-setup.csrf-token: $csrf_token");
+    my $csrf_token = match($data->{antiForgeryToken}, qr{[\w/+=]{20,}}, context => 'login.app-setup.csrf-token');
     push @headers_xhr, (
         'X-Request-Verification-Token' => $csrf_token,
     );
