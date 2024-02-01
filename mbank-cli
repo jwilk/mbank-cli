@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Copyright © 2006-2023 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2006-2024 Jakub Wilk <jwilk@jwilk.net>
 # SPDX-License-Identifier: MIT
 
 # cwd in @INC is harmful:
