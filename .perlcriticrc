@@ -46,6 +46,9 @@ max_characters = 100
 [-RegularExpressions::RequireLineBoundaryMatching]
 # no, thanks
 
+[Subroutines::ProhibitExcessComplexity]
+max_mccabe = 25
+
 [-ValuesAndExpressions::ProhibitEmptyQuotes]
 # no, thanks
 
