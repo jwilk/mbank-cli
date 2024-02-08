@@ -520,9 +520,9 @@ Please consult L<locale(7)> for details.
 
 These variables are used to determine input and output encoding.
 
-=item B<LC_I<*>>, B<LANG>
+=item B<LC_I<*>>, B<LANG>, B<TZ>
 
-The “B<configure>” command uses the internationalization variables to guess the user's country.
+The “B<configure>” command uses the internationalization variables and the timezone variable to guess the user's country.
 
 =back
 
@@ -597,6 +597,10 @@ instead of re-logging every time.
 The file is not encrypted.
 If keeping unencrypted session cookies on disk is not desirable,
 set B<CookieJar> to B</dev/null> in the configuration file.
+
+=head2 /etc/localtime, /etc/timezone
+
+The “B<configure>” command uses B</etc/localtime> and B</etc/timezone> to guess the user's country.
 
 =head1 BUGS
 

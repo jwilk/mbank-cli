@@ -510,7 +510,34 @@ my %locale_aliases = (
     'slovak' => 'sk',
 );
 
+my %tz_to_language = (
+    'Europe/Bratislava' => 'sk',
+    'Europe/Prague' => 'cz',
+    'Europe/Warsaw' => 'pl',
+);
+
 my @known_countries = sort(keys(%country_to_language));
+
+sub get_tz
+{
+    my $tz = $ENV{TZ};
+    if (defined($tz)) {
+        $tz =~ s/\A://;
+        return $tz;
+    }
+    if ($tz = readlink('/etc/localtime')) {
+        $tz =~ s{.*/zoneinfo/}{};
+        return $tz;
+    }
+    my $path = '/etc/timezone';
+    open(my $fh, '<', $path)
+        or return;
+    $tz = <$fh>;
+    close($fh)
+        or os_error("$path: $ERRNO");
+    chomp($tz);
+    return $tz;
+}
 
 sub guess_country
 {
@@ -533,6 +560,11 @@ sub guess_country
     my @cc = keys(%cc);
     if (scalar(@cc) == 1) {
         my ($cc) = @cc;
+        return $cc;
+    }
+    if (scalar(@cc) == 0) {
+        my $tz = get_tz();
+        my $cc = $tz_to_language{$tz};
         return $cc;
     }
     return;
