@@ -189,7 +189,7 @@ Show operations from I<start-date> to I<end-date>, inclusive.
 
 =back
 
-Dates should be specified in the in the I<YYYY>-I<MM>-I<DD> format.
+Dates should be specified in the I<YYYY>-I<MM>-I<DD> format.
 
 The following options control the output format:
 
@@ -265,7 +265,7 @@ Show operations from I<start-date> to I<end-date>, inclusive.
 
 =back
 
-Dates should be specified in the in the I<YYYY>-I<MM>-I<DD> format.
+Dates should be specified in the I<YYYY>-I<MM>-I<DD> format.
 
 Example:
 
