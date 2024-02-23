@@ -3178,6 +3178,15 @@ sub _configure_cookie_jar
     return $cookie_jar_path;
 }
 
+sub makedirs
+{
+    my ($path) = @_;
+    eval {
+        File::Path::make_path($path);
+    } // os_error($EVAL_ERROR);
+    return;
+}
+
 sub do_configure
 {
     my %options = @_;
@@ -3193,9 +3202,7 @@ sub do_configure
     $cookie_jar_path = _configure_cookie_jar($term, $login, $cookie_jar_path);
     my $cookie_dir = dirname(expand_tilde($cookie_jar_path));
     if (not -d $cookie_dir) {
-        eval {
-            File::Path::make_path($cookie_dir);
-        } // os_error($EVAL_ERROR);
+        makedirs($cookie_dir);
         print(
             'Created directory for session cookie store: ',
             unexpand_tilde($cookie_dir),
@@ -3203,9 +3210,7 @@ sub do_configure
         );
     }
     my $config_dir = dirname($config_path);
-    eval {
-        File::Path::make_path($config_dir);
-    } // os_error($EVAL_ERROR);
+    makedirs($config_dir);
     open(my $fh, '>', "$config_path.new")  ## no critic (BriefOpen)
         or os_error("$config_path.new: $ERRNO");
     print {$fh} _make_config_line('CookieJar', $cookie_jar_path);
@@ -3454,11 +3459,7 @@ sub parse_args
         if ($debug_dir =~ /\A-/) {
             user_error("suspicious directory name for --debug: $debug_dir");
         }
-        if (not -d $debug_dir) {
-            eval {
-                File::Path::make_path($debug_dir);
-            } // os_error($EVAL_ERROR);
-        }
+        makedirs($debug_dir);
     }
     $opt_debug_dir = $debug_dir;
     if (defined($opt_export) and -t STDOUT) {
