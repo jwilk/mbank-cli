@@ -25,6 +25,7 @@ require "$module";  ## no critic (RequireBareword)
 sub t
 {
     my ($locale, $expected_cc) = @_;
+    local $ENV{TZ} = 'UTC0';
     POSIX::setlocale(POSIX::LC_ALL(), 'C') or die 'setlocale(LC_ALL, "C") failed';
     my @label = ();
     SKIP: {
