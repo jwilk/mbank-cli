@@ -33,8 +33,6 @@ Requirements
 
   - Term::ReadLine::Gnu (optional: for account password prompt)
 
-  - UUID::Tiny (not needed on Linux)
-
 - the Time Zone Database
 
 - GnuPG (optional: for password encryption)

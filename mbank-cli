@@ -1394,21 +1394,20 @@ sub parse_uuid
 
 sub gen_uuid
 {
-    my $path = '/proc/sys/kernel/random/uuid';
-    if (open(my $fh, '<', $path)) {
-        my $uuid = <$fh>
-            // os_error("$path: $ERRNO");
-        close($fh)
-            or os_error("$path: $ERRNO");
-        chomp $uuid;
-        parse_uuid($uuid)
-            or os_error("$path: invalid UUID");
-        return $uuid;
-    }
-    eval {
-        require UUID::Tiny;
-    } // user_error('UUID::Tiny is required for generating UUID');
-    return UUID::Tiny::create_uuid_as_string(UUID::Tiny::UUID_RANDOM())
+    my $nbytes = () = $uuid_template =~ m/XX/g;
+    Net::SSLeay::RAND_bytes(my $uuid, $nbytes);
+    length($uuid) == $nbytes
+        or internal_error('RNG failure');
+    my @uuid = unpack('C*', $uuid);
+    # RFC 4122 §4.1.1 Variant:
+    $uuid[8] = ($uuid[8] & 0b00_111111) | 0b10_000000; # DCE
+    # RFC 4122 §4.1.3 Version:
+    $uuid[6] = ($uuid[6] & 0b0000_1111) | 0b0100_0000; # v4 (random)
+    my $template = $uuid_template =~ s/XX/%02x/rg;
+    $uuid = sprintf $template, @uuid;
+    parse_uuid($uuid)
+        or internal_error('UUID generation failed');
+    return $uuid;
 }
 
 # ================
