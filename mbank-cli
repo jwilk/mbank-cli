@@ -1381,10 +1381,13 @@ sub json_content
 # UUIDs
 # =====
 
+my $uuid_template = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX';
+
 sub parse_uuid
 {
     my ($s) = @_;
-    $s =~ m/\A[\dA-Fa-f]{8}(?:-[\dA-Fa-f]{4}){3}-[\dA-Fa-f]{12}\z/
+    my $uuid_regexp = $uuid_template =~ s/X/[0-9a-fA-F]/rg;
+    $s =~ m/\A$uuid_regexp\z/
         or return;
     return $s;
 }
