@@ -24,7 +24,7 @@ use TestUtils;
 my $module = code_file();
 require "$module";  ## no critic (RequireBareword)
 
-my %uuids = map { gen_uuid() => 1 } (0..100);
+my %uuids = map { gen_uuid() => 1 } (0..99);
 my $cli = IPC::Run::start(
     ['uuidparse', '-n', keys %uuids],
     '>', \my $stdout,
