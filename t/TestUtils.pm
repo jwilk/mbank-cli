@@ -89,7 +89,7 @@ sub start_https_server
 # ==========
 
 my $_tmp_dir = File::Temp::tempdir(
-    template => 'mbank-cli.test.XXXXXX',
+    TEMPLATE => 'mbank-cli.test.XXXXXX',
     TMPDIR => 1,
     CLEANUP => 1,
 ) or die;
