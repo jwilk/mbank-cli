@@ -23,7 +23,7 @@ our @EXPORT = qw(
 );
 
 use English qw(-no_match_vars);
-use File::Temp ();
+use File::Temp 0.23 ();
 use FindBin ();
 
 use IPC::Run ();
