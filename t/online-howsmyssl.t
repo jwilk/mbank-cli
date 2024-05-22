@@ -20,6 +20,11 @@ if ($ENV{$var}) {
 }
 
 use IPC::Run ();
+local $SIG{CHLD} = sub {
+    # https://github.com/cpan-authors/IPC-Run/issues/166
+    # ("delay after child exit")
+};
+
 use JSON::PP qw(decode_json);
 
 use FindBin ();

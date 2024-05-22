@@ -889,6 +889,10 @@ sub _decrypt_config
     for my $encrypted_data (@{$pgp_chunks}) {
         my $decrypted_data;
         eval {
+            local $SIG{CHLD} = sub {
+                # https://github.com/cpan-authors/IPC-Run/issues/166
+                # ("delay after child exit")
+            };
             IPC::Run::run(
                 [@gpg_cmdline, '-d'],
                 '<', \$encrypted_data,
@@ -1899,6 +1903,10 @@ sub do_login
                 require IPC::Run;
             } // user_error('IPC::Run is required to retrieve password');
             eval {
+                local $SIG{CHLD} = sub {
+                    # https://github.com/cpan-authors/IPC-Run/issues/166
+                    # ("delay after child exit")
+                };
                 IPC::Run::run(
                     ['sh', '-c', $password_manager],
                     '>', \$password
@@ -3124,6 +3132,10 @@ sub _configure_password
         eval {
             require IPC::Run;
             my $secret_keys;
+            local $SIG{CHLD} = sub {
+                # https://github.com/cpan-authors/IPC-Run/issues/166
+                # ("delay after child exit")
+            };
             IPC::Run::run(
                 [@gpg_cmdline, qw(--batch --list-secret-keys)],
                 '>', \$secret_keys,

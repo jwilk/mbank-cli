@@ -27,6 +27,10 @@ use File::Temp 0.23 ();
 use FindBin ();
 
 use IPC::Run ();
+local $SIG{CHLD} = sub {
+    # https://github.com/cpan-authors/IPC-Run/issues/166
+    # ("delay after child exit")
+};
 
 # ==========
 # networking

@@ -13,6 +13,10 @@ use v5.10;
 use Test::More tests => 3;
 
 use IPC::Run ();
+local $SIG{CHLD} = sub {
+    # https://github.com/cpan-authors/IPC-Run/issues/166
+    # ("delay after child exit")
+};
 
 use FindBin ();
 use lib $FindBin::Bin;
