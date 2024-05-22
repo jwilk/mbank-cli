@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Copyright © 2014-2018 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2014-2024 Jakub Wilk <jwilk@jwilk.net>
 # SPDX-License-Identifier: MIT
 
 no lib '.';
