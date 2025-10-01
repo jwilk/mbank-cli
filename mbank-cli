@@ -1667,6 +1667,9 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     my $doc = download($request);
     my $data = decode_json($doc->{content}, context => 'login.sca');
     my $sca_status = match($data->{imsStatus}, qr/(Is|Not)Trusted/, context => 'login.sca.status');
+    my $sca_limit_exceeded = $data->{maximumNumberOfDevicesExceeded};
+    JSON::is_bool($sca_limit_exceeded)
+        or no_match($sca_limit_exceeded, context => 'login.sca.limit');
     if ($sca_status eq 'IsTrusted') {
         # yay, no 2FA
         if (defined($device_to_add)) {
@@ -1683,6 +1686,9 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         'dfp' => $dfp,
     };
     if (defined($device_to_add)) {
+        if ($sca_limit_exceeded) {
+            user_error('too many registered devices')
+        }
         while (1) {
             $request = POST(
                 "$root_url/signin/connect/api/sca/uniqueDevice",
