@@ -1650,161 +1650,86 @@ sub _ask_for_sms_password
     return;
 }
 
-sub _do_2fa  ## no critic (ExcessComplexity)
+sub _do_2fa
 {
     my ($device_to_add) = @_;
-    my $tabid = get_tabid();
-    my @headers_xhr = (
-        @header_xhr,
-        'X-Tab-Id' => $tabid,
-    );
-    my $request = GET(
-        "$root_url/api/app/setup/data",
-        @headers_xhr,
-        'Accept' => '*/*',
-        'Referer' => "$root_url/authorization",
-    );
-    my $doc = download($request);
-    my $data = decode_json($doc->{content}, context => 'login.app-setup');
-    my $csrf_token = match($data->{antiForgeryToken}, qr{[\w/+=]{20,}}, context => 'login.app-setup.csrf-token');
-    push @headers_xhr, (
-        'X-Request-Verification-Token' => $csrf_token,
-    );
-    my @header_origin = (
-        'Origin' => $root_url,
-    );
     my @headers_api_auth = (
-        @headers_xhr,
-        @header_origin,
-        'Accept' => '*/*',
-        'data-type' => 'json',
+        'Origin' => $root_url,
+        'Referer' => "$root_url/connect/Login",
     );
-    $request = POST(
-        "$base_url/Sca/GetScaAuthorizationData",
-        @headers_xhr,
-        @header_origin,
-        'Accept' => '*/*',
-        'Referer' => "$root_url/authorization",
-    );
-    $doc = download($request);
-    $data = decode_json($doc->{content}, context => 'login.sca');
-    my $sca_auth_id = $data->{ScaAuthorizationId} // '';
-    $sca_auth_id =~ m{\A[\w+/=]+\z}
-        or scraping_error("login.sca.auth-id: $sca_auth_id");
-    my $trusted_add_allowed = $data->{TrustedDeviceAddingAllowed};
-    defined($trusted_add_allowed)
-        or scraping_error('login.sca.trusted-add');
-    my $auth_type;
-    my $auth_data = {
-        'ScaAuthorizationId' => $sca_auth_id,
-    };
     my $cfg = $global_config;
     my $dfp = get_config_var($cfg, 'dfp') // $browser_dfp;
-    if (defined($device_to_add)) {
-        $trusted_add_allowed
-            or user_error('adding trusted device not allowed');
-        $request = GET(
-            "$root_url/api/sca/TrustedDevices/IsPossibleToAddNextDevice",
-            @headers_xhr,
-            'Accept' => '*/*',
-            'Referer' => "$root_url/authorization/unknownDevice",
-        );
-        $doc = download($request);
-        $data = decode_json($doc->{content}, context => 'login.2fa.next-dev');
-        my $is_valid = $data->{isValid} // '';
-        JSON::is_bool($is_valid) and $is_valid
-            or scraping_error("login.2fa.next-dev.invalid: $is_valid");
-        while (1) {
-            my $query = 'deviceName=' . uri_escape_utf8($device_to_add);
-            $request = GET(
-                "$root_url/api/sca/TrustedDevices?$query",
-                @headers_xhr,
-                'Accept' => '*/*',
-                'Referer' => "$root_url/authorization/secureDevice/set",
-            );
-            $doc = download($request);
-            $data = decode_json($doc->{content}, context => 'login.2fa.trusted-dev');
-            $is_valid = $data->{isValid} // '';
-            JSON::is_bool($is_valid)
-                or scraping_error("login.2fa.trusted-dev.invalid: $is_valid");
-            if ($is_valid) {
-                last;
-            } else {
-                say {*STDERR} 'Device name has been rejected. Try another one.';
-                my $term = term_new();
-                my $name = '';
-                until (length($name) > 1) {  ## no critic (Until)
-                    $name = $term->readline('Device name: ', unicode_to_bytes($device_to_add)) // '';
-                    $name = bytes_to_unicode($name);
-                }
-                $device_to_add = $name;
-            }
+    my $request = POST(
+        "$root_url/signin/connect/api/sca",
+        @headers_api_auth,
+        json_content({dfp => $dfp})
+    );
+    my $doc = download($request);
+    my $data = decode_json($doc->{content}, context => 'login.sca');
+    my $sca_status = match($data->{imsStatus}, qr/(Is|Not)Trusted/, context => 'login.sca.status');
+    if ($sca_status eq 'IsTrusted') {
+        # yay, no 2FA
+        if (defined($device_to_add)) {
+            user_error('device already registered');
         }
-        $auth_type = 'trusteddevice';
-        $auth_data = {
-            %{$auth_data},
-            'DfpData' => $dfp,
-            'DeviceName' => $device_to_add,
-            'IsTheOnlyDeviceUser' => JSON::true,
-        };
-        push @headers_api_auth, (
-            'Referer' => "$root_url/authorization/secureDevice/confirm",
-        );
-    } else {
-        debug('adding trusted device allowed: ' . ($trusted_add_allowed ? 'yes' : 'no'));
-        $auth_type = 'disposable';
-        push @headers_api_auth, (
-            'Referer' => "$root_url/authorization/onetime/set",
-        );
+        return match_uuid($data->{token}, context => 'login.sca.token');
+    }
+    my $mod_data = {
+        'authorizationAction' => 1, # OneTimeLogin
+        'browserName' => 'Firefox',
+        'browserVersion' => $browser_version,
+        'deviceName' => 'Komputer Linux Firefox',
+        'osName' => 'Linux',
+        'dfp' => $dfp,
+    };
+    if (defined($device_to_add)) {
+        $mod_data->{authorizationAction} = 2; # AddTrusted
+        $mod_data->{deviceName} = $device_to_add;
     }
     $request = POST(
-        "$root_url/api/auth/initprepare",
+        "$root_url/signin/connect/api/mediator/initialize",
         @headers_api_auth,
         json_content({
-            'Url' => "sca/authorization/$auth_type",
-            'Method' => 'POST',
-            'Data' => $auth_data,
+            'moduleData' => $mod_data,
+            'moduleId' => 'IB20',
         })
     );
     $doc = download($request);
     $data = decode_json($doc->{content}, context => 'login.2fa.init');
-    my $error_code = $data->{ErrorCode} // '?';
-    $error_code eq ''
-        or scraping_error("login.2fa.init.error: $error_code");
-    my $auth_mode = $data->{AuthMode} // '';
-    my $operation_date = $data->{OperationDate} // '';
-    $operation_date = timestamp_to_date($operation_date)
-        // scraping_error("login.2fa.init.operation-date: $operation_date");
-    my $operation_no = $data->{OperationNumber} // '';
-    $operation_no =~ m/\A\d+\z/
-        or scraping_error("login.2fa.init.operation-no: $operation_no");
-    if ($auth_mode eq 'NAM') {
-        say {*STDERR} "Waiting for confirmation of operation no $operation_no from $operation_date in the mobile app...";
-        my $tran_id = $data->{TranId} // '';
-        parse_uuid($tran_id)
-            or scraping_error("login.2fa.init.tran-id: $tran_id");
+    $data = $data->{authorizationData};
+    my $auth_mode = match($data->{authorizationType}, qr/\w+/, context => 'login.2fa.init.auth-type');
+    my $auth_id = match_uuid($data->{authorizationId}, context => 'login.2fa.init.auth-id');
+    my $auth_date = $data->{authorizationDate} // '';
+    $auth_date = timestamp_to_date($auth_date)
+        // scraping_error("login.2fa.init.operation-date: $auth_date");
+    my $auth_no = match($data->{authorizationNumber} // '', qr/\d+/, context => 'login.2fa.init.operation-no');
+    my $token = undef;
+    if ($auth_mode eq 'MA') {
+        say {*STDERR} "Waiting for confirmation of operation no $auth_no from $auth_date in the mobile app...";
         while (1) {
             $request = POST(
-                "$root_url/api/auth/status",
+                "$root_url/signin/connect/api/mediator/status",
                 @headers_api_auth,
                 json_content({
-                    'TranId' => $tran_id
+                    'authorizationId' => $auth_id,
                 })
             );
             $doc = download($request);
-            $data = decode_json($doc->{content}, context => 'login.2fa.status');
-            $error_code = $data->{ErrorCode};
-            defined($error_code)
-                or scraping_error('login.2fa.status.error');
-            $error_code eq ''
-                or scraping_error("login.2fa.status.error: $error_code");
-            my $status = $data->{Status} // '';
+            my $status;
+            $data = {};
+            if ($doc->{response}->code == 204) {
+                $status = '_';
+            } else {
+                $data = decode_json($doc->{content}, context => 'login.2fa.status');
+                $status = $data->{authorizationStatus} // '';
+            }
             debug("2FA mobile auth: $status");
-            if ($status eq 'Prepared' or $status eq 'PreAuthorized') {
+            if ($status eq '_') {
                 sleep(1)
                     or os_error("sleep(): $ERRNO");
             } elsif ($status eq 'Authorized') {
-                last;
+                $token = $data->{postResult}->{token};
+                return match_uuid($token, context => 'login.2fa.status.token');
             } elsif ($status eq 'Canceled') {
                 user_error('login failed: rejected mobile authentication request');
             } elsif ($status eq 'TimeOut') {
@@ -1813,79 +1738,45 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                 scraping_error("login.2fa.status.status: $status")
             }
         }
-        $request = POST(
-            "$root_url/api/auth/execute",
-            @headers_api_auth,
-            json_content({})
-        );
-        $doc = download($request, ignore_errors => 1);
-        $data = decode_json($doc->{content}, context => 'login.2fa.exec');
-        $error_code = $data->{error};
-        if (defined($error_code)) {
-            scraping_error("login.2fa.exec.error: $error_code")
-        } else {
-            $error_code = $data->{ErrorCode};
-            defined($error_code)
-                or scraping_error('login.2fa.exec.error');
-            $error_code eq ''
-                or scraping_error("login.2fa.exec.error: $error_code");
-        }
     } elsif ($auth_mode eq 'SMS') {
+        $request = GET(
+            "$root_url/signin/connect/api/users/session/prelogin",
+            @headers_api_auth,
+        );
+        $doc = download($request);
+        $data = decode_json($doc->{content}, context => 'login.session.prelogin');
+        my $success = $data->{success} // '';
+        JSON::is_bool($success) and $success
+            or no_match($data->{success}, context => 'login.session.prelogin.success');
         for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
-            my $sms_password = _ask_for_sms_password($operation_date, $operation_no, $try);
+            my $sms_password = _ask_for_sms_password($auth_date, $auth_no, $try);
             $request = POST(
-                "$root_url/api/auth/execute",
+                "$root_url/signin/connect/api/mediator/authorize",
                 @headers_api_auth,
                 json_content({
-                    'Auth' => $sms_password
+                    'authorizationCode' => $sms_password,
+                    'authorizationId' => $auth_id,
+                    'authorizationType' => $auth_mode,
                 })
             );
-            $doc = download($request, ignore_errors => 1);
+            $doc = download($request, ignore_errors => [422]);
             $data = decode_json($doc->{content}, context => 'login.2fa.exec');
-            $error_code = $data->{error};
-            if (defined($error_code)) {
-                if ($error_code eq 'QGE0193' or $error_code eq 'QGE0200') {
+            $token = $data->{postResult}->{token};
+            if (defined($token)) {
+                return match_uuid($token, context => 'login.2fa.exec.token');
+            } else {
+                my $error_code = $data->{type};
+                if (($error_code // '') eq 'AuthApi-SMS014') {
                     say {*STDERR} 'Incorrect SMS password';
                     next;
                 } else {
                     scraping_error("login.2fa.exec.error: $error_code")
                 }
-            } else {
-                $error_code = $data->{ErrorCode};
-                defined($error_code)
-                    or scraping_error('login.2fa.exec.error');
-                $error_code eq ''
-                    or scraping_error("login.2fa.exec.error: $error_code");
-                last;
             }
         }
     } else {
         scraping_error("login.2fa.init.auth-mode: $auth_mode");
     }
-    if (defined($device_to_add)) {
-        $request = POST(
-            "$base_url/Sca/FinalizeTrustedDeviceAuthorization",
-            @headers_xhr,
-            @header_origin,
-            'Accept' => 'application/json, text/plain, */*',
-            json_content({
-                'ScaAuthorizationId' => $sca_auth_id,
-                'currentDfp' => $dfp,
-                'deviceName' => $device_to_add,
-            })
-        );
-    } else {
-        $request = POST(
-            "$base_url/Sca/FinalizeAuthorization",
-            @headers_xhr,
-            @header_origin,
-            'Accept' => 'application/json, text/plain, */*',
-            json_content({
-                'ScaAuthorizationId' => $sca_auth_id
-            })
-        );
-    }
-    $doc = download($request);
     return;
 }
 
@@ -1904,8 +1795,11 @@ sub do_login
             return;
         }
         debug('logging in...');
-        my ($seed) = ($doc->{content} =~ m/\b(?:app|entrypoint)[.]initialize[(]'([\w=-]+)'[,)]/)
-            or scraping_error('login.seed');
+        my ($lang) = ($base_url =~ m{/(\w\w)$});
+        my ($return_url) = ($doc->{content} =~ m{'/signin/connect/authorize[?]ui_locales=$lang&(request_uri=urn%3aietf%3aparams%3aoauth%3arequest_uri%3a[0-9A-F]+&client_id=Ib)'})  ## no critic (ComplexRegex, EnumeratedClasses)
+            or scraping_error('login.return-url');
+        $return_url =~ s/%3a/%3A/g;
+        $return_url = "/signin/connect/authorize/callback?$return_url&suppressed_prompt=login";
         my $login_url = $doc->{url};
         my $cfg = $global_config;
         my $login = get_config_var($cfg, 'login')
@@ -1948,51 +1842,45 @@ sub do_login
             # try to log in:
             _ask_for_sms_password('2006-07-30', 1, 0);
         }
-        my $dfp = get_config_var($cfg, 'dfp') // $browser_dfp;
-        my $dfp_data = {
-            dfp => $dfp,
-            scaOperationId => gen_uuid(),
-            errorMessage => undef,
-        };
-        $request = POST(
-            "$base_url/LoginMain/Account/JsonLogin",
-            @header_xhr,
-            @header_accept_json,
-            'Referer' => $login_url,
-            json_content({
-                UserName => $login,
-                Password => $password,
-                Seed => $seed,
-                Scenario => 'Default',
-                UWAdditionalParams => {InOut => undef, ReturnAddress => undef, Source => undef},
-                Lang => '',
-                HrefHasHash => JSON::false,
-                DfpData => $dfp_data,
-            }),
+        my @headers = (
+            'Origin' => $root_url,
+            'Referer' => "$root_url/connect/Login",
         );
-        $doc = download($request, redact => qr/"Password"\s*:\s*\K"(?:[^\\"]|\\.)*"/);
-        my $login_json = decode_json($doc->{content}, context => 'login.json');
-        if (not $login_json->{successful}) {
-            my $message = $login_json->{errorMessageTitle} // '';
-            $message =~ s/\s*$//;
-            if ($message eq '') {
-                $message = $login_json->{errorMessageBody} // 'unknown error';
-                $message =~ s{(?:<br\s*/>|\s)+}{ }g;
-            }
+        $request = POST(
+            "$root_url/signin/connect/api/users/prelogin",
+            @headers,
+            json_content({
+                'language' => $lang,
+                'login' => $login,
+                'password' => $password,
+                'returnUrl' => $return_url,
+            })
+        );
+        $doc = download($request,
+            redact => qr/"password"\s*:\s*\K"(?:[^\\"]|\\.)*"/,
+            ignore_errors => [422],
+        );
+        my $data = decode_json($doc->{content}, context => 'login.prelogin.json');
+        if ($data->{type} ne 'PreLoginResponse') {
+            my $message = $data->{detail} // '';
             $message = unicode_to_bytes($message);
             user_error("login failed: $message");
         }
-        my $redirect_url = match($login_json->{redirectUrl}, qr/\S+/, context => 'login.redirect-url');
-        if ($redirect_url eq '/dashboard') {
-            # yay, no 2FA
-            if (defined($register_device)) {
-                user_error('device already registered');
-            }
-        } elsif ($redirect_url eq '/authorization') {
-            _do_2fa($register_device);
-        } else {
-            no_match($redirect_url, context => 'login.redirect-url');
-        }
+        my $token = _do_2fa($register_device);
+        $request = POST(
+            "$root_url/signin/connect/api/users/finallogin",
+            @headers,
+            json_content({
+                'language' => ucfirst $lang,
+                'returnUrl' => $return_url,
+                'token' => $token,
+            })
+        );
+        $doc = download($request);
+        $data = decode_json($doc->{content}, context => 'login.final');
+        $return_url = match($data->{returnUrl}, qr{/.+}, context => 'login.final.return-url');
+        $request = GET("$root_url$return_url");
+        $doc = download($request);
         $request = GET($base_url);
         $doc = download($request);
     }
