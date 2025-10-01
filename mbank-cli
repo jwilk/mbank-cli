@@ -1415,6 +1415,16 @@ sub gen_uuid
     return $uuid;
 }
 
+sub match_uuid
+{
+    my ($uuid, %options) = @_;
+    kwargs(\%options,
+        context => \my $context,
+    );
+    return parse_uuid($uuid)
+        // no_match($uuid, context => $context);
+}
+
 # ================
 # terminal support
 # ================
