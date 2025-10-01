@@ -735,6 +735,10 @@ sub download
         close($fh)
             or os_error("$rpath: $ERRNO");
     }
+    if (ref($ignore_errors) eq 'ARRAY') {
+        my %ignored_errors = map { $_ => 1 } @{$ignore_errors};
+        $ignore_errors = $ignored_errors{$response->code};
+    }
     if (not $response->is_success and not $ignore_errors) {
         http_error($request, $response);
     }
