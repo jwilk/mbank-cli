@@ -1650,7 +1650,7 @@ sub _ask_for_sms_password
     return;
 }
 
-sub _do_2fa
+sub _do_2fa  ## no critic (ExcessComplexity)
 {
     my ($device_to_add) = @_;
     my @headers_api_auth = (
@@ -1683,6 +1683,26 @@ sub _do_2fa
         'dfp' => $dfp,
     };
     if (defined($device_to_add)) {
+        while (1) {
+            $request = POST(
+                "$root_url/signin/connect/api/sca/uniqueDevice",
+                @headers_api_auth,
+                json_content({'deviceName' => $device_to_add}),
+            );
+            $doc = download($request);
+            $data = decode_json($doc->{content}, context => 'login.sca.unique-dev');
+            if ($data->{isUnique}) {
+                last;
+            }
+            say {*STDERR} 'Device name has been rejected. Try another one.';
+            my $term = term_new();
+            my $name = '';
+            until (length($name) > 1) {  ## no critic (Until)
+                $name = $term->readline('Device name: ', unicode_to_bytes($device_to_add)) // '';
+                $name = bytes_to_unicode($name);
+            }
+            $device_to_add = $name;
+        }
         $mod_data->{authorizationAction} = 2; # AddTrusted
         $mod_data->{deviceName} = $device_to_add;
     }
