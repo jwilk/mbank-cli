@@ -1578,8 +1578,7 @@ sub get_tabid
     );
     defined($tabid)
         or scraping_error('login.tabid');
-    parse_uuid($tabid)
-        or scraping_error("login.tabid: $tabid");
+    match_uuid($tabid, context => "login.tabid: $tabid");
     return $tabid;
 }
 
