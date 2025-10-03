@@ -141,8 +141,6 @@ mbank-cli (2.2.2) unstable; urgency=low
   * The --debug option now saves request bodies (except for redacted
     password).
 
-  * New tests have been added.
-
  -- Jakub Wilk <jwilk@jwilk.net>  Thu, 20 Feb 2020 11:22:56 +0100
 
 mbank-cli (2.2.1) unstable; urgency=low
