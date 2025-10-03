@@ -1,6 +1,39 @@
 mbank-cli (2.6) UNRELEASED; urgency=low
 
-  * 
+  Major bug fixes:
+
+  * Logging in has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/105
+
+    You may need to re-register your device.
+
+  * Support for multiple personal profiles has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/93
+
+  New features:
+
+  * The “history” command has now options to select date range
+    (--from, --to).
+
+  Minor bug fixes:
+
+  * Printing non-ASCII recipients in the “future” command has been fixed.
+
+  * Exceeding the limit on the number of registered devices is now handled
+    gracefully.
+
+  Improvements:
+
+  * The socket timeout has been increased to 60 seconds.
+
+  * The “configure” command now uses the time zone (TZ environment variable,
+    /etc/localtime, /etc/timezone) to guess the country.
+
+  * The UUID::Tiny module is no longer used.
+
+  * Spawning child processes (GnuPG, password manager) has been sped up.
+
+  * A few spelling and terminology mistakes have been fixed.
 
  -- Jakub Wilk <jwilk@jwilk.net>  Fri, 03 Oct 2025 20:55:49 +0200
 
