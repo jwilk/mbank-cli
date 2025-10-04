@@ -2536,7 +2536,7 @@ sub do_future
     );
     $doc = download($request);
     my $json = decode_json($doc->{content}, context => 'future.filters');
-    my $masked_number_re = qr/(\d\d)(\d\d) [.][.][][.] (\d\d\d\d)/;
+    my $masked_number_re = qr/(\d\d)(\d\d) \Q...\E (\d\d\d\d)/;
     my %filter_accounts;
     my $i = 0;
     for my $account (@{$account_info}) {
