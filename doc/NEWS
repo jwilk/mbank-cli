@@ -1,4 +1,4 @@
-mbank-cli (2.6) UNRELEASED; urgency=low
+mbank-cli (2.6) unstable; urgency=low
 
   Major bug fixes:
 
@@ -35,7 +35,7 @@ mbank-cli (2.6) UNRELEASED; urgency=low
 
   * A few spelling and terminology mistakes have been fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 03 Oct 2025 20:55:49 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 06 Oct 2025 20:36:56 +0200
 
 mbank-cli (2.5) unstable; urgency=low
 
