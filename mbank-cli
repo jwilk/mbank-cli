@@ -250,7 +250,7 @@ sub quote
         $pattern =~ s{(\\.)|/}{ $1 // "\\/" }sge;
         return "/$pattern/$flags";
     } else {
-        state $json_encoder = JSON->new->ascii->allow_nonref;
+        state $json_encoder = JSON->new->canonical->ascii->allow_nonref;
         return $json_encoder->encode($x);
     }
 }
