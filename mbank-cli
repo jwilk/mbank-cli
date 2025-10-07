@@ -250,6 +250,7 @@ sub quote
         $pattern =~ s{(\\.)|/}{ $1 // "\\/" }sge;
         return "/$pattern/$flags";
     } else {
+        ## no critic (LongChainsOfMethodCalls);
         state $json_encoder = JSON->new->canonical->ascii->allow_nonref;
         return $json_encoder->encode($x);
     }
