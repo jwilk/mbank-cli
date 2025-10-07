@@ -1680,7 +1680,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     my $mod_data = {
         'authorizationAction' => 1, # OneTimeLogin
         'browserName' => 'Firefox',
-        'browserVersion' => $browser_version,
+        'browserVersion' => "$browser_version",
         'deviceName' => 'Komputer Linux Firefox',
         'osName' => 'Linux',
         'dfp' => $dfp,
