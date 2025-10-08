@@ -559,8 +559,8 @@ sub guess_country
 # Extracted from Tor Browser 14.5.7 (based on Firefox 128 ESR):
 
 # » navigator.userAgent
-my $browser_version = 128;
-my $browser_user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:$browser_version.0) Gecko/20100101 Firefox/$browser_version";
+my $browser_user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128';
+my ($browser_name, $browser_version) = $browser_user_agent =~ m{(\S+)/(\d+)$};
 
 # » window.Dfp.GetCurrentDfp().then(console.log) && null
 my $browser_dfp = 'eJyFkT1MFEEUx/dm/NhsUJcj4PmZDYUxJOgFDSEkhg89UDmQ4AfEZpzdnbubcXdnM7MHh9XaGSs7LCwsKYkVJYUFhSaUlMTExMpYUFyns3u35AiiL9ndt//fe/PmvWf0Gl1lGtQbVmNkGA3fzsOnczMFLX9NbxrmPiw0DWsfXm8axX04mi96OHClg0MyGArqY7F68YQBSNA/pX/eBXmdNEKPOjQqAAsM6DIk+CURspgb0UqasvuxOR/rS99+ty334sOB63/9Uh4buDOudcUqckv7v8VHlCFj/t6U9YySFSKGuu/WBPeJ1SH1pBKt+53ihVnqCC55JbJKbvVw/CKxZ2hk2XXqRYM0SNioNv56be3TmYendM3UCtoCnLs5kb6e543Ts/wV9TyczxxbY30Tc9PlEqKBjHDgEBdhIfCqZGZp6QmyPRK4yKeBjxvsUqI43OMC2fVKhQhUw14FVTyOI3YuganbSmJnU0HgKnJJGNVYX/Iva9hVeRFpRHVBkMddpqf6wvQku5x4GXK4HwoiJeUBssPIOZ6KqqJXO2lFjUNVwQGVPBI8pA7re1R6jIhHfBJEqleXNFCdBhHrTfSKzZFQd1Y5Pg19HLJCIicDcbFwVQOCLuOILhPJuhNyUChtvXBEQh4NCBatqhnpGNaVv+tZ2vkELxOhIlrbQNxmxFGVFkuT0+XDO2ifmJHWXNQas+OxTIZ3LCaKHp8sbync/0+MpKjarKcVk646wyzfFgVead9WZprHZbLFIAkVD9aBvgH0TaBvAX0bFHaAtgticw+YP9TnF9jLNYEew9h8A/V30HwP9Y8wBuswtwFzmzC3Bce2YWztqOdt7uT3n3Dzxh8LG3RL';
@@ -1661,9 +1661,9 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     }
     my $mod_data = {
         'authorizationAction' => 1, # OneTimeLogin
-        'browserName' => 'Firefox',
-        'browserVersion' => "$browser_version",
-        'deviceName' => 'Komputer Linux Firefox',
+        'browserName' => $browser_name,
+        'browserVersion' => $browser_version,
+        'deviceName' => "Komputer Linux $browser_name",
         'osName' => 'Linux',
         'dfp' => $dfp,
     };
