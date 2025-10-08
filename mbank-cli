@@ -34,6 +34,7 @@ use File::Basename qw(dirname);
 use File::Path ();
 use FindBin ();
 use Getopt::Long qw(:config gnu_compat permute no_getopt_compat no_ignore_case);
+use JSON::PP ();
 use Module::Loaded ();
 use POSIX ();
 use Symbol ();
@@ -44,26 +45,6 @@ use Time::Local ();
 use Time::Piece ();
 use Time::Seconds ();
 use re qw(is_regexp regexp_pattern);
-
-# JSON:
-BEGIN {
-    eval {
-        require JSON;
-    } or do {
-        require JSON::PP;
-        # poor man's reimplementation of the JSON module:
-        *JSON::decode_json = \&JSON::PP::decode_json;
-        *JSON::encode_json = \&JSON::PP::encode_json;
-        *JSON::is_bool = \&JSON::PP::is_bool;
-        *JSON::false = \&JSON::PP::false;
-        *JSON::true = \&JSON::PP::true;
-        *JSON::new = sub {
-            my ($cls, @args) = @_;
-            return JSON::PP->new(@args);
-        };
-        *JSON::new;  # silence "used only once" warning
-    }
-}
 
 # Work-around for HTTP::Cookies not catching write errors:
 # https://bugs.debian.org/750850
@@ -251,7 +232,7 @@ sub quote
         return "/$pattern/$flags";
     } else {
         ## no critic (LongChainsOfMethodCalls);
-        state $json_encoder = JSON->new->canonical->ascii->allow_nonref;
+        state $json_encoder = JSON::PP->new->canonical->ascii->allow_nonref;
         return $json_encoder->encode($x);
     }
 }
@@ -1350,7 +1331,7 @@ sub html_find
 
 sub encode_json
 {
-    goto &JSON::encode_json
+    goto &JSON::PP::encode_json
 }
 
 =begin comment
@@ -1369,7 +1350,7 @@ sub decode_json
         type => [\my $type, {}],
     );
     my $obj = eval {
-        JSON::decode_json($json);
+        JSON::PP::decode_json($json);
     } // do {
         scraping_error("$context: $EVAL_ERROR");
     };
@@ -1669,7 +1650,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     my $data = decode_json($doc->{content}, context => 'login.sca');
     my $sca_status = match($data->{imsStatus}, qr/(Is|Not)Trusted/, context => 'login.sca.status');
     my $sca_limit_exceeded = $data->{maximumNumberOfDevicesExceeded};
-    JSON::is_bool($sca_limit_exceeded)
+    JSON::PP::is_bool($sca_limit_exceeded)
         or no_match($sca_limit_exceeded, context => 'login.sca.limit');
     if ($sca_status eq 'IsTrusted') {
         # yay, no 2FA
@@ -1773,7 +1754,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         $doc = download($request);
         $data = decode_json($doc->{content}, context => 'login.session.prelogin');
         my $success = $data->{success} // '';
-        JSON::is_bool($success) and $success
+        JSON::PP::is_bool($success) and $success
             or no_match($data->{success}, context => 'login.session.prelogin.success');
         for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
             my $sms_password = _ask_for_sms_password($auth_date, $auth_no, $try);
