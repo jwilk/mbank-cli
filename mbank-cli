@@ -2132,7 +2132,7 @@ sub do_blocked
         display_name => \my $display_name,
     );
     my %selected_accounts = select_accounts($account_info, @{$selection})
-        or user_error('blocked2019: no matching accounts');
+        or user_error('blocked: no matching accounts');
     $display_name ||=
         (scalar(keys(%selected_accounts)) > 1);
     my @headers = (
