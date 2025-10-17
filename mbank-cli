@@ -1747,15 +1747,6 @@ sub _do_2fa  ## no critic (ExcessComplexity)
             }
         }
     } elsif ($auth_mode eq 'SMS') {
-        $request = GET(
-            "$root_url/signin/connect/api/users/session/prelogin",
-            @headers_api_auth,
-        );
-        $doc = download($request);
-        $data = decode_json($doc->{content}, context => 'login.session.prelogin');
-        my $success = $data->{success} // '';
-        JSON::PP::is_bool($success) and $success
-            or no_match($data->{success}, context => 'login.session.prelogin.success');
         for (my $try = 1; ; $try++) {  ## no critic (CStyleForLoop)
             my $sms_password = _ask_for_sms_password($auth_date, $auth_no, $try);
             $request = POST(
