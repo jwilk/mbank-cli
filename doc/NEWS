@@ -1,4 +1,4 @@
-mbank-cli (2.6.2) UNRELEASED; urgency=low
+mbank-cli (2.6.2) unstable; urgency=low
 
   Major bug fixes:
 
@@ -10,7 +10,7 @@ mbank-cli (2.6.2) UNRELEASED; urgency=low
   * The history and blocked commands printed wrong command name in error
     message. This bug is now fixed.
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 17 Oct 2025 18:05:09 +0200
+ -- Jakub Wilk <jwilk@jwilk.net>  Fri, 17 Oct 2025 19:38:00 +0200
 
 mbank-cli (2.6.1) unstable; urgency=low
 
