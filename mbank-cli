@@ -136,19 +136,6 @@ sub user_error
     exit(1);
 }
 
-sub config_error
-{
-    my ($config, $message) = @_;
-    my $config_path;
-    if (ref $config) {
-        $config_path = $config->{__path__};
-    } else {
-        $config_path = $config;
-    }
-    $message = "$config_path: $message";
-    return user_error($message);
-}
-
 sub server_error
 {
     my ($message) = @_;
@@ -858,7 +845,7 @@ sub _read_config
             ($value) = Text::ParseWords::parse_line('^$', 0, $value);
             $config->{$key} = $value;
         } else {
-            config_error($path, "syntax error: $_");
+            config_error("syntax error: $_", config => $path);
         }
     }
     return $config;
@@ -898,7 +885,7 @@ sub _decrypt_config
                 ($value) = Text::ParseWords::parse_line('^$', 0, $value);
                 $config->{$key} = $value;
             } else {
-                config_error($config, "syntax error in encrypted part: $_");
+                config_error("syntax error in encrypted part: $_", config => $config);
             }
         }
     }
@@ -907,7 +894,8 @@ sub _decrypt_config
 
 sub get_config_var
 {
-    my ($config, $var, $default) = @_;
+    my ($var, $default) = @_;
+    my $config = $global_config;
     if (exists($config->{$var}) or defined($default)) {
         if (ref($default)) {
             $default = ${$default};
@@ -916,6 +904,22 @@ sub get_config_var
     }
     _decrypt_config($config);
     return $config->{$var};
+}
+
+sub config_error
+{
+    my ($message, %options) = @_;
+    kwargs(\%options,
+        config => [\my $config, $global_config],
+    );
+    my $config_path;
+    if (ref $config) {
+        $config_path = $config->{__path__};
+    } else {
+        $config_path = $config;
+    }
+    $message = "$config_path: $message";
+    return user_error($message);
 }
 
 # ===========================
@@ -1572,8 +1576,7 @@ sub _ask_for_sms_password
 {
     my ($date, $n, $try) = @_;
     my ($y, $m, $d) = split /-/, $date;
-    my $cfg = $global_config;
-    my $inbox = get_config_var($cfg, 'smsinbox');
+    my $inbox = get_config_var('smsinbox');
     if (defined $inbox) {
         $inbox = expand_tilde($inbox);
         $inbox =~ s{[^/]\K/+\z}{};  # strip trailing slash
@@ -1639,8 +1642,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         'Origin' => $root_url,
         'Referer' => "$root_url/connect/Login",
     );
-    my $cfg = $global_config;
-    my $dfp = get_config_var($cfg, 'dfp') // $browser_dfp;
+    my $dfp = get_config_var('dfp') // $browser_dfp;
     my $request = POST(
         "$root_url/signin/connect/api/sca",
         @headers_api_auth,
@@ -1800,11 +1802,10 @@ sub do_login
         $return_url =~ s/%3a/%3A/g;
         $return_url = "/signin/connect/authorize/callback?$return_url&suppressed_prompt=login";
         my $login_url = $doc->{url};
-        my $cfg = $global_config;
-        my $login = get_config_var($cfg, 'login')
-            // config_error($cfg, 'missing login');
+        my $login = get_config_var('login')
+            // config_error('missing login');
         my $password;
-        my $password_manager = get_config_var($cfg, 'passwordmanager');
+        my $password_manager = get_config_var('passwordmanager');
         if (defined($password_manager)) {
             eval {
                 require IPC::Run;
@@ -1823,20 +1824,20 @@ sub do_login
             };
             $password =~ s/\n.*//s;
         } else {
-            $password = get_config_var($cfg, 'password');
+            $password = get_config_var('password');
             if (not defined($password)) {
                 if (-t STDIN) {
                     my $term = term_new(readpasswd => 1);
                     $password = term_readpasswd($term, 'Password: ');
                     $password //= '';
                 } else {
-                    config_error($cfg, 'missing password');
+                    config_error('missing password');
                 }
             }
         }
         length($password) > 0
             or user_error('login failed: empty password');
-        if (defined(get_config_var($cfg, 'smsinbox'))) {
+        if (defined(get_config_var('smsinbox'))) {
             # Make sure the SMSInbox feature is configured properly before we
             # try to log in:
             _ask_for_sms_password('2006-07-30', 1, 0);
@@ -3301,17 +3302,17 @@ sub initialize
             'Run "mbank-cli configure" or create the configuration file manually.'
         );
     }
-    my $cfg = $global_config = read_config($opt_config);
+    $global_config = read_config($opt_config);
     my $cookie_jar_path;
     if (defined($opt_cookie_jar)) {
         $cookie_jar_path = $opt_cookie_jar;
     } else {
-        $cookie_jar_path = get_config_var($cfg, 'cookiejar')
-            // config_error($cfg, 'missing cookiejar');
+        $cookie_jar_path = get_config_var('cookiejar')
+            // config_error('missing cookiejar');
         $cookie_jar_path = expand_tilde($cookie_jar_path);
     }
     debug("cookiejar = $cookie_jar_path");
-    my $ca_path = get_config_var($cfg, 'cafile', \undef);
+    my $ca_path = get_config_var('cafile', \undef);
     if (defined($ca_path)) {
         $ca_path = expand_tilde($ca_path);
         if (not -r $ca_path) {
@@ -3319,14 +3320,14 @@ sub initialize
         }
         debug("cafile = $ca_path");
     };
-    my $tld = get_config_var($cfg, 'country')
-        // config_error($cfg, 'missing country');
+    my $tld = get_config_var('country')
+        // config_error('missing country');
     $tld = lc $tld;
     my $lang = $country_to_language{$tld};
     if (not defined($lang)) {
         local $LIST_SEPARATOR = ', ';
         my $known_countries = "{@known_countries}";
-        config_error($cfg, "unknown country \U$tld\E, not in \U$known_countries\E");
+        config_error("unknown country \U$tld\E, not in \U$known_countries\E");
     }
     $mbank_host = "online.mbank.$tld";
     $root_url = "https://$mbank_host";
