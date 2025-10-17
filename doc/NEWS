@@ -1,8 +1,16 @@
 mbank-cli (2.6.2) UNRELEASED; urgency=low
 
-  * 
+  Major bug fixes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Thu, 09 Oct 2025 17:33:39 +0200
+  * Second-factor SMS authentication has been fixed.
+    https://github.com/jwilk/mbank-cli/issues/108
+
+  Minor bug fixes:
+
+  * The history and blocked commands printed wrong command name in error
+    message. This bug is now fixed.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Fri, 17 Oct 2025 18:05:09 +0200
 
 mbank-cli (2.6.1) unstable; urgency=low
 
