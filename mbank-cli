@@ -1769,12 +1769,12 @@ sub _do_2fa  ## no critic (ExcessComplexity)
                     say {*STDERR} 'Incorrect SMS password';
                     next;
                 } else {
-                    scraping_error("login.2fa.exec.error: $error_code")
+                    no_match($error_code, context => 'login.2fa.exec.error');
                 }
             }
         }
     } else {
-        scraping_error("login.2fa.init.auth-mode: $auth_mode");
+        no_match($auth_mode, context => 'login.2fa.init.auth-mode');
     }
     return;
 }
