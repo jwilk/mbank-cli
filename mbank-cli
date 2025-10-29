@@ -1795,6 +1795,8 @@ sub do_login
             debug('not logged in');
             return;
         }
+        debug('clearing temporary cookies');
+        $ua->cookie_jar->clear_temporary_cookies();
         debug('logging in...');
         my ($lang) = ($base_url =~ m{/(\w\w)$});
         my ($return_url) = ($doc->{content} =~ m{'/signin/connect/authorize[?]ui_locales=$lang&(request_uri=urn%3aietf%3aparams%3aoauth%3arequest_uri%3a[0-9A-F]+&client_id=Ib)'})  ## no critic (ComplexRegex, EnumeratedClasses)
