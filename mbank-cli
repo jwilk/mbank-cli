@@ -1635,6 +1635,32 @@ sub _ask_for_sms_password
     return;
 }
 
+sub unexpire_cookie
+{
+    my ($name, %options) = @_;
+    kwargs(\%options, context => \my $context);
+    my @cookie_args;
+    $ua->cookie_jar->scan(sub {
+        my @args = @_;
+        if ($args[1] eq $name) {
+            @cookie_args = @args;
+        }
+    });
+    if (@cookie_args) {
+        if (not defined($cookie_args[8])) {
+            # HTTP::Cookies doesn't handle the max-age parameter correctly:
+            # https://github.com/libwww-perl/HTTP-Cookies/issues/69
+            # Let's restore the expiry info if it was lost.
+            debug("setting expiration date for cookie $name");
+            $cookie_args[8] = 1E10;  # ~317 years
+            $ua->cookie_jar->set_cookie(@cookie_args);
+        }
+    } else {
+        scraping_error("$context: cookie $name missing");
+    }
+    return;
+}
+
 sub _do_2fa  ## no critic (ExcessComplexity)
 {
     my ($device_to_add) = @_;
@@ -1649,6 +1675,7 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         json_content({dfp => $dfp})
     );
     my $doc = download($request);
+    unexpire_cookie('mBank8', context => 'login.sca.cookie');
     my $data = decode_json($doc->{content}, context => 'login.sca');
     my $sca_status = match($data->{imsStatus}, qr/(Is|Not)Trusted|Suspicious/, context => 'login.sca.status');
     debug("SCA status: $sca_status");
