@@ -1650,7 +1650,8 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     );
     my $doc = download($request);
     my $data = decode_json($doc->{content}, context => 'login.sca');
-    my $sca_status = match($data->{imsStatus}, qr/(Is|Not)Trusted/, context => 'login.sca.status');
+    my $sca_status = match($data->{imsStatus}, qr/(Is|Not)Trusted|Suspicious/, context => 'login.sca.status');
+    debug("SCA status: $sca_status");
     my $sca_limit_exceeded = $data->{maximumNumberOfDevicesExceeded};
     JSON::PP::is_bool($sca_limit_exceeded)
         or no_match($sca_limit_exceeded, context => 'login.sca.limit');
