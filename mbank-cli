@@ -1820,6 +1820,23 @@ sub clear_temp_cookies
 {
     debug('clearing temporary cookies');
     $ua->cookie_jar->clear_temporary_cookies();
+    my @cookies;
+    $ua->cookie_jar->scan(
+        sub {
+            my ($ver, $key, $value, $path, $domain, undef, undef, undef, $expires) = @_;
+            if (($domain eq $mbank_host)) {
+                my $expinfo = defined($expires)
+                    ? 'exp ' . HTTP::Date::time2isoz($expires)
+                    : 'no exp';
+                push @cookies, "$key ($expinfo)";
+            }
+        }
+    );
+    my $cookies = do {
+        local $LIST_SEPARATOR = ', ';
+        "@cookies";
+    };
+    debug("remaining cookies: $cookies");
     return;
 }
 
