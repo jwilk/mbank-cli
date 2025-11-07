@@ -1809,6 +1809,13 @@ sub _do_2fa  ## no critic (ExcessComplexity)
     return;
 }
 
+sub clear_temp_cookies
+{
+    debug('clearing temporary cookies');
+    $ua->cookie_jar->clear_temporary_cookies();
+    return;
+}
+
 sub do_login
 {
     my %options = @_;
@@ -1823,8 +1830,7 @@ sub do_login
             debug('not logged in');
             return;
         }
-        debug('clearing temporary cookies');
-        $ua->cookie_jar->clear_temporary_cookies();
+        clear_temp_cookies();
         debug('logging in...');
         my ($lang) = ($base_url =~ m{/(\w\w)$});
         my ($return_url) = ($doc->{content} =~ m{'/signin/connect/authorize[?]ui_locales=$lang&(request_uri=urn%3aietf%3aparams%3aoauth%3arequest_uri%3a[0-9A-F]+&client_id=Ib)'})  ## no critic (ComplexRegex, EnumeratedClasses)
@@ -2917,8 +2923,7 @@ sub do_logout
     );
     my $login_info = do_login(probe => 1);
     if (not defined($login_info)) {
-        $ua->cookie_jar->clear_temporary_cookies();
-        debug('temporary cookies have been wiped out');
+        clear_temp_cookies();
         if ($maybe) {
             return;
         } else {
@@ -2936,8 +2941,7 @@ sub do_logout
             or scraping_error('logout.redirect');
         debug('successful logout');
     }
-    $ua->cookie_jar->clear_temporary_cookies();
-    debug('temporary cookies have been wiped out');
+    clear_temp_cookies();
     return;
 }
 
