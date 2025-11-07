@@ -1641,8 +1641,8 @@ sub unexpire_cookie
     kwargs(\%options, context => \my $context);
     my @cookie_args;
     $ua->cookie_jar->scan(sub {
-        my @args = @_;
-        if ($args[1] eq $name) {
+        my ($version, $key, $value, $path, $domain) = my @args = @_;
+        if (($domain eq $mbank_host) and ($key eq $name)) {
             @cookie_args = @args;
         }
     });
