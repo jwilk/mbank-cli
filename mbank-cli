@@ -1658,6 +1658,17 @@ sub unexpire_cookie
     } else {
         scraping_error("$context: cookie $name missing");
     }
+    my $expires;
+    $ua->cookie_jar->scan(sub {
+        my ($version, $key, $value, $path, $domain) = my @args = @_;
+        if (($domain eq $mbank_host) and ($key eq $name)) {
+            $expires = $args[8];
+        }
+    });
+    defined($expires)
+        or internal_error("cookie $name does not expire");
+    $expires = HTTP::Date::time2isoz($expires);
+    debug("cookie $name expires on $expires");
     return;
 }
 
