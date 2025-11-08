@@ -3317,14 +3317,14 @@ sub show_version
 {
     say "mbank-cli $VERSION";
     say "+ Perl $PERL_VERSION";
-    for my $module (qw(LWP::UserAgent LWP::Protocol::https IO::Socket::SSL Net::SSLeay)) {
+    for my $module (qw(LWP::UserAgent LWP::Protocol::https IO::Socket::SSL Net::SSLeay HTTP::Cookies)) {
         Module::Loaded::is_loaded($module)
             // internal_error("$module not loaded");
         my $version = $module->VERSION // '(no version information)';
         say("+ $module $version");
-    }
-    if (defined $openssl_version) {
-        say("  * OpenSSL $openssl_version");
+        if ($module eq 'Net::SSLeay' and defined $openssl_version) {
+            say("  * OpenSSL $openssl_version");
+        }
     }
     exit();
 }
