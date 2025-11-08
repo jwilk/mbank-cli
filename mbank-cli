@@ -1648,12 +1648,15 @@ sub unexpire_cookie
     kwargs(\%options, context => \my $context);
     my @cookie_args = get_cookie_info($name);
     if (@cookie_args) {
-        if (not defined($cookie_args[8])) {
+        if (not defined($cookie_args[8]) or $cookie_args[9]) {
             # HTTP::Cookies doesn't handle the max-age parameter correctly:
-            # https://github.com/libwww-perl/HTTP-Cookies/issues/69
-            # Let's restore the expiry info if it was lost.
+            # * https://github.com/libwww-perl/HTTP-Cookies/pull/61
+            #   (spurious discard flag)
+            # * https://github.com/libwww-perl/HTTP-Cookies/issues/69
+            #   (lost expiry time)
             debug("setting expiration date for cookie $name");
             $cookie_args[8] = 1E10;  # ~317 years
+            $cookie_args[9] = 0;  # no discard
             $ua->cookie_jar->set_cookie(@cookie_args);
         }
     } else {
