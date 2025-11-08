@@ -1839,6 +1839,7 @@ sub clear_temp_cookies
         local $LIST_SEPARATOR = ', ';
         "@cookies";
     };
+    $cookies ||= '(none)';
     debug("remaining cookies: $cookies");
     return;
 }
