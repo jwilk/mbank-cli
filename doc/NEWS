@@ -1,8 +1,20 @@
 mbank-cli (2.6.3) UNRELEASED; urgency=low
 
-  * 
+  Major bug fixes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Fri, 17 Oct 2025 19:48:14 +0200
+  * Logging in has been fixes.
+    https://github.com/jwilk/mbank-cli/issues/109
+
+  * The “register-device” command has been fixed not to lose the
+    device-identifying cookie on logout.
+    https://github.com/jwilk/mbank-cli/issues/110
+
+  Minor bug fixes:
+
+  * A sporadic crash during 2FA may have been fixed.
+    https://github.com/jwilk/mbank-cli/issues/111
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 08 Nov 2025 08:02:02 +0100
 
 mbank-cli (2.6.2) unstable; urgency=low
 
