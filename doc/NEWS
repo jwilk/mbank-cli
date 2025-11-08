@@ -1,4 +1,4 @@
-mbank-cli (2.6.3) UNRELEASED; urgency=low
+mbank-cli (2.6.3) unstable; urgency=low
 
   Major bug fixes:
 
@@ -14,7 +14,7 @@ mbank-cli (2.6.3) UNRELEASED; urgency=low
   * A sporadic crash during 2FA may have been fixed.
     https://github.com/jwilk/mbank-cli/issues/111
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 08 Nov 2025 08:02:02 +0100
+ -- Jakub Wilk <jwilk@jwilk.net>  Sat, 08 Nov 2025 08:17:21 +0100
 
 mbank-cli (2.6.2) unstable; urgency=low
 
