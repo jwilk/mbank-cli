@@ -1,8 +1,16 @@
 mbank-cli (2.6.4) UNRELEASED; urgency=low
 
-  * 
+  Major bug fixes:
 
- -- Jakub Wilk <jwilk@jwilk.net>  Sat, 08 Nov 2025 15:50:37 +0100
+  * The “register-device” command has been really fixed not to lose the
+    device-identifying cookie on logout.
+    https://github.com/jwilk/mbank-cli/issues/110
+
+  Improvements:
+
+  * The --help option now prints version of the HTTP::Cookies module.
+
+ -- Jakub Wilk <jwilk@jwilk.net>  Mon, 10 Nov 2025 10:07:02 +0100
 
 mbank-cli (2.6.3) unstable; urgency=low
 
