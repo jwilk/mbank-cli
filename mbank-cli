@@ -1984,7 +1984,7 @@ sub do_login
     };
 }
 
-sub do_register_device
+sub cmd::register_device
 {
     my %options = @_;
     kwargs(\%options,
@@ -2057,6 +2057,11 @@ sub do_list
     return [@result];
 }
 
+sub cmd::list
+{
+    goto &do_list;
+}
+
 sub select_accounts
 {
     my ($account_info, @selection) = @_;
@@ -2101,7 +2106,7 @@ sub parse_csv_line
     return \%item;
 }
 
-sub do_history  ## no critic (RequireArgUnpacking)
+sub cmd::history  ## no critic (RequireArgUnpacking)
 {
     my %options = @_;
     kwargs(\%options,
@@ -2182,7 +2187,7 @@ sub do_history  ## no critic (RequireArgUnpacking)
     goto &do_history2019;
 }
 
-sub do_blocked
+sub cmd::blocked
 {
     my %options = @_;
     kwargs(\%options,
@@ -2378,6 +2383,11 @@ sub do_history2019
     return;
 }
 
+sub cmd::history2019
+{
+    goto &do_history2019;
+}
+
 sub _do_history2019_account
 {
     my %options = @_;
@@ -2537,7 +2547,7 @@ sub _do_history2019_export
     return $response->content;
 }
 
-sub do_future
+sub cmd::future
 {
     my %options = @_;
     kwargs(\%options,
@@ -2680,7 +2690,7 @@ sub do_future
     return;
 }
 
-sub do_deposits
+sub cmd::deposits
 {
     my %options = @_;
     kwargs(\%options,
@@ -2725,7 +2735,7 @@ sub do_deposits
     return;
 }
 
-sub do_cards
+sub cmd::cards
 {
     my %options = @_;
     kwargs(\%options,
@@ -2756,14 +2766,14 @@ sub do_cards
     return;
 }
 
-sub do_funds
+sub cmd::funds
 {
     my %options = @_;
     _do_funds(%options, 'type' => 'Normal');
     return;
 }
 
-sub do_pension
+sub cmd::pension
 {
     my %options = @_;
     _do_funds(%options, 'type' => 'ike');
@@ -2822,7 +2832,7 @@ sub _do_funds
     return;
 }
 
-sub do_notices
+sub cmd::notices
 {
     my %options = @_;
     kwargs(\%options,
@@ -2867,7 +2877,7 @@ sub do_notices
     return;
 }
 
-sub do_activate_profile
+sub cmd::activate_profile
 {
     my %options = @_;
     kwargs(\%options,
@@ -2976,12 +2986,17 @@ sub do_logout
     return;
 }
 
-sub do_debug_noop
+sub cmd::logout
+{
+    goto &do_logout;
+}
+
+sub cmd::debug_noop
 {
     # Nothing to do!
 }
 
-sub do_debug_https_get
+sub cmd::debug_https_get
 {
     my %options = @_;
     kwargs(\%options,
@@ -2999,7 +3014,7 @@ sub do_debug_https_get
     return;
 }
 
-sub do_debug_sms_password
+sub cmd::debug_sms_password
 {
     my %options = @_;
     kwargs(\%options,
@@ -3170,7 +3185,7 @@ sub makedirs
     return;
 }
 
-sub do_configure
+sub cmd::configure
 {
     my %options = @_;
     kwargs(\%options,
@@ -3481,12 +3496,7 @@ sub main
     if (not defined $command_info) {
         user_error("$command_name: invalid command");
     }
-    my $command;
-    {
-        my $sub_name = "do_$command_name";
-        $sub_name =~ y/-/_/;
-        $command = $::{$sub_name};
-    }
+    my $command = $cmd::{$command_name =~ y/-/_/r};
     my $need_login = $command_info->{login} // 1;
     my @cmd_options;
     if ($command_name =~ m/^debug-/) {
