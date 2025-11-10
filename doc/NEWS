@@ -8,7 +8,7 @@ mbank-cli (2.6.3) unstable; urgency=low
 
   Major bug fixes:
 
-  * Logging in has been fixes.
+  * Logging in has been fixed.
     https://github.com/jwilk/mbank-cli/issues/109
 
   * The “register-device” command has been fixed not to lose the
