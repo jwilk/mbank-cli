@@ -147,7 +147,7 @@ sub http_error
 {
     my ($request, $response) = @_;
     my $message = sprintf(
-        'HTTP error %d while processing request <%s %s>',
+        'HTTP error %d on <%s %s>',
         $response->code,
         $request->method,
         $request->uri
@@ -179,7 +179,7 @@ sub http_decoding_error
 {
     my ($request) = @_;
     my $message = sprintf(
-        'HTTP decoding error while processing request <%s %s>',
+        'HTTP decoding error on <%s %s>',
         $request->method,
         $request->uri,
     );
