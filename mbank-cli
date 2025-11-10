@@ -1708,6 +1708,9 @@ sub _do_2fa  ## no critic (ExcessComplexity)
         'dfp' => $dfp,
     };
     if (defined($device_to_add)) {
+        if ($sca_status ne 'NotTrusted') {
+            user_error('device already registered');
+        }
         if ($sca_limit_exceeded) {
             user_error('too many registered devices')
         }
