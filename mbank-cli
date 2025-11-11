@@ -1671,7 +1671,7 @@ sub unexpire_cookie
     return;
 }
 
-sub _do_2fa  ## no critic (ExcessComplexity)
+sub do_2fa  ## no critic (ExcessComplexity)
 {
     my ($device_to_add) = @_;
     my @headers_api_auth = (
@@ -1933,7 +1933,7 @@ sub do_login
             $message = unicode_to_bytes($message);
             user_error("login failed: $message");
         }
-        my $token = _do_2fa($register_device);
+        my $token = do_2fa($register_device);
         $request = POST(
             "$root_url/signin/connect/api/users/finallogin",
             @headers,
@@ -2315,7 +2315,7 @@ sub do_history2019
     if (ref($export) eq 'CODE') {
         for my $account_no (sort(keys(%selected_accounts))) {
             my $account_name = $selected_accounts{$account_no};
-            my $csv = _do_history2019_export(
+            my $csv = do_history2019_export(
                 login => $login_info,
                 headers => [@export_headers],
                 account_no => $account_no,
@@ -2337,7 +2337,7 @@ sub do_history2019
             user_error("$command_name: exactly one account required for --export");
         }
         my ($account_no) = @accounts;
-        my $export = _do_history2019_export(
+        my $export = do_history2019_export(
             login => $login_info,
             headers => [@export_headers],
             account_no => $account_no,
@@ -2369,7 +2369,7 @@ sub do_history2019
         if (not defined($product_id)) {
             no_match($account_no, context => 'history2019.product.for');
         }
-        _do_history2019_account(
+        do_history2019_account(
             headers => [@headers],
             account_name => $account_name,
             product_id => $product_id,
@@ -2388,7 +2388,7 @@ sub cmd::history2019
     goto &do_history2019;
 }
 
-sub _do_history2019_account
+sub do_history2019_account
 {
     my %options = @_;
     kwargs(\%options,
@@ -2497,7 +2497,7 @@ sub _do_history2019_account
     return;
 }
 
-sub _do_history2019_export
+sub do_history2019_export
 {
     my %options = @_;
     kwargs(\%options,
@@ -2769,18 +2769,18 @@ sub cmd::cards
 sub cmd::funds
 {
     my %options = @_;
-    _do_funds(%options, 'type' => 'Normal');
+    do_funds(%options, 'type' => 'Normal');
     return;
 }
 
 sub cmd::pension
 {
     my %options = @_;
-    _do_funds(%options, 'type' => 'ike');
+    do_funds(%options, 'type' => 'ike');
     return;
 }
 
-sub _do_funds
+sub do_funds
 {
     my %options = @_;
     kwargs(\%options,
@@ -2932,11 +2932,11 @@ sub cmd::activate_profile
     # It's tempting to do decode_json() here, but actually,
     # despite the Content-Type, the response is not valid JSON.
     # Yay...
-    _do_lazy_logout(login => $login_info);
+    do_lazy_logout(login => $login_info);
     return;
 }
 
-sub _do_lazy_logout
+sub do_lazy_logout
 {
     my %options = @_;
     kwargs(\%options,
@@ -2972,7 +2972,7 @@ sub do_logout
         }
     } else {
         debug('logging out...');
-        _do_lazy_logout(login => $login_info);
+        do_lazy_logout(login => $login_info);
         my $request = GET(
             "$base_url/LoginMain/Account/Logout",
             'Referer' => $login_info->{url},
