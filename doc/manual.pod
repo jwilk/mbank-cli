@@ -616,6 +616,6 @@ L<gpg(1)>
 
 =item *
 
-L<XDG Base Directory Specification|https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html>
+L<XDG Base Directory Specification|https://specifications.freedesktop.org/basedir/latest/>
 
 =back
