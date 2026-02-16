@@ -1455,7 +1455,6 @@ my $mbank_host = undef;
 my $root_url = undef;
 my $base_url = undef;
 my $csite_url = undef;
-my $offline_accounts_url = 'https://online.mbank.pl/api/AccountsAggregation/Accounts/accounts/Offline';
 
 my @header_xhr = (
     'X-Requested-With' => 'XMLHttpRequest',
@@ -2059,6 +2058,7 @@ sub fetch_offline_accounts
 {
     my ($login_info) = @_;
     my @offline_accounts;
+    my $offline_accounts_url = "$root_url/api/AccountsAggregation/Accounts/accounts/Offline";
     my $request = POST(
         $offline_accounts_url,
         @{$login_info->{headers}},
