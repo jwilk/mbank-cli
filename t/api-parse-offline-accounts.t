@@ -68,7 +68,7 @@ require "$module";  ## no critic (RequireBareword)
     my @accounts = parse_offline_accounts($json);
     cmp_ok(scalar(@accounts), '==', 1, 'one account from payload key');
     cmp_ok($accounts[0]->{name}, 'eq', 'Konto Freemium', 'externalAccountName used as account name');
-    cmp_ok($accounts[0]->{number}, 'eq', 'PL12345678901234567890123456', 'accountNumber extracted');
+    cmp_ok($accounts[0]->{number}, 'eq', '12 3456 7890 1234 5678 9012 3456', 'accountNumber formatted with spaces');
     cmp_ok($accounts[0]->{currency}, 'eq', 'PLN', 'currency extracted');
 }
 
