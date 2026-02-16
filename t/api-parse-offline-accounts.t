@@ -10,7 +10,7 @@ use warnings;
 
 use v5.10;
 
-use Test::More tests => 8;
+use Test::More tests => 10;
 
 use FindBin ();
 use lib $FindBin::Bin;
@@ -52,6 +52,14 @@ require "$module";  ## no critic (RequireBareword)
     my @accounts = parse_offline_accounts($json);
     cmp_ok(scalar(@accounts), '==', 1, 'one account from array root');
     cmp_ok($accounts[0]->{source}, 'eq', 'external', 'missing bank name defaults to external');
+}
+
+# Test 6: Accounts with missing name or number are skipped
+{
+    my $json = '{"accounts":[{"name":"Valid Account","number":"123456"},{"name":"Missing Number"},{"number":"987654"}]}';
+    my @accounts = parse_offline_accounts($json);
+    cmp_ok(scalar(@accounts), '==', 1, 'only account with both name and number is parsed');
+    cmp_ok($accounts[0]->{name}, 'eq', 'Valid Account', 'valid account name is correct');
 }
 
 # vim:ts=4 sts=4 sw=4 et

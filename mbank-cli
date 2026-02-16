@@ -1455,6 +1455,7 @@ my $mbank_host = undef;
 my $root_url = undef;
 my $base_url = undef;
 my $csite_url = undef;
+my $offline_accounts_url = 'https://online.mbank.pl/api/AccountsAggregation/Accounts/accounts/Offline';
 
 my @header_xhr = (
     'X-Requested-With' => 'XMLHttpRequest',
@@ -2019,8 +2020,6 @@ sub cmd::register_device
     return;
 }
 
-my $offline_accounts_url = 'https://online.mbank.pl/api/AccountsAggregation/Accounts/accounts/Offline';
-
 sub parse_offline_accounts
 {
     my ($json_content) = @_;
@@ -2028,14 +2027,17 @@ sub parse_offline_accounts
     my $data = eval {
         JSON::PP::decode_json($json_content);
     };
-    return @accounts if not defined $data;
+    if (not defined $data) {
+        debug('offline accounts JSON parsing failed');
+        return @accounts;
+    }
     my $accounts_list = ref($data) eq 'ARRAY' ? $data : $data->{accounts} // $data->{Accounts} // [];
     $accounts_list = [] if ref($accounts_list) ne 'ARRAY';
     for my $account (@{$accounts_list}) {
         next if ref($account) ne 'HASH';
-        my $name = $account->{name} // $account->{productName} // $account->{ProductName} // '';
-        my $number = $account->{number} // $account->{accountNumber} // $account->{iban} // $account->{Iban} // '';
-        next if $name eq '' or $number eq '';
+        my $name = $account->{name} // $account->{productName} // $account->{ProductName};
+        my $number = $account->{number} // $account->{accountNumber} // $account->{iban} // $account->{Iban};
+        next if not defined $name or $name eq '' or not defined $number or $number eq '';
         my $balance = $account->{balance} // $account->{Balance};
         my $currency = $account->{currency} // $account->{Currency} // '';
         my $available = $account->{availableBalance} // $account->{AvailableBalance};
@@ -2151,10 +2153,18 @@ sub do_list
         my $balance_str = '';
         my $available_str = '';
         if (defined $balance_val and $currency ne '') {
-            $balance_str = eval { format_money($balance_val, $currency, context => 'list.offline.balance') } // '';
+            $balance_str = eval { format_money($balance_val, $currency, context => 'list.offline.balance') };
+            if (not defined $balance_str) {
+                debug('offline account balance formatting failed');
+                $balance_str = '';
+            }
         }
         if (defined $available_val and $currency ne '') {
-            $available_str = eval { format_money($available_val, $currency, context => 'list.offline.available') } // '';
+            $available_str = eval { format_money($available_val, $currency, context => 'list.offline.available') };
+            if (not defined $available_str) {
+                debug('offline account available balance formatting failed');
+                $available_str = '';
+            }
         }
         $name = unicode_to_bytes($name);
         $source = unicode_to_bytes($source);
