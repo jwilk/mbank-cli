@@ -2030,11 +2030,11 @@ sub parse_offline_accounts
         debug('offline accounts JSON parsing failed');
         return @accounts;
     }
-    my $accounts_list = ref($data) eq 'ARRAY' ? $data : $data->{accounts} // $data->{Accounts} // [];
+    my $accounts_list = ref($data) eq 'ARRAY' ? $data : $data->{payload} // $data->{accounts} // $data->{Accounts} // [];
     $accounts_list = [] if ref($accounts_list) ne 'ARRAY';
     for my $account (@{$accounts_list}) {
         next if ref($account) ne 'HASH';
-        my $name = $account->{name} // $account->{productName} // $account->{ProductName};
+        my $name = $account->{name} // $account->{productName} // $account->{ProductName} // $account->{externalAccountName} // $account->{accountTypeName} // $account->{accountNameClient};
         my $number = $account->{number} // $account->{accountNumber} // $account->{iban} // $account->{Iban};
         next if not defined $name or $name eq '' or not defined $number or $number eq '';
         my $balance = $account->{balance} // $account->{Balance};
