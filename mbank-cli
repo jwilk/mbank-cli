@@ -2019,6 +2019,87 @@ sub cmd::register_device
     return;
 }
 
+sub parse_offline_accounts
+{
+    my ($json_content) = @_;
+    my @accounts;
+    my $data = eval {
+        JSON::PP::decode_json($json_content);
+    };
+    if (not defined $data) {
+        debug('offline accounts JSON parsing failed');
+        return @accounts;
+    }
+    my $accounts_list = ref($data) eq 'ARRAY' ? $data : $data->{accounts} // $data->{Accounts} // [];
+    $accounts_list = [] if ref($accounts_list) ne 'ARRAY';
+    for my $account (@{$accounts_list}) {
+        next if ref($account) ne 'HASH';
+        my $name = $account->{name} // $account->{productName} // $account->{ProductName};
+        my $number = $account->{number} // $account->{accountNumber} // $account->{iban} // $account->{Iban};
+        next if not defined $name or $name eq '' or not defined $number or $number eq '';
+        my $balance = $account->{balance} // $account->{Balance};
+        my $currency = $account->{currency} // $account->{Currency} // '';
+        my $available = $account->{availableBalance} // $account->{AvailableBalance};
+        my $bank_name = $account->{bankName} // $account->{providerName} // $account->{provider} // '';
+        my $source = $bank_name ne '' ? $bank_name : 'external';
+        push(@accounts, {
+            name => $name,
+            number => $number,
+            balance => $balance,
+            currency => $currency,
+            available => $available,
+            source => $source,
+        });
+    }
+    return @accounts;
+}
+
+sub fetch_offline_accounts
+{
+    my ($login_info) = @_;
+    my @offline_accounts;
+    my $offline_accounts_url = "$root_url/api/AccountsAggregation/Accounts/accounts/Offline";
+    my $request = POST(
+        $offline_accounts_url,
+        @{$login_info->{headers}},
+        @header_accept_json,
+        json_content({})
+    );
+    debug('fetching offline accounts');
+    my $doc = eval {
+        download($request, ignore_errors => [404, 405]);
+    };
+    if (not defined $doc) {
+        debug('offline accounts POST request failed');
+        return @offline_accounts;
+    }
+    my $response = $doc->{response};
+    if ($response->code == 404 or $response->code == 405) {
+        debug('offline accounts POST returned 404/405, trying GET');
+        $request = GET(
+            $offline_accounts_url,
+            @{$login_info->{headers}},
+            @header_accept_json,
+        );
+        $doc = eval {
+            download($request, ignore_errors => [404, 405]);
+        };
+        if (not defined $doc) {
+            debug('offline accounts GET request failed');
+            return @offline_accounts;
+        }
+        $response = $doc->{response};
+    }
+    if (not $response->is_success) {
+        debug('offline accounts request not successful');
+        return @offline_accounts;
+    }
+    @offline_accounts = parse_offline_accounts($doc->{content});
+    my $count = scalar(@offline_accounts);
+    debug("fetched $count offline account(s)");
+    return @offline_accounts;
+}
+
 sub do_list
 {
     my %options = @_;
@@ -2046,13 +2127,48 @@ sub do_list
         push(@result, {
             name => $name,
             number => $number,
+            source => 'mbank',
         });
         next if $quiet;
         my $currency = $account->{Currency};
         my $balance = format_money($account->{Balance}, $currency, context => 'list.balance');
         my $available = format_money($account->{AvailableBalance}, $currency, context => 'list.available');
         $name = unicode_to_bytes($name);
-        print("$name\t$number\t$balance\t$available\n");
+        print("$name\t$number\t$balance\t$available\tmbank\n");
+    }
+    my @offline_accounts = fetch_offline_accounts($login_info);
+    for my $account (@offline_accounts) {
+        my $name = $account->{name};
+        my $number = $account->{number};
+        my $source = $account->{source};
+        push(@result, {
+            name => $name,
+            number => $number,
+            source => $source,
+        });
+        next if $quiet;
+        my $currency = $account->{currency} // '';
+        my $balance_val = $account->{balance};
+        my $available_val = $account->{available};
+        my $balance_str = '';
+        my $available_str = '';
+        if (defined $balance_val and $currency ne '') {
+            $balance_str = eval { format_money($balance_val, $currency, context => 'list.offline.balance') };
+            if (not defined $balance_str) {
+                debug('offline account balance formatting failed');
+                $balance_str = '';
+            }
+        }
+        if (defined $available_val and $currency ne '') {
+            $available_str = eval { format_money($available_val, $currency, context => 'list.offline.available') };
+            if (not defined $available_str) {
+                debug('offline account available balance formatting failed');
+                $available_str = '';
+            }
+        }
+        $name = unicode_to_bytes($name);
+        $source = unicode_to_bytes($source);
+        print("$name\t$number\t$balance_str\t$available_str\t$source\n");
     }
     return [@result];
 }
