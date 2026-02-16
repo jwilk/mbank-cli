@@ -10,7 +10,7 @@ use warnings;
 
 use v5.10;
 
-use Test::More tests => 10;
+use Test::More tests => 14;
 
 use FindBin ();
 use lib $FindBin::Bin;
@@ -60,6 +60,16 @@ require "$module";  ## no critic (RequireBareword)
     my @accounts = parse_offline_accounts($json);
     cmp_ok(scalar(@accounts), '==', 1, 'only account with both name and number is parsed');
     cmp_ok($accounts[0]->{name}, 'eq', 'Valid Account', 'valid account name is correct');
+}
+
+# Test 7: Parse accounts from "payload" key (AccountsAggregation API format)
+{
+    my $json = '{"status":"ok","code":200,"payload":[{"accountNumber":"PL12345678901234567890123456","externalAccountName":"Konto Freemium","accountTypeName":"Konto Freemium","currency":"PLN","availableBalance":1000.50,"bankAvatarName":"AliorAvatar"}]}';
+    my @accounts = parse_offline_accounts($json);
+    cmp_ok(scalar(@accounts), '==', 1, 'one account from payload key');
+    cmp_ok($accounts[0]->{name}, 'eq', 'Konto Freemium', 'externalAccountName used as account name');
+    cmp_ok($accounts[0]->{number}, 'eq', 'PL12345678901234567890123456', 'accountNumber extracted');
+    cmp_ok($accounts[0]->{currency}, 'eq', 'PLN', 'currency extracted');
 }
 
 # vim:ts=4 sts=4 sw=4 et
