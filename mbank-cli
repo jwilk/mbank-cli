@@ -2711,7 +2711,7 @@ sub cmd::deposits
         or scraping_error('deposits.incomplete');
     my $deposits = $json->{deposits};
     for my $deposit (@{$deposits}) {
-        my $title = match($deposit->{title}, qr/.+/, context => 'deposits.title');
+        my $title = match($deposit->{title}, qr/.*/, context => 'deposits.title');
         $title = unicode_to_bytes($title);
         my $type = match($deposit->{type}, qr/.+/, context => 'deposits.type');
         $type = unicode_to_bytes($type);
