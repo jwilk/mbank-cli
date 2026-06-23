@@ -73,10 +73,15 @@ jobs:
         libwww-perl
         libhtml-form-perl
         libipc-run-perl
-    - name: prepare tests
+    - name: prepare tests - bad-ca
       run: |
         # faster than building our own CA cert:
         perl -pi -e 's#^CAfile \K<certs>/.*#/usr/share/ca-certificates/mozilla/Amazon_Root_CA_1.crt#i' t/online-bad-ca.t
+    - name: prepare tests - howsmyssl
+      if: matrix.os != 'ubuntu-26.04'
+      run: |
+        # Ubuntu 22.04 and 24.04 don't support post-quantum crypto:
+        sed -i -e "s/'Probably Okay'/'Improvable'/" t/online-howsmyssl.t
     - name: run tests
       run: |
         MBANK_CLI_ONLINE_TESTS=1 prove --verbose t/online-*.t
