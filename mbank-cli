@@ -933,6 +933,18 @@ my $account_number_re = qr{
 | (?:\d{1,6}-)?\d{2,10}/\d{4}  # Slovak national format: https://www.nbs.sk/en/payment-systems/iban/iban-slovak-republic
 }x;
 
+sub format_account_number
+{
+    my ($number) = @_;
+    return $number unless defined $number;
+    $number =~ s/^PL//;
+    $number =~ s/ //g;
+    if ($number =~ /^\d{26}$/) {
+        $number =~ s/^(\d{2})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})$/$1 $2 $3 $4 $5 $6 $7/;
+    }
+    return $number;
+}
+
 sub format_amount
 {
     my ($s, %options) = @_;
@@ -2019,6 +2031,47 @@ sub cmd::register_device
     return;
 }
 
+sub parse_offline_accounts
+{
+    my ($json_content) = @_;
+    my $data = eval { JSON::PP::decode_json($json_content) };
+    return () unless defined $data;
+    my $list = ref($data) eq 'ARRAY' ? $data : $data->{payload} // $data->{accounts} // $data->{Accounts} // [];
+    return () unless ref($list) eq 'ARRAY';
+    my @accounts;
+    for my $a (@{$list}) {
+        next unless ref($a) eq 'HASH';
+        my $name = $a->{name} // $a->{productName} // $a->{ProductName} // $a->{externalAccountName} // $a->{accountTypeName};
+        my $number = $a->{number} // $a->{accountNumber} // $a->{iban} // $a->{Iban};
+        next unless defined $name and $name ne '' and defined $number and $number ne '';
+        my $bank = $a->{bankName} // $a->{providerName} // $a->{provider} // '';
+        push(@accounts, {
+            name => $name,
+            number => format_account_number($number),
+            balance => $a->{balance} // $a->{Balance},
+            currency => $a->{currency} // $a->{Currency} // '',
+            available => $a->{availableBalance} // $a->{AvailableBalance},
+            source => $bank ne '' ? $bank : 'external',
+        });
+    }
+    return @accounts;
+}
+
+sub fetch_offline_accounts
+{
+    my ($login_info) = @_;
+    my $url = "$root_url/api/AccountsAggregation/Accounts/accounts/Offline";
+    my @hdrs = (@{$login_info->{headers}}, @header_accept_json);
+    my $doc = eval { download(POST($url, @hdrs, json_content({})), ignore_errors => [404, 405]) };
+    return () unless defined $doc;
+    if ($doc->{response}->code == 404 or $doc->{response}->code == 405) {
+        $doc = eval { download(GET($url, @hdrs), ignore_errors => [404, 405]) };
+        return () unless defined $doc;
+    }
+    return () unless $doc->{response}->is_success;
+    return parse_offline_accounts($doc->{content});
+}
+
 sub do_list
 {
     my %options = @_;
@@ -2046,13 +2099,23 @@ sub do_list
         push(@result, {
             name => $name,
             number => $number,
+            source => 'mbank',
         });
         next if $quiet;
         my $currency = $account->{Currency};
         my $balance = format_money($account->{Balance}, $currency, context => 'list.balance');
         my $available = format_money($account->{AvailableBalance}, $currency, context => 'list.available');
         $name = unicode_to_bytes($name);
-        print("$name\t$number\t$balance\t$available\n");
+        print("$name\t$number\t$balance\t$available\tmbank\n");
+    }
+    my @offline_accounts = fetch_offline_accounts($login_info);
+    for my $a (@offline_accounts) {
+        push(@result, { name => $a->{name}, number => $a->{number}, source => $a->{source} });
+        next if $quiet;
+        my $cur = $a->{currency} // '';
+        my $bal = (defined $a->{balance} and $cur ne '') ? (eval { format_money($a->{balance}, $cur, context => 'list.offline.balance') } // '') : '';
+        my $avl = (defined $a->{available} and $cur ne '') ? (eval { format_money($a->{available}, $cur, context => 'list.offline.available') } // '') : '';
+        print(unicode_to_bytes($a->{name}) . "\t$a->{number}\t$bal\t$avl\t" . unicode_to_bytes($a->{source}) . "\n");
     }
     return [@result];
 }
