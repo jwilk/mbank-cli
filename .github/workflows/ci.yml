@@ -16,6 +16,7 @@ jobs:
         - ubuntu-24.04
         - ubuntu-26.04
     runs-on: ${{matrix.os}}
+    timeout-minutes: 5
     steps:
     - uses: actions/checkout@v4
     - name: set up APT
